@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence;
 
-public partial class TodoTaskSchedulerAppDBContext : DbContext
+public partial class TaskManagerAppDBContext : DbContext
 {
-    public TodoTaskSchedulerAppDBContext()
+    public TaskManagerAppDBContext()
     {
     }
 
-    public TodoTaskSchedulerAppDBContext(DbContextOptions<TodoTaskSchedulerAppDBContext> options)
+    public TaskManagerAppDBContext(DbContextOptions<TaskManagerAppDBContext> options)
         : base(options)
     {
     }
