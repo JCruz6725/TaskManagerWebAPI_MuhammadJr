@@ -1,5 +1,4 @@
-
-namespace Web.Api
+namespace Web.Api.Persistence.Models
 {
     public class Program
     {
