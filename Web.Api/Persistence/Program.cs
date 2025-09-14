@@ -1,4 +1,4 @@
-namespace Web.Api.Persistence.Models
+namespace Web.Api.Persistence
 {
     public class Program
     {
@@ -12,6 +12,8 @@ namespace Web.Api.Persistence.Models
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
 
             var app = builder.Build();
 

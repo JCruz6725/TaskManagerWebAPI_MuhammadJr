@@ -1,14 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
+using Web.Api.Persistence;
 using Web.Api.Persistence.Repositories;
 
 namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TaskController
+    public class TaskController : Controller
     {
+        private readonly TaskManagerAppDBContext _dbContext;
+        public TaskController(TaskManagerAppDBContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public TaskDto GetTaskById(Guid taskId)
         {
@@ -16,8 +24,15 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost( Name = "CreateTask")]
-        public TaskDto CreateTask(TaskCreateDto taskCreatedDto)
+        public async Task<ActionResult<TaskDto>> CreateTask(TaskCreateDto taskCreatedDto)
         {
+            //_dbContext.TaskItems.Add(taskCreatedDto);
+            //await _dbContext.SaveChangesAsync();
+
+            ////return CreatedAtAction(nameof())
+            //return Ok(taskCreatedDto);
+
+            Console.WriteLine();
             throw new NotImplementedException();
         }
 
