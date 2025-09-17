@@ -19,9 +19,9 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
-        public ActionResult<Guid> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
+        public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            var existingUser = _unitOfWork.User.GetUserByEmail(registerUserDto.Email);
+            var existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
             if(existingUser is not null)
             {
                 return BadRequest("User Already Exists");
@@ -37,8 +37,8 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
             };
 
-            _unitOfWork.User.CreateUser(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
-            _unitOfWork.SaveChanges();                          //OofW calls the SaveChanges method
+            await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+            await _unitOfWork.SaveChangesAsync();                          //OofW calls the SaveChanges method
 
             return Ok(userCreation.Id);                             //a new Id Guid is return once user is registered
         }
