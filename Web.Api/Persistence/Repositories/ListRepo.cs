@@ -5,6 +5,13 @@ namespace Web.Api.Persistence.Repositories
 {
     public class ListRepo
     {
+        public ListRepo(TaskManagerAppDBContext context)
+        {
+            _context = context;
+        }
+
+        private readonly TaskManagerAppDBContext _context;
+
         public List CreateList(List list)
         {
             throw new NotImplementedException();
@@ -20,6 +27,5 @@ namespace Web.Api.Persistence.Repositories
             throw new NotImplementedException();
 
         }
-        private readonly AppDbContext _context;
     }
 }
