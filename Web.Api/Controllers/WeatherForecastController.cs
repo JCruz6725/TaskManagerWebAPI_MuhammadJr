@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Web.Api.Persistence.Models;
 
 namespace Web.Api.Controllers
 {
