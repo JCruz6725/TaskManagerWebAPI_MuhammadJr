@@ -22,6 +22,5 @@ namespace Web.Api.Persistence.Repositories
            return await _context.Users.FirstOrDefaultAsync(x =>  x.Email == email);   
 
         }
-
     }
 }
