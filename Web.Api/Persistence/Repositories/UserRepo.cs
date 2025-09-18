@@ -1,21 +1,27 @@
-﻿using Web.Api.Persistence.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
 {
     public class UserRepo
-    {
-        public void CreateUser(User user)
+    { 
+        private readonly TaskManagerAppDBContext _context;   //calls the the scaffolded EF Core database (All repos share this _context)
+        public UserRepo (TaskManagerAppDBContext context)   //contructor for the UserRepo that sets the db context 
         {
-            throw new NotImplementedException();
+            _context = context;
+        }
+        public async Task CreateUserAsync(User user)                  //user method is created 
+        {                       
+           await _context.AddAsync(user);                           //users are added to the db, this method will be used to always add a new user 
 
         }
-        public User GetUserById(Guid Id)
+                                                         //method to to register user by email 
+                                                         //uses LINQ to Email from Users
+        public async Task<User?> GetUserByEmailAsync(string email)       
         {
-            throw new NotImplementedException();
+           return await _context.Users.FirstOrDefaultAsync(x =>  x.Email == email);   
 
         }
-
-        private readonly AppDbContext _context;
 
     }
 }

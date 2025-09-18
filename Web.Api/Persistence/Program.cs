@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Web.Api.Persistence
 {
     public class Program
@@ -13,6 +15,11 @@ namespace Web.Api.Persistence
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDbContext<TaskManagerAppDBContext>(option => { option.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=TodoTaskScheduler"); }
+            ,ServiceLifetime.Singleton, ServiceLifetime.Singleton);
+
+
+            builder.Services.AddSingleton<UnitOfWork>();
 
 
             var app = builder.Build();

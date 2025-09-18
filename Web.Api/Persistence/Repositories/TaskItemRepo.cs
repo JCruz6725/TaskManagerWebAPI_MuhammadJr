@@ -5,6 +5,10 @@ namespace Web.Api.Persistence.Repositories
 {
     public class TaskItemRepo
     {
+        public TaskItemRepo(TaskManagerAppDBContext context)
+        { 
+            _context = context;  
+        }
         public TaskItem GetTaskById(Guid Id)
         {
             throw new NotImplementedException();
@@ -33,6 +37,6 @@ namespace Web.Api.Persistence.Repositories
 
         }
 
-        private readonly AppDbContext _context;
+        private readonly TaskManagerAppDBContext _context;
     }
 }
