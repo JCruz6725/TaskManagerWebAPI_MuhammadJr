@@ -4,7 +4,7 @@ namespace Web.Api.Persistence
 {
     public class UnitOfWork
     {
-        private readonly TaskManagerAppDBContext _context;      //calls the the scaffolded EF Core database (All repos share this _context)
+        private readonly TaskManagerAppDBContext _context;      //calls the the scaffolded EF Core database (All repos share this _context -> UofW)
         public UnitOfWork(TaskManagerAppDBContext context)     //constructor for UofW that sets the db context
         {
             _context = context;

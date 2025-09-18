@@ -56,7 +56,7 @@ namespace Web.Api.Controllers
             {                                               
                 return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
             }
-            return Ok($"Succesfull Login {userLogin.Id}");                          // return the registered GUID Id of that user
+            return Ok(userLogin.Id);                          // return the registered GUID Id of that user
         }
     }
 }
