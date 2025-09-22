@@ -35,11 +35,6 @@ namespace Web.Api.Controllers
         [HttpPost( Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid UserId,[FromBody]TaskCreateDto taskCreatedDto)
         {
-            if (!ModelState.IsValid)                                                       //Checks weather data sent to controller is valid
-            {
-                return BadRequest(ModelState);                                            //if not valid send bad request
-            }
-
                                                                                         //Request DTO
                                                                                         //create a new instance of TaskItem 
                                                                                        //calls the TaskItem prop and set the task created dto to its prop
