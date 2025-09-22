@@ -15,7 +15,7 @@ namespace Web.Api.Controllers
 
         public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; 
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
@@ -26,6 +26,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest("User Already Exists");
             }
+                                                                         //RequestDTO
                                                                          //create a new instance of User thats not existing
                                                                         //call the User props and set the registerDto to its assign props 
             var userCreation = new User                               
@@ -38,7 +39,7 @@ namespace Web.Api.Controllers
             };
 
             await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
-            await _unitOfWork.SaveChangesAsync();                          //OofW calls the SaveChanges method
+            await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
 
             return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
         }
@@ -56,7 +57,7 @@ namespace Web.Api.Controllers
             {                                               
                 return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
             }
-            return Ok(userLogin.Id);                          // return the registered GUID Id of that user
+            return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }
 }

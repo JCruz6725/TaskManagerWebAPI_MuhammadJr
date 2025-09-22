@@ -1,23 +1,28 @@
 ﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
 {
     public class TaskItemRepo
     {
+        private readonly TaskManagerAppDBContext _context;
+
         public TaskItemRepo(TaskManagerAppDBContext context)
         { 
             _context = context;  
         }
-        public TaskItem GetTaskById(Guid Id)
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            //return await _context.TaskItems.FirstOrDefaultAsync(x => x.Id == id);
 
+            throw new NotImplementedException();
         }
 
-        public void CreateTask(TaskItem taskItem)
+        public async Task CreateTaskAsync(TaskItem taskItem)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(taskItem);
 
         }
         public void CreateNote(TaskItemNote taskItemItemNotes)
@@ -37,6 +42,5 @@ namespace Web.Api.Persistence.Repositories
 
         }
 
-        private readonly TaskManagerAppDBContext _context;
     }
 }
