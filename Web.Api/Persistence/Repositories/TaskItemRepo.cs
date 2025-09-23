@@ -15,11 +15,9 @@ namespace Web.Api.Persistence.Repositories
         }
         public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
         {
-            //return await _context.TaskItems.FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.TaskItems.FirstOrDefaultAsync(x => x.Id == id);
 
-            throw new NotImplementedException();
         }
-
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
             await _context.AddAsync(taskItem);

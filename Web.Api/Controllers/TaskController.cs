@@ -20,15 +20,15 @@ namespace Web.Api.Controllers
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
-        public async Task<ActionResult<TaskDto>> GetTaskById(Guid taskId)
+        public async Task<ActionResult<TaskDto>> GetTaskById([FromRoute]Guid taskId)
         {
-            //var getId = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-            //if(getId == null)
+            //var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            //if (getTasks == null)
             //{
-            //    return NotFound();
+            //    return NotFound("Id is invalid");
             //}
-            //return Ok(getId);
-            
+            //return Ok(getTasks);
+
             throw new NotImplementedException();
         }
 

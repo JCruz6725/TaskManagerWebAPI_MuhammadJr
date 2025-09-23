@@ -5,19 +5,18 @@ namespace Web.Api.Persistence.Repositories
 {
     public class ListRepo
     {
+        private readonly TaskManagerAppDBContext _context;
         public ListRepo(TaskManagerAppDBContext context)
         {
             _context = context;
         }
-
-        private readonly TaskManagerAppDBContext _context;
 
         public List CreateList(List list)
         {
             throw new NotImplementedException();
 
         }
-        public List GetListById(Guid Id)
+        public async Task<List> GetListByIdAsync(Guid Id)
         {
             throw new NotImplementedException();
 
