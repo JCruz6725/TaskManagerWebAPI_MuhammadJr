@@ -22,13 +22,6 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromRoute]Guid taskId)
         {
-            //var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-            //if (getTasks == null)
-            //{
-            //    return NotFound("Id is invalid");
-            //}
-            //return Ok(getTasks);
-
             throw new NotImplementedException();
         }
 
