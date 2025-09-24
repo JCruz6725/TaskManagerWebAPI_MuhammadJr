@@ -15,8 +15,8 @@ namespace Web.Api.Persistence.Repositories
         }
         public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
         {
-            return await _context.TaskItems.FirstOrDefaultAsync(x => x.Id == id);
-
+            return await _context.TaskItems.Include(x => x.TaskItemNotes).Include(x => x.TaskItemStatusHistories)
+                .ThenInclude(x => x.Status).FirstOrDefaultAsync(x => x.Id == id);
         }
         public async Task CreateTaskAsync(TaskItem taskItem)
         {

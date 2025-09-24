@@ -22,14 +22,36 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromRoute]Guid taskId)
         {
-            //var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-            //if (getTasks == null)
-            //{
-            //    return NotFound("Id is invalid");
-            //}
-            //return Ok(getTasks);
+            var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            if(getTasks == null)
+            {
+                return NotFound("Id is invalid");
+            }
 
-            throw new NotImplementedException();
+            var taskDetail = new TaskDto()
+            {
+                Title = getTasks.Title,
+                DueDate = getTasks.DueDate,
+                Priority = getTasks.Priority,
+                CreatedDate = getTasks.CreatedDate,
+                CreatedUserId = getTasks.CreatedUserId,
+
+                Notes = getTasks.TaskItemNotes.Select(getTasks => new NoteDto
+                {
+                    TaskItemId = getTasks.TaskItemId,
+                    Note = getTasks.Note,
+                    CreatedDate = getTasks.CreatedDate,
+                    CreatedUser = getTasks.CreatedUserId,
+                } ).ToList(), 
+
+                CurrentStatus = getTasks.TaskItemStatusHistories.Select(x => new StatusDto
+                {
+                    Name = x.Status.Name,  
+                    Code = x.Status.Code,
+                }).FirstOrDefault(),
+            };
+            return Ok(taskDetail);
+
         }
 
         [HttpPost( Name = "CreateTask")]
@@ -98,7 +120,7 @@ namespace Web.Api.Controllers
 
         }
 
-        private readonly TaskItemRepo _taskRepsitory;
+        //private readonly TaskItemRepo _taskRepsitory;
 
     }
 }
