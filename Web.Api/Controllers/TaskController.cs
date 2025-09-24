@@ -20,7 +20,7 @@ namespace Web.Api.Controllers
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
-        public async Task<ActionResult<TaskDto>> GetTaskById([FromRoute]Guid taskId)
+        public async Task<ActionResult<TaskDto>> GetTaskById(Guid taskId)
         {
             var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
             if(getTasks == null)
@@ -30,24 +30,27 @@ namespace Web.Api.Controllers
 
             var taskDetail = new TaskDto()
             {
+                Id = getTasks.Id,
                 Title = getTasks.Title,
                 DueDate = getTasks.DueDate,
                 Priority = getTasks.Priority,
                 CreatedDate = getTasks.CreatedDate,
                 CreatedUserId = getTasks.CreatedUserId,
 
-                Notes = getTasks.TaskItemNotes.Select(getTasks => new NoteDto
+                Notes = getTasks.TaskItemNotes.Select(note =>  new NoteDto
                 {
-                    TaskItemId = getTasks.TaskItemId,
-                    Note = getTasks.Note,
-                    CreatedDate = getTasks.CreatedDate,
-                    CreatedUser = getTasks.CreatedUserId,
+                    Id = note.Id,
+                    TaskItemId = note.TaskItemId,
+                    Note = note.Note,
+                    CreatedDate = note.CreatedDate,
+                    CreatedUser = note.CreatedUserId,
                 } ).ToList(), 
 
-                CurrentStatus = getTasks.TaskItemStatusHistories.Select(x => new StatusDto
+                CurrentStatus = getTasks.TaskItemStatusHistories.Select(history => new StatusDto
                 {
-                    Name = x.Status.Name,  
-                    Code = x.Status.Code,
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,  
+                    Code = history.Status.Code,
                 }).FirstOrDefault(),
             };
             return Ok(taskDetail);
