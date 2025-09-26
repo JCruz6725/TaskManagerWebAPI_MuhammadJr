@@ -26,4 +26,6 @@ public partial class User
     public virtual ICollection<TaskItemStatusHistory> TaskItemStatusHistories { get; set; } = new List<TaskItemStatusHistory>();
 
     public virtual ICollection<TaskItem> TaskItems { get; set; } = new List<TaskItem>();
+
+
 }

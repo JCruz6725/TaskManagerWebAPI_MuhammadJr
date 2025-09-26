@@ -28,7 +28,7 @@ namespace Web.Api.Controllers
                 return NotFound("Id is invalid");
             }
 
-            var taskDetail = new TaskDto()                                    //create a new instance of TaskDto and set their properties
+            var taskDetail = new TaskDto()                                    //create a new instance of TaskDto and set their properties 
             {
                 Id = getTasks.Id,
                 Title = getTasks.Title,
@@ -36,7 +36,6 @@ namespace Web.Api.Controllers
                 Priority = getTasks.Priority,
                 CreatedDate = getTasks.CreatedDate,
                 CreatedUserId = getTasks.CreatedUserId,
-
                 Notes = getTasks.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                     (note => new NoteDto                                         //create new instance of NoteDto
                     {

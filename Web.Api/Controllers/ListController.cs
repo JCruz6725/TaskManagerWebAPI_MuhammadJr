@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Repositories;
+using Web.Api.Persistence.Models;
 
 namespace Web.Api.Controllers
 {
@@ -27,29 +26,40 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public ListDto GetListById(int ListId)
         {
-            
-
 
             throw new NotImplementedException();
         }
 
         [HttpGet( Name = "GetAllList")]
-        public async Task<ActionResult<List<ListDto>>> GetAllListAsync([FromHeader] Guid UserId)
+        public async Task<ActionResult<List<ListDto>>> GetAllList([FromHeader] Guid UserId)
         {
-            var lists = await _unitOfWork.List.GetListByIdAsync(UserId);
-            if(lists is null)
+            var getLists = await _unitOfWork.List.GetAllListAsync(UserId);
+            if (getLists is null)
             {
                return NotFound("No Lists Found");
             }
 
-            var listDtos = new ListDto
+            var getListDetail = getLists.Select(list => new ListDto
             {
-                Name = lists.Name,
-                CreatedDate = lists.CreatedDate,
-                CreatedUserId = lists.CreatedUserId,
-              };
+                Id = list.Id,
+                Name = list.Name,
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
 
-            return Ok(listDtos);
+                //TaskItems = list.CreatedUser.TaskWithinList.Select(twl => new TaskDto
+                //{
+                //    Id = twl.TaskItem.Id,
+                //    Title = twl.TaskItem.Title,
+                //    DueDate = twl.TaskItem.DueDate,
+                //    Priority = twl.TaskItem.Priority,
+                //    CreatedDate = twl.TaskItem.CreatedDate,
+                //    CreatedUserId = twl.TaskItem.CreatedUserId,
+
+                //}).ToArray()
+
+            }).ToList();
+
+            return Ok(getListDetail);
         }
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
