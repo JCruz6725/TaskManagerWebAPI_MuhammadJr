@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.VisualBasic;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
@@ -23,33 +24,40 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<TaskDto>> GetTaskById(Guid taskId)
         {
             //var getId = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-            //if(getId == null)
+            //if (getId == null)
             //{
             //    return NotFound();
             //}
             //return Ok(getId);
-            
+
             throw new NotImplementedException();
         }
 
         [HttpPost( Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid UserId,[FromBody]TaskCreateDto taskCreatedDto)
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId,[FromBody]TaskCreateDto taskCreatedDto, [FromHeader]string email)
         {
-                                                                                        //Request DTO
-                                                                                        //create a new instance of TaskItem 
-                                                                                       //calls the TaskItem prop and set the task created dto to its prop
-            var taskCreation = new TaskItem()                                            
+            var userExist = await _unitOfWork.User.GetUserByEmailAsync(email);  //Check if user exists before adding task
+            if (userExist is null)
+            {
+                return NotFound("user account does not exist");
+            }
+
+            //Request DTO
+            //create a new instance of TaskItem 
+            //calls the TaskItem prop and set the task created dto to its prop
+            var taskCreation = new TaskItem()
             {
                 Title = taskCreatedDto.Title,
-                DueDate = taskCreatedDto.DueDate ?? DateTime.Now.AddDays(5),
+                DueDate = taskCreatedDto.DueDate == default ? taskCreatedDto.DueDate.Value : DateTime.Now.AddDays(1),
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
-                CreatedUserId = UserId                                              //set the UserId which is given by the user from the header
+                CreatedUserId = userId                                              //set the UserId which is given by the user from the header
             };
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
-
+           
+         
                                                                                    //Response DTO
                                                                                    //create a new instance of TaskDto
                                                                                   //calls the TaskDto prop and call the taskCreation and set the prop for user view
@@ -63,7 +71,8 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId,
             };
-            return Ok(creationResult);
+            //return Ok(taskCreation);
+            return CreatedAtAction(nameof(CreateTask),new { taskCreation.Id}, creationResult);
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
@@ -98,7 +107,6 @@ namespace Web.Api.Controllers
 
         }
 
-        private readonly TaskItemRepo _taskRepsitory;
 
     }
 }
