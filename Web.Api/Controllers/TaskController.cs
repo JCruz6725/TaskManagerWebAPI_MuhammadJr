@@ -34,9 +34,9 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost( Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId,[FromBody]TaskCreateDto taskCreatedDto, [FromHeader]string email)
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId,[FromBody]TaskCreateDto taskCreatedDto, [FromHeader]Guid Id)
         {
-            var userExist = await _unitOfWork.User.GetUserByEmailAsync(email);  //Check if user exists before adding task
+            var userExist = await _unitOfWork.User.GetUserByEmailAsync(Id);  //Check if user exists before adding task
             if (userExist is null)
             {
                 return NotFound("user account does not exist");

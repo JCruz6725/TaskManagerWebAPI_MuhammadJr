@@ -22,5 +22,11 @@ namespace Web.Api.Persistence.Repositories
            return await _context.Users.FirstOrDefaultAsync(x =>  x.Email == email);   
 
         }
+
+        public async Task<User?> GetUserByIdAsync(Guid Id)
+        {
+          throw new NotImplementedException();  
+
+        }
     }
 }
