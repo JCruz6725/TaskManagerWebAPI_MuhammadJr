@@ -34,9 +34,9 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost( Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId,[FromBody]TaskCreateDto taskCreatedDto, [FromHeader]Guid Id)
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId,[FromBody]TaskCreateDto taskCreatedDto)
         {
-            var userExist = await _unitOfWork.User.GetUserByEmailAsync(Id);  //Check if user exists before adding task
+            var userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
             if (userExist is null)
             {
                 return NotFound("user account does not exist");
@@ -48,11 +48,19 @@ namespace Web.Api.Controllers
             var taskCreation = new TaskItem()
             {
                 Title = taskCreatedDto.Title,
-                DueDate = taskCreatedDto.DueDate == default ? taskCreatedDto.DueDate.Value : DateTime.Now.AddDays(1),
+                //DueDate = taskCreatedDto.DueDate == default ? taskCreatedDto.DueDate.Value : DateTime.Now.AddDays(1),
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId                                              //set the UserId which is given by the user from the header
             };
+
+            if(taskCreatedDto.DueDate == null)
+            {
+                taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
+            }
+            {
+                taskCreation.DueDate = taskCreatedDto.DueDate.Value; //enetered value
+            }
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
@@ -71,8 +79,7 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId,
             };
-            //return Ok(taskCreation);
-            return CreatedAtAction(nameof(CreateTask),new { taskCreation.Id}, creationResult);
+            return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
