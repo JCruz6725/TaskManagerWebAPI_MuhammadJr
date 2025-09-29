@@ -20,7 +20,7 @@ namespace Web.Api.Controllers
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
-        public async Task<ActionResult<TaskDto>> GetTaskById(Guid taskId)
+        public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid taskId)
         {
             var getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId); //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             if (getTasks == null)                                               //check if the taskId  is null then return invalid
