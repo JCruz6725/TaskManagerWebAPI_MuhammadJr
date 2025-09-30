@@ -26,4 +26,6 @@ public partial class TaskItem
     public virtual ICollection<TaskItemNote> TaskItemNotes { get; set; } = new List<TaskItemNote>();
 
     public virtual ICollection<TaskItemStatusHistory> TaskItemStatusHistories { get; set; } = new List<TaskItemStatusHistory>();
+
+    public virtual ICollection<TaskWithinList> TaskWithinLists { get; set; } = new List<TaskWithinList>();
 }

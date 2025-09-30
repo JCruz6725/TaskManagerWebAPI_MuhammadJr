@@ -67,7 +67,7 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.HasOne(d => d.SubTaskItem).WithMany(p => p.SubTaskSubTaskItems)
                 .HasForeignKey(d => d.SubTaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SubTasks_SubTasks1");
+                .HasConstraintName("FK_SubTasks1_TaskItem");
 
             entity.HasOne(d => d.TaskItem).WithMany(p => p.SubTaskTaskItems)
                 .HasForeignKey(d => d.TaskItemId)
@@ -134,23 +134,23 @@ public partial class TaskManagerAppDBContext : DbContext
 
         modelBuilder.Entity<TaskWithinList>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("TaskWithinList");
+            entity.HasKey(e => new { e.TaskListId, e.TaskItemId });
+
+            entity.ToTable("TaskWithinList");
 
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
 
-            entity.HasOne(d => d.CreatedUser).WithMany()
+            entity.HasOne(d => d.CreatedUser).WithMany(p => p.TaskWithinLists)
                 .HasForeignKey(d => d.CreatedUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TaskWithinList_Users");
 
-            entity.HasOne(d => d.TaskItem).WithMany()
+            entity.HasOne(d => d.TaskItem).WithMany(p => p.TaskWithinLists)
                 .HasForeignKey(d => d.TaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TaskWithinList_TaskItem");
 
-            entity.HasOne(d => d.TaskList).WithMany()
+            entity.HasOne(d => d.TaskList).WithMany(p => p.TaskWithinLists)
                 .HasForeignKey(d => d.TaskListId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TaskWithinList_List");
@@ -158,9 +158,7 @@ public partial class TaskManagerAppDBContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())"); 
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
             entity.Property(e => e.Email).IsUnicode(false);
             entity.Property(e => e.FirstName).IsUnicode(false);
