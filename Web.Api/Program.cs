@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Web.Api.Persistence;
 
-namespace Web.Api.Persistence
+namespace Web.Api
 {
     public class Program
     {
