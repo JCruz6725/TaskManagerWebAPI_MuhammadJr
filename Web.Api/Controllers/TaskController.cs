@@ -2,7 +2,6 @@
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Repositories;
 
 namespace Web.Api.Controllers
 {
@@ -10,65 +9,54 @@ namespace Web.Api.Controllers
     [Route("[controller]")]
     public class TaskController : Controller
     {
-        private readonly TaskManagerAppDBContext _dbContext;
-        public TaskController(TaskManagerAppDBContext dbContext)
+        private readonly UnitOfWork _unitOfWork;
+        public TaskController(UnitOfWork unitOfWork)
         {
-            _dbContext = dbContext;
+            _unitOfWork = unitOfWork;
         }
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
-        public TaskDto GetTaskById(Guid taskId)
+        public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
 
         [HttpPost( Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask(TaskCreateDto taskCreatedDto)
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto)
         {
-            //_dbContext.TaskItems.Add(taskCreatedDto);
-            //await _dbContext.SaveChangesAsync();
-
-            ////return CreatedAtAction(nameof())
-            //return Ok(taskCreatedDto);
-
-            Console.WriteLine();
             throw new NotImplementedException();
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
-        public NoteCreateDto CreateNote(Guid taskId, NoteCreateDto noteCreateDto)
+        public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
             throw new NotImplementedException();
         }
 
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]
-        public List<NoteDto> GetAllNotes(Guid taskId)
+        public Task<ActionResult<List<NoteDto>>> GetAllNotes([FromHeader]Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
 
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
-        public void DeleteNote(Guid NoteId)
+        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid NoteId)
         {
             throw new NotImplementedException();
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
-        public void StatusChangeComplete(Guid TaskId)
+        public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid TaskId)
         {
             throw new NotImplementedException();
 
         }
 
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
-        public void StatusChangePending(Guid TaskId)
+        public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader]Guid userId, Guid TaskId)
         {
             throw new NotImplementedException();
-
         }
-
-        private readonly TaskItemRepo _taskRepsitory;
-
     }
 }
