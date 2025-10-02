@@ -69,9 +69,6 @@ namespace Web.Api.Controllers
                 return NotFound("user account does not exist");
             }
             //calls the TaskItem prop and set the task created dto to its prop
-            var taskCreation = new TaskItem()
-      
-
             //Request DTO
             //create a new instance of TaskItem 
             //calls the TaskItem prop and set the task created dto to its prop

@@ -66,7 +66,7 @@ namespace Web.Api.Controllers
                return NotFound("No Lists Found");
             }
 
-            var getListDetail = getLists.Select(list => new ListDto
+            var getListDetail = new ListDto
             {
                 Id = userLists.Id,
                 Name = userLists.Name,
@@ -74,7 +74,7 @@ namespace Web.Api.Controllers
                 CreatedUserId = userLists.CreatedUserId,
 
               };
-            return Ok(listDtos);
+            return Ok(getListDetail);
         }
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
