@@ -7,7 +7,7 @@ namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ListController
+    public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
         public ListController(UnitOfWork unitOfWork) {

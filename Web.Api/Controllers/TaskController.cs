@@ -7,7 +7,7 @@ namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TaskController : Controller
+    public class TaskController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
         public TaskController(UnitOfWork unitOfWork)
