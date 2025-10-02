@@ -66,7 +66,7 @@ namespace Web.Api.Controllers
                return NotFound("No Lists Found");
             }
 
-            var listDtos = new ListDto
+            var getListDetail = getLists.Select(list => new ListDto
             {
                 Id = userLists.Id,
                 Name = userLists.Name,
