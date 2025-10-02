@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -20,7 +20,7 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost(Name = "CreateList")]
-        public ListDto CreateList(ListCreateDto createListDto)
+        public async Task<ActionResult<ListDto>> CreateList([FromHeader]Guid userId, ListCreateDto createListDto)
         {
            
             
@@ -28,9 +28,9 @@ namespace Web.Api.Controllers
         }
 
         [HttpGet("{listId}", Name = "GetListById")]
-        public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid ListId)
+        public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
         {
-            var getList = await _unitOfWork.List.GetListByIdAsync(ListId);
+            var getList = await _unitOfWork.List.GetListByIdAsync(listId);
             if(getList is null)
             {
                 return NotFound("No List with this Id Found");
@@ -58,9 +58,9 @@ namespace Web.Api.Controllers
         }
 
         [HttpGet( Name = "GetAllList")]
-        public async Task<ActionResult<List<ListDto>>> GetAllList([FromHeader] Guid UserId)
+        public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
         {
-            var userLists = await _unitOfWork.List.GetAllListAsync(UserId);
+            var userLists = await _unitOfWork.List.GetAllListAsync(userId);
             if(userLists is null)
             {
                return NotFound("No Lists Found");
@@ -78,7 +78,7 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
-        public void MoveTaskToList(Task task)
+        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader]Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
             throw new NotImplementedException();
         }

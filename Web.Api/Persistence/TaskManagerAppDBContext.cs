@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence;
@@ -34,24 +36,22 @@ public partial class TaskManagerAppDBContext : DbContext
     {
         modelBuilder.Entity<List>(entity =>
         {
-            entity.ToTable("List");
-
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.Name).IsUnicode(false);
+            entity.Property(e => e.Name)
+                .HasMaxLength(64)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.CreatedUser).WithMany(p => p.Lists)
                 .HasForeignKey(d => d.CreatedUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_List_Users");
+                .HasConstraintName("FK_Lists_Users");
         });
 
         modelBuilder.Entity<Status>(entity =>
         {
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(32);
         });
 
         modelBuilder.Entity<SubTask>(entity =>
@@ -67,18 +67,16 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.HasOne(d => d.SubTaskItem).WithMany(p => p.SubTaskSubTaskItems)
                 .HasForeignKey(d => d.SubTaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SubTasks1_TaskItem");
+                .HasConstraintName("FK_SubTasks_TaskItems1");
 
             entity.HasOne(d => d.TaskItem).WithMany(p => p.SubTaskTaskItems)
                 .HasForeignKey(d => d.TaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SubTasks_TaskItem");
+                .HasConstraintName("FK_SubTasks_TaskItems");
         });
 
         modelBuilder.Entity<TaskItem>(entity =>
         {
-            entity.ToTable("TaskItem");
-
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
             entity.Property(e => e.DueDate).HasColumnType("smalldatetime");
@@ -87,7 +85,7 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.HasOne(d => d.CreatedUser).WithMany(p => p.TaskItems)
                 .HasForeignKey(d => d.CreatedUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Users_TaskItem");
+                .HasConstraintName("FK_TaskItems_Users");
         });
 
         modelBuilder.Entity<TaskItemNote>(entity =>
@@ -104,32 +102,30 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.HasOne(d => d.TaskItem).WithMany(p => p.TaskItemNotes)
                 .HasForeignKey(d => d.TaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskItemNotes_TaskItem");
+                .HasConstraintName("FK_TaskItemNotes_TaskItems");
         });
 
         modelBuilder.Entity<TaskItemStatusHistory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_TaskItemkStatusHistory");
-
             entity.ToTable("TaskItemStatusHistory");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.Created).HasColumnType("smalldatetime");
+            entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
 
             entity.HasOne(d => d.CreatedUser).WithMany(p => p.TaskItemStatusHistories)
                 .HasForeignKey(d => d.CreatedUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskStatusHistory_Users");
+                .HasConstraintName("FK_TaskItemStatusHistory_Users");
 
             entity.HasOne(d => d.Status).WithMany(p => p.TaskItemStatusHistories)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskStatusHistory_Statuses");
+                .HasConstraintName("FK_TaskItemStatusHistory_Statuses");
 
             entity.HasOne(d => d.TaskItem).WithMany(p => p.TaskItemStatusHistories)
                 .HasForeignKey(d => d.TaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskStatusHistory_TaskItem");
+                .HasConstraintName("FK_TaskItemStatusHistory_TaskItems");
         });
 
         modelBuilder.Entity<TaskWithinList>(entity =>
@@ -148,22 +144,30 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.HasOne(d => d.TaskItem).WithMany(p => p.TaskWithinLists)
                 .HasForeignKey(d => d.TaskItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskWithinList_TaskItem");
+                .HasConstraintName("FK_TaskWithinList_TaskItems");
 
             entity.HasOne(d => d.TaskList).WithMany(p => p.TaskWithinLists)
                 .HasForeignKey(d => d.TaskListId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TaskWithinList_List");
+                .HasConstraintName("FK_TaskWithinList_Lists");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.Email).IsUnicode(false);
-            entity.Property(e => e.FirstName).IsUnicode(false);
-            entity.Property(e => e.LastName).IsUnicode(false);
-            entity.Property(e => e.Password).IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(128)
+                .IsUnicode(false);
+            entity.Property(e => e.FirstName)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.LastName)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Password)
+                .HasMaxLength(64)
+                .IsUnicode(false);
         });
 
         OnModelCreatingPartial(modelBuilder);
