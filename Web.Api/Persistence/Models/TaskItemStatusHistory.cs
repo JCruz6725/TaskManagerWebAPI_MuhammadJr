@@ -11,7 +11,7 @@ public partial class TaskItemStatusHistory
 
     public Guid StatusId { get; set; }
 
-    public DateTime Created { get; set; }
+    public DateTime CreatedDate { get; set; }
 
     public Guid CreatedUserId { get; set; }
 
