@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.VisualBasic;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
@@ -63,15 +64,34 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) { 
             //Request DTO
             //create a new instance of TaskItem 
+            var userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
+            if (userExist is null)
+            {
+                return NotFound("user account does not exist");
+            }
+            //calls the TaskItem prop and set the task created dto to its prop
+            var taskCreation = new TaskItem()
+      
+
+            //Request DTO
+            //create a new instance of TaskItem 
             //calls the TaskItem prop and set the task created dto to its prop
             var taskCreation = new TaskItem()
             {
                 Title = taskCreatedDto.Title,
-                DueDate = taskCreatedDto.DueDate ?? DateTime.Now.AddDays(5),
+                //DueDate = taskCreatedDto.DueDate == default ? taskCreatedDto.DueDate.Value : DateTime.Now.AddDays(1),
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId                                              //set the UserId which is given by the user from the header
             };
+
+            if(taskCreatedDto.DueDate == null)
+            {
+                taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
+            }
+            {
+                taskCreation.DueDate = taskCreatedDto.DueDate.Value; //enetered value
+            }
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
@@ -89,7 +109,7 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId,
             };
-            return Ok(creationResult);
+            return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
