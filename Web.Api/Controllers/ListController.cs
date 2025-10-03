@@ -22,21 +22,33 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateList")]
         public async Task<ActionResult<ListDto>> CreateList([FromHeader]Guid userId, ListCreateDto createListDto)
         {
-           
-            
             throw new NotImplementedException();
         }
 
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
         {
-            var getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            if(getList is null)
+            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            if (getList == null && getUser == null)
             {
-                return NotFound("No List with this Id Found");
+                return NotFound($"UserId {userId} and ListId {listId} are invalid");
+            }
+            if (getList == null && getUser != null)
+            {
+                return NotFound($"ListId {listId} is invalid");
+            }
+            if (getList != null && getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getList.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"ListId {listId} does not belog to this UserId{userId} ");
             }
 
-            var listDtos = new ListDto
+            ListDto listDtos = new ListDto
             {
                 Id = getList.Id,
                 Name = getList.Name,
@@ -60,19 +72,18 @@ namespace Web.Api.Controllers
         [HttpGet( Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
         {
-            var userLists = await _unitOfWork.List.GetAllListAsync(userId);
-            if(userLists is null)
+            List? userLists = await _unitOfWork.List.GetAllListAsync(userId);
+            if(userLists == null)
             {
-               return NotFound("No Lists Found");
+               return NotFound($"No Lists Found With UserId {userId} ");
             }
 
-            var getListDetail = new ListDto
+            ShortListDto getListDetail = new ShortListDto
             {
                 Id = userLists.Id,
                 Name = userLists.Name,
                 CreatedDate = userLists.CreatedDate,
                 CreatedUserId = userLists.CreatedUserId,
-
               };
             return Ok(getListDetail);
         }

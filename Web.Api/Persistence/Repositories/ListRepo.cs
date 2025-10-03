@@ -16,10 +16,9 @@ namespace Web.Api.Persistence.Repositories
         {
             throw new NotImplementedException();
         }
-        public async Task<List?> GetListByIdAsync(Guid Id)
+        public async Task<List?> GetListByIdAsync(Guid listId)
         {
-            return await _context.Lists.Include(twl => twl.TaskWithinLists).ThenInclude(ti => ti.TaskItem).FirstOrDefaultAsync(i => i.Id == Id);
-            //return await _context.Lists.Include(twl => twl.TaskWithinLists).ThenInclude(ti => ti.TaskItem).Where(i => i.Id == Id).FirstOrDefaultAsync();
+            return await _context.Lists.Include(twl => twl.TaskWithinLists).ThenInclude(ti => ti.TaskItem).FirstOrDefaultAsync(i => i.Id == listId);
 
         }
         public async Task<List?> GetAllListAsync(Guid Id)

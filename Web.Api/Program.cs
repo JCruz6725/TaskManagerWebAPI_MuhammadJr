@@ -6,7 +6,7 @@ namespace Web.Api
     public class Program
     {
         public static void Main(string[] args)
-        {
+      {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -16,7 +16,7 @@ namespace Web.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<TaskManagerAppDBContext>(option => { option.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=TodoTaskScheduler"); }
+            builder.Services.AddDbContext<TaskManagerAppDBContext>(option => { option.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=TaskManagerApp"); }
             ,ServiceLifetime.Singleton, ServiceLifetime.Singleton);
 
 

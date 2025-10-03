@@ -21,15 +21,15 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            var existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
-            if(existingUser is not null)                                                          //check if user already exists in the database
+            User? existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
+            if(existingUser != null)                                                          //check if user already exists in the database
             {
                 return BadRequest("User Already Exists");
             }
                                                                          //RequestDTO
                                                                          //create a new instance of User thats not existing
                                                                         //call the User props and set the registerDto to its assign props 
-            var userCreation = new User                               
+            User userCreation = new User                               
             {
                 FirstName = registerUserDto.FirstName,
                 LastName = registerUserDto.LastName,
@@ -47,8 +47,8 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            var userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-            if (userLogin is null)                                                            //if login is null send invalid
+            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
+            if (userLogin == null)                                                            //if login is null send invalid
             {
                 return Unauthorized("Invalid Email or Password");
             }

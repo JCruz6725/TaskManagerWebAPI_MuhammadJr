@@ -13,10 +13,10 @@ namespace Web.Api.Persistence.Repositories
         { 
             _context = context;  
         }
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId)
         {
             return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-                .ThenInclude(stat => stat.Status).FirstOrDefaultAsync(x => x.Id == id);
+                .ThenInclude(stat => stat.Status).FirstOrDefaultAsync(ti => ti.Id == taskId);
         }
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
