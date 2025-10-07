@@ -1,5 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
@@ -20,10 +19,10 @@ namespace Web.Api.Persistence.Repositories
         {
             return await _context.Lists.Include(twl => twl.TaskWithinLists).ThenInclude(ti => ti.TaskItem).FirstOrDefaultAsync(i => i.Id == listId);
 
-        }
-        public async Task<List?> GetAllListAsync(Guid Id)
+        }   
+        public async Task<List<List>> GetAllListAsync(Guid Id)
         {
-            return await _context.Lists.Where(cu => cu.CreatedUserId == Id).FirstOrDefaultAsync();
+            return await _context.Lists.Where(c => c.CreatedUserId == Id).ToListAsync();
         }
     }
 }

@@ -72,19 +72,19 @@ namespace Web.Api.Controllers
         [HttpGet( Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
         {
-            List? userLists = await _unitOfWork.List.GetAllListAsync(userId);
+            List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
             if(userLists == null)
             {
                return NotFound($"No Lists Found With UserId {userId} ");
             }
 
-            ShortListDto getListDetail = new ShortListDto
+            List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
             {
-                Id = userLists.Id,
-                Name = userLists.Name,
-                CreatedDate = userLists.CreatedDate,
-                CreatedUserId = userLists.CreatedUserId,
-              };
+                Id = sl.Id,
+                Name = sl.Name,
+                CreatedDate = sl.CreatedDate,
+                CreatedUserId = sl.CreatedUserId,
+              }).ToList();
             return Ok(getListDetail);
         }
 

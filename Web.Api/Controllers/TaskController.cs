@@ -23,35 +23,35 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
-            TaskItem? getTasks = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             
-            if (getTasks == null && getUser == null)                                               
+            if (getTask == null && getUser == null)                                               
             {
                 return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
             }
-            if(getTasks == null && getUser != null)
+            if(getTask == null && getUser != null)
             {
                 return NotFound($"TaskId {taskId} is invalid");
             } 
-            if(getTasks != null &&  getUser == null)
+            if(getTask != null &&  getUser == null)
             {
                 return NotFound($"UserId {userId} is invalid");
             }
-            if (getTasks.CreatedUserId != getUser.Id)
+            if (getTask.CreatedUserId != getUser.Id)
             {
                 return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
             }
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
-                Id = getTasks.Id,
-                Title = getTasks.Title,
-                DueDate = getTasks.DueDate,
-                Priority = getTasks.Priority,
-                CreatedDate = getTasks.CreatedDate,
-                CreatedUserId = getTasks.CreatedUserId,
-                Notes = getTasks.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
+                Id = getTask.Id,
+                Title = getTask.Title,
+                DueDate = getTask.DueDate,
+                Priority = getTask.Priority,
+                CreatedDate = getTask.CreatedDate,
+                CreatedUserId = getTask.CreatedUserId,
+                Notes = getTask.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                     (note => new NoteDto                                         //create new instance of NoteDto
                     {
                         Id = note.Id,
@@ -61,7 +61,7 @@ namespace Web.Api.Controllers
                         CreatedUser = note.CreatedUserId,
                     }).ToList(),                                                 //add notes to the list
 
-                CurrentStatus = getTasks.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
+                CurrentStatus = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
                  .Select (history => new StatusDto                                     //create new instance of StatusDto
                      {
                          Id = history.Status.Id,
