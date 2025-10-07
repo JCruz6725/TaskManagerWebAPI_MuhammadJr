@@ -1,31 +1,28 @@
-﻿
+﻿using Microsoft.EntityFrameworkCore;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
 {
     public class ListRepo
     {
+        private readonly TaskManagerAppDBContext _context;
         public ListRepo(TaskManagerAppDBContext context)
         {
             _context = context;
         }
 
-        private readonly TaskManagerAppDBContext _context;
-
         public List CreateList(List list)
         {
             throw new NotImplementedException();
-
         }
-        public List GetListById(Guid Id)
+        public async Task<List?> GetListByIdAsync(Guid listId)
         {
-            throw new NotImplementedException();
+            return await _context.Lists.Include(twl => twl.TaskWithinLists).ThenInclude(ti => ti.TaskItem).FirstOrDefaultAsync(i => i.Id == listId);
 
-        }
-        public List GetAllList()
+        }   
+        public async Task<List<List>> GetAllListAsync(Guid Id)
         {
-            throw new NotImplementedException();
-
+            return await _context.Lists.Where(c => c.CreatedUserId == Id).ToListAsync();
         }
     }
 }

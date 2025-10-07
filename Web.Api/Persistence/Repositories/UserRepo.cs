@@ -19,7 +19,13 @@ namespace Web.Api.Persistence.Repositories
                                                          //uses LINQ to Email from Users
         public async Task<User?> GetUserByEmailAsync(string email)       
         {
-           return await _context.Users.FirstOrDefaultAsync(x =>  x.Email == email);   
+           return await _context.Users.FirstOrDefaultAsync(e =>  e.Email == email);   
+
+        }
+
+        public async Task<User?> GetUserByIdAsync(Guid userId)
+        {
+            return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
 
         }
     }

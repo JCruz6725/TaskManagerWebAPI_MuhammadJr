@@ -15,20 +15,21 @@ namespace Web.Api.Controllers
 
         public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; 
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            var existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
-            if(existingUser is not null)                                                          //check if user already exists in the database
+            User? existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
+            if(existingUser != null)                                                          //check if user already exists in the database
             {
                 return BadRequest("User Already Exists");
             }
+                                                                         //RequestDTO
                                                                          //create a new instance of User thats not existing
                                                                         //call the User props and set the registerDto to its assign props 
-            var userCreation = new User                               
+            User userCreation = new User                               
             {
                 FirstName = registerUserDto.FirstName,
                 LastName = registerUserDto.LastName,
@@ -38,7 +39,7 @@ namespace Web.Api.Controllers
             };
 
             await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
-            await _unitOfWork.SaveChangesAsync();                          //OofW calls the SaveChanges method
+            await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
 
             return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
         }
@@ -46,8 +47,8 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            var userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-            if (userLogin is null)                                                            //if login is null send invalid
+            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
+            if (userLogin == null)                                                            //if login is null send invalid
             {
                 return Unauthorized("Invalid Email or Password");
             }
@@ -56,7 +57,7 @@ namespace Web.Api.Controllers
             {                                               
                 return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
             }
-            return Ok(userLogin.Id);                          // return the registered GUID Id of that user
+            return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }
 }
