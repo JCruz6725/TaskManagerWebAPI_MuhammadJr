@@ -20,7 +20,6 @@ namespace Web.Api.Persistence.Repositories
         public async Task<User?> GetUserByEmailAsync(string email)       
         {
            return await _context.Users.FirstOrDefaultAsync(e =>  e.Email == email);   
-
         }
 
         public async Task<User?> GetUserByIdAsync(Guid userId)

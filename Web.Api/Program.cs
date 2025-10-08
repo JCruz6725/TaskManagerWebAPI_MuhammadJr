@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Web.Api.Dto.Response;
 using Web.Api.Persistence;
+using Web.Api.Persistence.Models;
 
 namespace Web.Api
 {
     public class Program
     {
         public static void Main(string[] args)
-      {
+        {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -16,12 +18,17 @@ namespace Web.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<TaskManagerAppDBContext>(option => { option.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=TaskManagerApp"); }
-            ,ServiceLifetime.Singleton, ServiceLifetime.Singleton);
+            // Add Connection String and DbContext
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+            // Register DbContext with Singleton lifetime
+            builder.Services.AddDbContext<TaskManagerAppDBContext>(options =>
+                options.UseSqlServer(connectionString), ServiceLifetime.Singleton);
 
             builder.Services.AddSingleton<UnitOfWork>();
 
+            // Add Bind StatusChange settings from appsettings.json
+            builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));
 
             var app = builder.Build();
 

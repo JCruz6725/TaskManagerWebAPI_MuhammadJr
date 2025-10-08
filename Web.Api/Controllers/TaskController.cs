@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -14,10 +15,14 @@ namespace Web.Api.Controllers
     public class TaskController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-        public TaskController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
+        private readonly StatusChange _statusChange;
+
+        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
+            _statusChange = statusChangeOptions.Value;
         }
+
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
@@ -137,7 +142,6 @@ namespace Web.Api.Controllers
 
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId
-
             };
             return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
         }
@@ -161,14 +165,67 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
-        public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid TaskId)
+        public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
         {
-            throw new NotImplementedException();
+            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
+            if(getUser == null)
+            {
+                 return NotFound($"UserId {userId} is invalid");
+            }
+            if(getTask == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if(getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            }
+
+            var statusHistory = new TaskItemStatusHistory
+            {
+                TaskItemId = getTask.Id,
+                StatusId = _statusChange.CompleteId,
+                CreatedDate = DateTime.Now,
+                CreatedUserId = getUser.Id
+            };
+
+            var taskStatus = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            taskStatus.TaskItemStatusHistories.Add(statusHistory);
+            await _unitOfWork.SaveChangesAsync();
+
+            var statusResult = new TaskDto
+            {
+                Id = getTask.Id,
+                Title = getTask.Title,
+                DueDate = getTask.DueDate,
+                Priority = getTask.Priority,
+
+                Notes = getTask.TaskItemNotes.Select(n => new NoteDto 
+                {
+                    Id =n.Id,
+                    TaskItemId = n.TaskItemId,
+                    Note = n.Note,
+                    CreatedDate = n.CreatedDate,
+                    CreatedUser = n.CreatedUserId
+                }).ToList(),
+
+                CurrentStatus = new StatusDto
+                {
+                   Id = getTask.Id,
+                   Name = _statusChange.Complete,
+                   Code = _statusChange.Code2
+                },
+               
+               CreatedDate = getTask.CreatedDate,
+               CreatedUserId = getTask.CreatedUserId,
+            };
+            return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = statusHistory.Id }, statusResult);
         }
 
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
-        public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader]Guid userId, Guid TaskId)
+        public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader]Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
