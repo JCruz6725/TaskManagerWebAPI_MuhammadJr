@@ -210,7 +210,7 @@ namespace Web.Api.Controllers
                     CreatedDate = n.CreatedDate,
                     CreatedUser = n.CreatedUserId
                 }).ToList(),
-
+                
                 CurrentStatus = new StatusDto
                 {
                    Id = getTask.Id,
