@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NLog.Web;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -26,6 +27,10 @@ namespace Web.Api
                 options.UseSqlServer(connectionString), ServiceLifetime.Singleton);
 
             builder.Services.AddSingleton<UnitOfWork>();
+
+            // NLog: Setup NLog for Dependency injection
+            builder.Logging.ClearProviders();
+            builder.Host.UseNLog();
 
             // Add Bind StatusChange settings from appsettings.json
             builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));
