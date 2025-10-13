@@ -26,13 +26,6 @@ namespace Web.Api.Controllers
             _logger.LogInformation("TaskController initialized");
         }
 
-        [HttpGet("test")]
-        public ActionResult Test([FromHeader] string test)
-        {
-            _logger.LogError("TESTING");
-            return Ok();
-        }
-
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
