@@ -16,14 +16,22 @@ namespace Web.Api.Controllers
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
         private readonly StatusChange _statusChange;
-
-        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions)                    //constructor for the UofW that acceses the private field
+        private readonly ILogger<TaskController> _logger;
+        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _statusChange = statusChangeOptions.Value;
+            _logger = logger;
+
+            _logger.LogInformation("TaskController initialized");
         }
 
-
+        [HttpGet("test")]
+        public ActionResult Test([FromHeader] string test)
+        {
+            _logger.LogError("TESTING");
+            return Ok();
+        }
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
@@ -47,6 +55,8 @@ namespace Web.Api.Controllers
             {
                 return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
             }
+
+            _logger.LogInformation($"UserId {userId} has accessed TaskId {taskId}"); 
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -74,6 +84,9 @@ namespace Web.Api.Controllers
                          Code = history.Status.Code,
                      }).FirstOrDefault(),
             };
+
+            _logger.LogInformation
+                ($"TaskId {taskId} is successful with UserId {userId}");
             return Ok(taskDetail);                                            //retun task details
 
         }
