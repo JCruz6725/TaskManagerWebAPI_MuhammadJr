@@ -8,7 +8,7 @@ namespace Web.Api.Persistence.Repositories
         private readonly TaskManagerAppDBContext _context;   //calls the the scaffolded EF Core database (All repos share this _context)
         public UserRepo (TaskManagerAppDBContext context)   //contructor for the UserRepo that sets the db context 
         {
-            _context = context;
+            _context = context;    
         }
         public async Task CreateUserAsync(User user)                  //user method is created 
         {                       
@@ -20,7 +20,6 @@ namespace Web.Api.Persistence.Repositories
         public async Task<User?> GetUserByEmailAsync(string email)       
         {
            return await _context.Users.FirstOrDefaultAsync(e =>  e.Email == email);   
-
         }
 
         public async Task<User?> GetUserByIdAsync(Guid userId)
