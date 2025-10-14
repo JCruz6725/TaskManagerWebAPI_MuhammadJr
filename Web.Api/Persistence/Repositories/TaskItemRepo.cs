@@ -26,8 +26,8 @@ namespace Web.Api.Persistence.Repositories
 
         public async Task UpdateTaskAsync(TaskItem taskItem)
         {
-             _context.TaskItems.Update(taskItem);
-            await Task.CompletedTask;
+            _context.TaskItems.Update(taskItem);
+            //await Task.CompletedTask;
         }
         public void CreateNote(TaskItemNote taskItemItemNotes)
         {

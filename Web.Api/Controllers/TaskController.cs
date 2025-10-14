@@ -238,7 +238,7 @@ namespace Web.Api.Controllers
         }
 
         [HttpPut("{taskId}", Name = "EditTask")]
-        public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto taskDto)
+        public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
             var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
@@ -256,21 +256,20 @@ namespace Web.Api.Controllers
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
 
-            //if(getTask.Title == taskDto.Title)
-            //{
-            //    getTask.Title = taskDto.Title;
-            //}
+            if (updateTaskDto.Title != null && 
+                updateTaskDto.DueDate.HasValue && 
+                updateTaskDto.Priority != 0)
+            {
+                getTask.Title = updateTaskDto.Title;
+                getTask.DueDate = updateTaskDto.DueDate.Value;
+                getTask.Priority = updateTaskDto.Priority;
+            }
 
-
-            //if (taskDto.DueDate.HasValue)
-            //{
-            //    getTask.DueDate = taskDto.DueDate.Value;
-            //}
 
             //await _unitOfWork.TaskItem.UpdateTaskAsync(getTask);
-            //await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
-            var editResult = new TaskDto
+            var editTaskResult = new TaskDto
             {
                 Id = getTask.Id,
                 Title = getTask.Title,
@@ -299,7 +298,7 @@ namespace Web.Api.Controllers
 
             };
 
-            return Ok(editResult);
+            return Ok(editTaskResult);
 
         }
 
