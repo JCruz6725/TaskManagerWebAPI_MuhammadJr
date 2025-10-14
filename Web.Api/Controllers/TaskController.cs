@@ -22,8 +22,6 @@ namespace Web.Api.Controllers
             _unitOfWork = unitOfWork;
             _statusChange = statusChangeOptions.Value;
             _logger = logger;
-
-            _logger.LogInformation("TaskController initialized");
         }
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
@@ -48,8 +46,6 @@ namespace Web.Api.Controllers
             {
                 return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
             }
-
-            _logger.LogInformation($"UserId {userId} has accessed TaskId {taskId}"); 
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -77,11 +73,7 @@ namespace Web.Api.Controllers
                          Code = history.Status.Code,
                      }).FirstOrDefault(),
             };
-
-            _logger.LogInformation
-                ($"TaskId {taskId} is successful with UserId {userId}");
             return Ok(taskDetail);                                            //retun task details
-
         }
 
         [HttpPost(Name = "CreateTask")]
@@ -100,7 +92,6 @@ namespace Web.Api.Controllers
             TaskItem? taskCreation = new TaskItem()
             {
                 Title = taskCreatedDto.Title,
-                //DueDate = taskCreatedDto.DueDate == default ? taskCreatedDto.DueDate.Value : DateTime.Now.AddDays(1),
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId                                              //set the UserId which is given by the user from the header
