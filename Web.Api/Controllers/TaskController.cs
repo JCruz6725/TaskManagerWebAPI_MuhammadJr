@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using Web.Api.Dto.Request;
@@ -24,13 +25,6 @@ namespace Web.Api.Controllers
             _logger = logger;
 
             _logger.LogInformation("TaskController initialized");
-        }
-
-        [HttpGet("test")]
-        public ActionResult Test([FromHeader] string test)
-        {
-            _logger.LogError("TESTING");
-            return Ok();
         }
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
@@ -180,8 +174,8 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
         {
-            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             if(getUser == null)
             {
@@ -242,5 +236,72 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
+
+        [HttpPut("{taskId}", Name = "EditTask")]
+        public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto taskDto)
+        {
+            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            }
+
+            //if(getTask.Title == taskDto.Title)
+            //{
+            //    getTask.Title = taskDto.Title;
+            //}
+
+
+            //if (taskDto.DueDate.HasValue)
+            //{
+            //    getTask.DueDate = taskDto.DueDate.Value;
+            //}
+
+            //await _unitOfWork.TaskItem.UpdateTaskAsync(getTask);
+            //await _unitOfWork.SaveChangesAsync();
+
+            var editResult = new TaskDto
+            {
+                Id = getTask.Id,
+                Title = getTask.Title,
+                DueDate = getTask.DueDate,
+                Priority = getTask.Priority,
+
+                Notes = getTask.TaskItemNotes.Select(n => new NoteDto
+                {
+                    Id = n.Id,
+                    TaskItemId = n.TaskItemId,
+                    Note = n.Note,
+                    CreatedDate = n.CreatedDate,
+                    CreatedUser = n.CreatedUserId
+                }).ToList(),
+
+                CurrentStatus = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
+                .Select(history => new StatusDto
+                {
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,
+                    Code = history.Status.Code,
+                }).FirstOrDefault(),
+
+                CreatedDate = getTask.CreatedDate,
+                CreatedUserId = getTask.CreatedUserId
+
+            };
+
+            return Ok(editResult);
+
+        }
+
     }
 }
