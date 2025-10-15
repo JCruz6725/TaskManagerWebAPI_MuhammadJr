@@ -23,12 +23,6 @@ namespace Web.Api.Persistence.Repositories
             await _context.AddAsync(taskItem);
 
         }
-
-        public async Task UpdateTaskAsync(TaskItem taskItem)
-        {
-            _context.TaskItems.Update(taskItem);
-            //await Task.CompletedTask;
-        }
         public void CreateNote(TaskItemNote taskItemItemNotes)
         {
             throw new NotImplementedException();
