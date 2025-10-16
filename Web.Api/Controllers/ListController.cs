@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -18,7 +19,29 @@ namespace Web.Api.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+        //public async void ValidateUserAndTask(Guid userId, Guid taskId, Guid listId)
+        //{
+        //    List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
+        //    User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
+        //    if (getList == null && getUser == null)
+        //    {
+        //        //return NotFound($"UserId {userId} and ListId {listId} are invalid");
+        //        throw new Exception($"UserId {userId} and ListId {listId} are invalid");
+        //    }
+        //    if (getList == null && getUser != null)
+        //    {
+        //        return NotFound($"ListId {listId} is invalid");
+        //    }
+        //    if (getList != null && getUser == null)
+        //    {
+        //        return NotFound($"UserId {userId} is invalid");
+        //    }
+        //    if (getList.CreatedUserId != getUser.Id)
+        //    {
+        //        return Unauthorized($"ListId {listId} does not belog to this UserId{userId} ");
+        //    }
+        //}
 
 
         [HttpPost(Name = "CreateList")]
