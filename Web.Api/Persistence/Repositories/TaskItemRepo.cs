@@ -34,10 +34,9 @@ namespace Web.Api.Persistence.Repositories
 
         }
 
-        public void DeleteNote(Guid TaskItemNoteId)
+        public void DeleteNote(TaskItemNote taskItemNoteId)
         {
-            throw new NotImplementedException();
-
+             _context.Remove(taskItemNoteId);
         }
 
     }

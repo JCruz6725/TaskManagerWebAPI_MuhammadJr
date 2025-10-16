@@ -156,9 +156,31 @@ namespace Web.Api.Controllers
         }
 
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
-        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid NoteId)
+        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid taskId, Guid noteId)
         {
-            throw new NotImplementedException();
+            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            }
+
+            var getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
+             _unitOfWork.TaskItem.DeleteNote(getNote);
+            await _unitOfWork.SaveChangesAsync();
+
+            return NoContent();
+
+
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
