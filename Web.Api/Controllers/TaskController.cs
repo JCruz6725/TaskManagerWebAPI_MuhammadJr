@@ -112,7 +112,7 @@ namespace Web.Api.Controllers
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
-            var creationResult = new TaskDto()
+            TaskDto creationResult = new TaskDto()
             {
                 Id = taskCreation.Id,
                 Title = taskCreation.Title,
@@ -174,13 +174,19 @@ namespace Web.Api.Controllers
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
 
-            var getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
+            TaskItemNote? getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
              _unitOfWork.TaskItem.DeleteNote(getNote);
             await _unitOfWork.SaveChangesAsync();
 
-            return NoContent();
-
-
+            NoteDto deleteNote = new NoteDto
+            {
+                Id = getNote.Id,
+                TaskItemId = taskId,
+                Note = getNote.Note,
+                CreatedDate = getNote.CreatedDate,
+                CreatedUser = getNote.CreatedUserId,
+            };
+            return Ok(deleteNote);
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
