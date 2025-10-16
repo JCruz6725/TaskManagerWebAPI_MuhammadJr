@@ -113,7 +113,7 @@ namespace Web.Api.Controllers
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
-            var creationResult = new TaskDto()
+            TaskDto creationResult = new TaskDto()
             {
                 Id = taskCreation.Id,
                 Title = taskCreation.Title,
