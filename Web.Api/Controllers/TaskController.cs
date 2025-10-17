@@ -24,67 +24,35 @@ namespace Web.Api.Controllers
             _logger = logger;
         }
 
-        public class ValidCheck {
-        private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-          public ValidCheck(UnitOfWork unitOfWork)
-            {
-                _unitOfWork = unitOfWork;
-
-            }
-
-            public async void ValidateUserAndTask(Guid userId, Guid taskId, Guid listId)
-            {
-                List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-                User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-                if (getList == null && getUser == null)
-                {
-                    //return NotFound($"UserId {userId} and ListId {listId} are invalid");
-                    throw new Exception($"UserId {userId} and ListId {listId} are invalid");
-                }
-                if (getList == null && getUser != null)
-                {
-                    //return NotFound($"ListId {listId} is invalid");
-                    throw new Exception($"ListId {listId} is invalid");
-                }
-                if (getList != null && getUser == null)
-                {
-                    //return NotFound($"UserId {userId} is invalid");
-                    throw new Exception($"UserId {userId} is invalid");
-                }
-                if (getList.CreatedUserId != getUser.Id)
-                {
-                    return Unauthorized($"ListId {listId} does not belog to this UserId{userId} ");
-                }
-            }
-
-
-
-        }
-
-
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
+            var validationMessage = await new ValidCheck(_unitOfWork).ValidateUserTaskAsync(userId, taskId);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            
-            if (getTask == null && getUser == null)                                               
-            {
-                return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
-            }
-            if(getTask == null && getUser != null)
-            {
-                return NotFound($"TaskId {taskId} is invalid");
-            } 
-            if(getTask != null &&  getUser == null)
-            {
-                return NotFound($"UserId {userId} is invalid");
-            }
-            if (getTask.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
-            }
+
+            //if (getTask == null && getUser == null)                                               
+            //{
+            //    return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
+            //}
+            //if(getTask == null && getUser != null)
+            //{
+            //    return NotFound($"TaskId {taskId} is invalid");
+            //} 
+            //if(getTask != null &&  getUser == null)
+            //{
+            //    return NotFound($"UserId {userId} is invalid");
+            //}
+            //if (getTask.CreatedUserId != getUser.Id)
+            //{
+            //    return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
+            //}
+
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -185,25 +153,31 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
+            var validationMessage = await new ValidCheck(_unitOfWork).ValidateUserTaskAsync(userId, taskId);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
-            if (getTask == null && getUser == null)
-            {
-                return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
-            }
-            if (getTask == null && getUser != null)
-            {
-                return NotFound($"TaskId {taskId} is invalid");
-            }
-            if (getTask != null && getUser == null)
-            {
-                return NotFound($"UserId {userId} is invalid");
-            }
-            if (getTask.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
-            }
+            //if (getTask == null && getUser == null)
+            //{
+            //    return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
+            //}
+            //if (getTask == null && getUser != null)
+            //{
+            //    return NotFound($"TaskId {taskId} is invalid");
+            //}
+            //if (getTask != null && getUser == null)
+            //{
+            //    return NotFound($"UserId {userId} is invalid");
+            //}
+            //if (getTask.CreatedUserId != getUser.Id)
+            //{
+            //    return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
+            //}
 
             TaskItemNote noteCreation = new TaskItemNote
             {
@@ -243,21 +217,27 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
         {
+            var validationMessage = await new ValidCheck(_unitOfWork).ValidateUserTaskAsync(userId, taskId);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
             var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
-            if(getUser == null)
-            {
-                 return NotFound($"UserId {userId} is invalid");
-            }
-            if(getTask == null)
-            {
-                return NotFound($"TaskId {taskId} is invalid");
-            }
-            if(getTask.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
-            }
+            //if(getUser == null)
+            //{
+            //     return NotFound($"UserId {userId} is invalid");
+            //}
+            //if(getTask == null)
+            //{
+            //    return NotFound($"TaskId {taskId} is invalid");
+            //}
+            //if(getTask.CreatedUserId != getUser.Id)
+            //{
+            //    return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            //}
 
             var statusHistory = new TaskItemStatusHistory
             {
