@@ -158,8 +158,8 @@ namespace Web.Api.Controllers
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid taskId, Guid noteId)
         {
-            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             if (getUser == null)
             {
@@ -192,8 +192,8 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
         {
-            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             if(getUser == null)
             {
@@ -208,7 +208,7 @@ namespace Web.Api.Controllers
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
 
-            var statusHistory = new TaskItemStatusHistory
+            TaskItemStatusHistory statusHistory = new TaskItemStatusHistory
             {
                 TaskItemId = getTask.Id,
                 StatusId = _statusChange.CompleteId,
@@ -220,7 +220,7 @@ namespace Web.Api.Controllers
             taskStatus.TaskItemStatusHistories.Add(statusHistory);
             await _unitOfWork.SaveChangesAsync();
 
-            var statusResult = new TaskDto
+            TaskDto statusResult = new TaskDto
             {
                 Id = getTask.Id,
                 Title = getTask.Title,
