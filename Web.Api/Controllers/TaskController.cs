@@ -36,24 +36,6 @@ namespace Web.Api.Controllers
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
-            //if (getTask == null && getUser == null)                                               
-            //{
-            //    return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
-            //}
-            //if(getTask == null && getUser != null)
-            //{
-            //    return NotFound($"TaskId {taskId} is invalid");
-            //} 
-            //if(getTask != null &&  getUser == null)
-            //{
-            //    return NotFound($"UserId {userId} is invalid");
-            //}
-            //if (getTask.CreatedUserId != getUser.Id)
-            //{
-            //    return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
-            //}
-
-
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
                 Id = getTask.Id,
@@ -88,9 +70,9 @@ namespace Web.Api.Controllers
             //Request DTO
             //create a new instance of TaskItem 
             User? userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
-            if (userExist is null)
+            if (userExist == null)
             {
-                return NotFound("user account does not exist");
+                return NotFound($"UserId {userId} is invalid");
             }
             //calls the TaskItem prop and set the task created dto to its prop
             //Request DTO
@@ -162,23 +144,6 @@ namespace Web.Api.Controllers
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
-            //if (getTask == null && getUser == null)
-            //{
-            //    return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
-            //}
-            //if (getTask == null && getUser != null)
-            //{
-            //    return NotFound($"TaskId {taskId} is invalid");
-            //}
-            //if (getTask != null && getUser == null)
-            //{
-            //    return NotFound($"UserId {userId} is invalid");
-            //}
-            //if (getTask.CreatedUserId != getUser.Id)
-            //{
-            //    return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
-            //}
-
             TaskItemNote noteCreation = new TaskItemNote
             {
                 TaskItemId = taskId,
@@ -225,19 +190,6 @@ namespace Web.Api.Controllers
 
             var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-
-            //if(getUser == null)
-            //{
-            //     return NotFound($"UserId {userId} is invalid");
-            //}
-            //if(getTask == null)
-            //{
-            //    return NotFound($"TaskId {taskId} is invalid");
-            //}
-            //if(getTask.CreatedUserId != getUser.Id)
-            //{
-            //    return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
-            //}
 
             var statusHistory = new TaskItemStatusHistory
             {

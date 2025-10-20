@@ -30,7 +30,7 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
         {
-            var validationMesasge = await new ValidCheck(_unitOfWork).ValidateUserListAsync(userId, listId);
+            string validationMesasge = await new ValidCheck(_unitOfWork).ValidateUserListAsync(userId, listId);
             if(validationMesasge != null)
             {
                 return BadRequest(validationMesasge);
@@ -38,23 +38,6 @@ namespace Web.Api.Controllers
 
             List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-            //if (getList == null && getUser == null)
-            //{
-            //    return NotFound($"UserId {userId} and ListId {listId} are invalid");
-            //}
-            //if (getList == null && getUser != null)
-            //{
-            //    return NotFound($"ListId {listId} is invalid");
-            //}
-            //if (getList != null && getUser == null)
-            //{
-            //    return NotFound($"UserId {userId} is invalid");
-            //}
-            //if (getList.CreatedUserId != getUser.Id)
-            //{
-            //    return Unauthorized($"ListId {listId} does not belog to this UserId{userId} ");
-            //}
 
             ListDto listDtos = new ListDto
             {
