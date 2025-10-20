@@ -191,9 +191,6 @@ namespace Web.Api.Controllers
                 return BadRequest(validationMessage);
             }
 
-            var getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            var getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-
             if(getUser == null)
             {
                  return NotFound($"UserId {userId} is invalid");
