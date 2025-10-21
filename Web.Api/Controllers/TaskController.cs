@@ -67,14 +67,15 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost(Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) { 
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) {
             //Request DTO
             //create a new instance of TaskItem 
-            User? userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
-            if (userExist == null)
+            string validationMessage = await new ValidCheck(_unitOfWork).ValidateUserAsync(userId);
+            if(validationMessage != null)
             {
-                return NotFound($"UserId {userId} is invalid");
+                return BadRequest(validationMessage);
             }
+
             //calls the TaskItem prop and set the task created dto to its prop
             //Request DTO
             //create a new instance of TaskItem 
@@ -84,7 +85,7 @@ namespace Web.Api.Controllers
                 Title = taskCreatedDto.Title,
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
-                CreatedUserId = userId                                              //set the UserId which is given by the user from the header
+                CreatedUserId = userId                                          //set the UserId which is given by the user from the header
             };
 
             if(taskCreatedDto.DueDate == null)
@@ -197,7 +198,7 @@ namespace Web.Api.Controllers
                 TaskItemId = getTask.Id,
                 StatusId = _statusChange.CompleteId,
                 CreatedDate = DateTime.Now,
-                CreatedUserId = getUser.Id
+                CreatedUserId = getUser.Id,
             };
 
             TaskItem? taskStatus = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
