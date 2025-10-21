@@ -21,11 +21,12 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            User? existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
-            if(existingUser != null)                                                          //check if user already exists in the database
+            string validationMessage = await new ValidCheck(_unitOfWork).ValidateRegistrationAsync(registerUserDto);
+            if(validationMessage != null)
             {
-                return BadRequest("User Already Exists");
+                return BadRequest(validationMessage);
             }
+
                                                                          //RequestDTO
                                                                          //create a new instance of User thats not existing
                                                                         //call the User props and set the registerDto to its assign props 
@@ -47,16 +48,13 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-            if (userLogin == null)                                                            //if login is null send invalid
+            string validationMessage = await new ValidCheck(_unitOfWork).ValidateLoginAsync(userLoginDto);
+            if (validationMessage != null)
             {
-                return Unauthorized("Invalid Email or Password");
+                return BadRequest(validationMessage);
             }
+            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
 
-            if (userLogin.Password != userLoginDto.Password)                        //if password from database User does not match password from login DTO 
-            {                                               
-                return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
-            }
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }

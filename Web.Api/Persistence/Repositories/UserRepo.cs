@@ -25,7 +25,6 @@ namespace Web.Api.Persistence.Repositories
         public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
-
         }
     }
 }
