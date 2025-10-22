@@ -34,9 +34,9 @@ namespace Web.Api.Persistence.Repositories
 
         }
 
-        public void DeleteNote(TaskItemNote taskItemNoteId)
+        public void DeleteNote(TaskItemNote taskItemNote)
         {
-             _context.Remove(taskItemNoteId);
+             _context.Remove(taskItemNote);
         }
 
     }

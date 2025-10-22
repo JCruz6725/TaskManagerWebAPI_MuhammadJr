@@ -175,7 +175,12 @@ namespace Web.Api.Controllers
             }
 
             TaskItemNote? getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
-             _unitOfWork.TaskItem.DeleteNote(getNote);
+            if (getNote == null)
+            {
+                return NotFound($"NoteId {noteId} is invalid");
+            }
+
+            _unitOfWork.TaskItem.DeleteNote(getNote);
             await _unitOfWork.SaveChangesAsync();
 
             NoteDto deleteNote = new NoteDto
@@ -216,7 +221,11 @@ namespace Web.Api.Controllers
                 CreatedUserId = getUser.Id
             };
 
-            var taskStatus = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            TaskItem? taskStatus = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+            if (taskStatus == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
             taskStatus.TaskItemStatusHistories.Add(statusHistory);
             await _unitOfWork.SaveChangesAsync();
 
