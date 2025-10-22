@@ -24,9 +24,9 @@ namespace Web.Api.Persistence.Repositories
             await _context.AddAsync(taskItem);
 
         }
-        public async Task CreateNoteAsync(TaskItemNote taskItemItemNotes)
+        public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
-            await _context.AddAsync(taskItemItemNotes);
+            await _context.AddAsync(taskItemItemNote);
 
         }
         public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
