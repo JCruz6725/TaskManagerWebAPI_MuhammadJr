@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using Web.Api.Dto.Request;
@@ -146,7 +147,47 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
-            throw new NotImplementedException();
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getTask == null && getUser == null)
+            {
+                return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
+            }
+            if (getTask == null && getUser != null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask != null && getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
+            }
+
+            TaskItemNote noteCreation = new TaskItemNote
+            {
+                TaskItemId = taskId,
+                Note = noteCreateDto.NoteText,
+                CreatedDate = DateTime.Now,
+                CreatedUserId = getUser.Id
+            };
+
+            await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
+            await _unitOfWork.SaveChangesAsync();
+
+            var noteResult = new NoteDto
+            {
+                Id = noteCreation.Id,
+                TaskItemId = noteCreation.TaskItemId,
+                Note = noteCreation.Note,
+                CreatedDate = noteCreation.CreatedDate,
+                CreatedUser = noteCreation.CreatedUserId
+            };
+
+            return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]
@@ -263,5 +304,69 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
+
+        [HttpPut("{taskId}", Name = "EditTask")]
+        public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
+        {
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            }
+
+            if (updateTaskDto.Title != null && 
+                updateTaskDto.DueDate.HasValue && 
+                updateTaskDto.Priority != 0)
+            {
+                getTask.Title = updateTaskDto.Title;
+                getTask.DueDate = updateTaskDto.DueDate.Value;
+                getTask.Priority = updateTaskDto.Priority;
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            TaskDto editTaskResult = new TaskDto
+            {
+                Id = getTask.Id,
+                Title = getTask.Title,
+                DueDate = getTask.DueDate,
+                Priority = getTask.Priority,
+
+                Notes = getTask.TaskItemNotes.Select(n => new NoteDto
+                {
+                    Id = n.Id,
+                    TaskItemId = n.TaskItemId,
+                    Note = n.Note,
+                    CreatedDate = n.CreatedDate,
+                    CreatedUser = n.CreatedUserId
+                }).ToList(),
+
+                CurrentStatus = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
+                .Select(history => new StatusDto
+                {
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,
+                    Code = history.Status.Code,
+                }).FirstOrDefault(),
+
+                CreatedDate = getTask.CreatedDate,
+                CreatedUserId = getTask.CreatedUserId
+
+            };
+
+            return Ok(editTaskResult);
+
+        }
+
     }
 }
