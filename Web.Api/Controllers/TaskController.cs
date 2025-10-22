@@ -147,7 +147,47 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
-            throw new NotImplementedException();
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getTask == null && getUser == null)
+            {
+                return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
+            }
+            if (getTask == null && getUser != null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask != null && getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
+            }
+
+            TaskItemNote noteCreation = new TaskItemNote
+            {
+                TaskItemId = taskId,
+                Note = noteCreateDto.NoteText,
+                CreatedDate = DateTime.Now,
+                CreatedUserId = getUser.Id
+            };
+
+            await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
+            await _unitOfWork.SaveChangesAsync();
+
+            var noteResult = new NoteDto
+            {
+                Id = noteCreation.Id,
+                TaskItemId = noteCreation.TaskItemId,
+                Note = noteCreation.Note,
+                CreatedDate = noteCreation.CreatedDate,
+                CreatedUser = noteCreation.CreatedUserId
+            };
+
+            return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]

@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
@@ -23,9 +24,9 @@ namespace Web.Api.Persistence.Repositories
             await _context.AddAsync(taskItem);
 
         }
-        public void CreateNote(TaskItemNote taskItemItemNotes)
+        public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(taskItemItemNote);
 
         }
         public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
