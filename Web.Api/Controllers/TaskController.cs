@@ -178,9 +178,42 @@ namespace Web.Api.Controllers
         }
 
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
-        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid NoteId)
+        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid taskId, Guid noteId)
         {
-            throw new NotImplementedException();
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            if (getUser == null)
+            {
+                return NotFound($"UserId {userId} is invalid");
+            }
+            if (getTask == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            if (getTask.CreatedUserId != getUser.Id)
+            {
+                return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
+            }
+
+            TaskItemNote? getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
+            if (getNote == null)
+            {
+                return NotFound($"NoteId {noteId} is invalid");
+            }
+
+            _unitOfWork.TaskItem.DeleteNote(getNote);
+            await _unitOfWork.SaveChangesAsync();
+
+            NoteDto deleteNote = new NoteDto
+            {
+                Id = getNote.Id,
+                TaskItemId = taskId,
+                Note = getNote.Note,
+                CreatedDate = getNote.CreatedDate,
+                CreatedUser = getNote.CreatedUserId,
+            };
+            return Ok(deleteNote);
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
@@ -204,7 +237,11 @@ namespace Web.Api.Controllers
             };
 
             TaskItem? taskStatus = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-            taskStatus.TaskItemStatusHistories.Add(statusHistory); 
+            if (taskStatus == null)
+            {
+                return NotFound($"TaskId {taskId} is invalid");
+            }
+            taskStatus.TaskItemStatusHistories.Add(statusHistory);
             await _unitOfWork.SaveChangesAsync();
 
             TaskDto statusResult = new TaskDto
