@@ -16,6 +16,7 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
+        private readonly ValidCheck _validCheck;
         public ListController (UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -30,7 +31,7 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
         {
-            string validationMesasge = await new ValidCheck(_unitOfWork).ValidateUserListAsync(userId, listId);
+            string validationMesasge = await _validCheck.ValidateUserListAsync(userId, listId);
             if(validationMesasge != null)
             {
                 return BadRequest(validationMesasge);
@@ -63,7 +64,7 @@ namespace Web.Api.Controllers
         [HttpGet( Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
         {
-            string validationMessage = await new ValidCheck(_unitOfWork).ValidateUserAsync(userId);
+            string validationMessage = await _validCheck.ValidateUserAsync(userId);
             if(validationMessage != null)
             {
                 return BadRequest(validationMessage);
