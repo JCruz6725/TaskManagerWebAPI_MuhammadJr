@@ -97,7 +97,11 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
                 TaskItemStatusHistories = [
-                    new TaskItemStatusHistory() { StatusId = _statusChange.PendingId, CreatedDate = DateTime.Now, CreatedUserId = userId }
+                    new TaskItemStatusHistory() { 
+                        StatusId = _statusChange.PendingId, 
+                        CreatedDate = DateTime.Now, 
+                        CreatedUserId = userId 
+                    }
                     ]
             };
 
