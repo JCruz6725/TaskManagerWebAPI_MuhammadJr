@@ -17,9 +17,10 @@ namespace Web.Api.Controllers
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly ValidCheck _validCheck;
-        public ListController (UnitOfWork unitOfWork)
+        public ListController (UnitOfWork unitOfWork, ValidCheck validCheck)
         {
             _unitOfWork = unitOfWork;
+            _validCheck = validCheck;
         }
 
         [HttpPost(Name = "CreateList")]

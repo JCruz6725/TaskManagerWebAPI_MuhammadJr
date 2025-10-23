@@ -12,16 +12,17 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-
-        public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
+        private readonly ValidCheck _validCheck;
+        public UserController(UnitOfWork unitOfWork, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
+            _validCheck = validCheck;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            string validationMessage = await new ValidCheck(_unitOfWork).ValidateRegistrationAsync(registerUserDto);
+            string validationMessage = await _validCheck.ValidateRegistrationAsync(registerUserDto);
             if(validationMessage != null)
             {
                 return BadRequest(validationMessage);
@@ -48,7 +49,7 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            string validationMessage = await new ValidCheck(_unitOfWork).ValidateLoginAsync(userLoginDto);
+            string validationMessage = await _validCheck.ValidateLoginAsync(userLoginDto);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
