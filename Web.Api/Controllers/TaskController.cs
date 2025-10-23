@@ -26,15 +26,21 @@ namespace Web.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetTest([FromHeader] string test)
+        public async Task<ActionResult<string>> GetTest()
         {
             _logger.LogInformation("Testing Information Logger");
             _logger.LogWarning("Warning is Happening");
             _logger.LogError("Error is Happening");
             _logger.LogTrace("Tracking App");
-            return Ok();
+
+            return Ok("hi");
         }
 
+        //[HttpGet]
+        //public void OnGet()
+        //{
+        //    _logger.LogInformation("OnGet is good");
+        //}
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
