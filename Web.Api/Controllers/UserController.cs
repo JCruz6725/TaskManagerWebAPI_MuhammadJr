@@ -12,15 +12,18 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-
-        public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
+        private readonly ILogger<UserController> _logger;
+        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger)                    //constructor for the UofW that acceses the private field
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
+            _logger.LogInformation("User is being Registered");
+
             User? existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
             if(existingUser != null)                                                          //check if user already exists in the database
             {
@@ -41,12 +44,16 @@ namespace Web.Api.Controllers
             await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
             await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
 
+            _logger.LogInformation("User has been registered");
+
             return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
         }
 
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
+            _logger.LogInformation("User is Logging in");
+
             User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
             if (userLogin == null)                                                            //if login is null send invalid
             {
@@ -57,6 +64,7 @@ namespace Web.Api.Controllers
             {                                               
                 return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
             }
+            _logger.LogInformation("User has looged on");
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }

@@ -25,26 +25,11 @@ namespace Web.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<string>> GetTest()
-        {
-            _logger.LogInformation("Testing Information Logger");
-            _logger.LogWarning("Warning is Happening");
-            _logger.LogError("Error is Happening");
-            _logger.LogTrace("Tracking App");
-
-            return Ok("hi");
-        }
-
-        //[HttpGet]
-        //public void OnGet()
-        //{
-        //    _logger.LogInformation("OnGet is good");
-        //}
-
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
+            _logger.LogInformation("Getting Task by Id");
+
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             
@@ -54,6 +39,8 @@ namespace Web.Api.Controllers
             }
             if(getTask == null && getUser != null)
             {
+                _logger.LogWarning("Did not get the Task");
+
                 return NotFound($"TaskId {taskId} is invalid");
             } 
             if(getTask != null &&  getUser == null)
@@ -91,16 +78,21 @@ namespace Web.Api.Controllers
                          Code = history.Status.Code,
                      }).FirstOrDefault(),
             };
+            _logger.LogInformation("GetTaskById is all good");
+
             return Ok(taskDetail);                                            //retun task details
         }
 
         [HttpPost(Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) { 
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) {
+            _logger.LogInformation("Sending HttpPost for task creation");
+
             //Request DTO
             //create a new instance of TaskItem 
             User? userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
             if (userExist is null)
             {
+                _logger.LogError("Wrong user");
                 return NotFound("user account does not exist");
             }
             //calls the TaskItem prop and set the task created dto to its prop
@@ -158,12 +150,14 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId
             };
+            _logger.LogInformation("Task creation successful");
             return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
+            _logger.LogInformation("Creation of note");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -203,7 +197,7 @@ namespace Web.Api.Controllers
                 CreatedDate = noteCreation.CreatedDate,
                 CreatedUser = noteCreation.CreatedUserId
             };
-
+            _logger.LogInformation("Note creation is successful");
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
@@ -216,6 +210,8 @@ namespace Web.Api.Controllers
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid taskId, Guid noteId)
         {
+            _logger.LogInformation("Deletion of note");
+
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -249,12 +245,15 @@ namespace Web.Api.Controllers
                 CreatedDate = getNote.CreatedDate,
                 CreatedUser = getNote.CreatedUserId,
             };
+            _logger.LogInformation("Note deletion successfull");
             return Ok(deleteNote);
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
         {
+            _logger.LogInformation("Status changing to 'Complete'");
+
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -313,6 +312,7 @@ namespace Web.Api.Controllers
                CreatedDate = getTask.CreatedDate,
                CreatedUserId = getTask.CreatedUserId,
             };
+            _logger.LogInformation("Staus Change to 'Complete Successfull'");
             return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = statusHistory.Id }, statusResult);
         }
 
@@ -325,6 +325,8 @@ namespace Web.Api.Controllers
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
+            _logger.LogInformation("Editing Task");
+
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -380,9 +382,8 @@ namespace Web.Api.Controllers
                 CreatedUserId = getTask.CreatedUserId
 
             };
-
+            _logger.LogInformation("Editing Task successfull");
             return Ok(editTaskResult);
-
         }
 
     }
