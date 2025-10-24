@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -14,57 +15,77 @@ namespace Web.Api
             _unitOfWork = unitOfWork;
         }
 
-        //Validate if userId and taskId are valid and if task belongs to user
-        public async Task<string> ValidateUserTaskAsync(Guid userId,Guid taskId)
-        {
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
-            if (getTask == null && getUser == null)
-            {
-                return ($"UserId {userId} and TaskId {taskId} are invalid");
+
+
+
+
+
+       public string? ValidateUserTask (User? u, TaskItem? t)
+       {
+
+
+            // check if null.
+            if(!DoesUserExist(u)) { 
+                return "User not exist";
             }
-            if (getTask == null && getUser != null)
-            {
-                return ($"TaskId {taskId} is invalid");
+            if(!DoesTaskExist(t)) { 
+                return "Task not exist";
             }
-            if (getTask != null && getUser == null)
-            {
-                return ($"UserId {userId} is invalid");
+
+            // check for default guid
+            if(IsDefaultGuid(u!.Id)) {
+                return "UserId Invalid";
             }
-            if (getTask.CreatedUserId != getUser.Id)
-            {
-                return ($"TaskId {taskId} does not belong to this UserId{userId} ");
+            if (IsDefaultGuid(t!.Id)) {
+                return "TaskId Invalid";
             }
+
+            // check if task belongs to user
+            if(DoesTaskBelongToUser(u!, t!)) { 
+                return "Task does not belong to user";
+            }
+
             return null;
         }
 
-
-        //Validate if userId and listId are valid and if list belongs to user
-        public async Task<string> ValidateUserListAsync(Guid userId, Guid listId)
+        public bool DoesUserExist (User? u)
         {
-            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-            if (getList == null && getUser == null)
-            {
-                return ($"UserId {userId} and ListId {listId} are invalid");
-            }
-            if (getList == null && getUser != null)
-            {
-                return ($"ListId {listId} is invalid");
-            }
-            if (getList != null && getUser == null)
-            {
-                return ($"UserId {userId} is invalid");
-            }
-            if (getList.CreatedUserId != getUser.Id)
-            {
-                return ($"ListId {listId} does not belong to this UserId{userId} ");
-            }
-            return null;
+            return u is not null;
         }
 
+        public bool DoesTaskBelongToUser (User u, TaskItem  t)
+        {
+            return u.Id == t.CreatedUserId;
+        }
+
+        public bool DoesTaskExist (TaskItem? t)
+        {
+            return t is not null;
+        }
+
+        public bool IsDefaultGuid(Guid Id) { 
+            return Id.Equals(Guid.Empty);
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
         //Validate if user exist before creating new user
         public async Task<string> ValidateRegistrationAsync(RegisterUserDto registerUserDto)
         {

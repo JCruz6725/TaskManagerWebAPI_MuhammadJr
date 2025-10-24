@@ -32,23 +32,36 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
         {
-            string validationMesasge = await _validCheck.ValidateUserListAsync(userId, listId);
-            if(validationMesasge != null)
-            {
-                return BadRequest(validationMesasge);
-            }
+            User? user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            List? list = await _unitOfWork.List.GetListByIdAsync(listId);
 
-            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            /// do check
+            /// class validation check object
+
+
+
+            /// do check
+            /// class validation check object
+
+
+            //string validationMesasge = await _validCheck.ValidateUserListAsync(userId, listId);
+            
+            
+            //if(validationMesasge != null)
+            //{
+            //    return BadRequest(validationMesasge);
+            //}
+
 
             ListDto listDtos = new ListDto
             {
-                Id = getList.Id,
-                Name = getList.Name,
-                CreatedDate = getList.CreatedDate,
-                CreatedUserId = getList.CreatedUserId,
+                Id = list.Id,
+                Name = list.Name,
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
 
-                TaskItems = getList.TaskWithinLists.Select(twl => new TaskDto
+                TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
                 {
                     Id = twl.TaskItem.Id,
                     Title = twl.TaskItem.Title,
