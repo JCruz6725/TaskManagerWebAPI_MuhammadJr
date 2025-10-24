@@ -34,7 +34,7 @@ namespace Web.Api.Controllers
             User? user = await _unitOfWork.User.GetUserByIdAsync(userId);
 
 
-            string? res = _validCheck.ValidateUserTask(user, task);
+            string? res = _validCheck.ValidateUserAndTask(user, task);
 
             if (res != null)
             {

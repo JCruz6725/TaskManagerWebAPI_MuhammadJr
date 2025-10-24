@@ -21,7 +21,7 @@ namespace Web.Api
 
 
 
-       public string? ValidateUserTask (User? u, TaskItem? t)
+       public string? ValidateUserAndTask (User? u, TaskItem? t)
        {
 
 
