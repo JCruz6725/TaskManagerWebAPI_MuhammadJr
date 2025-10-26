@@ -95,7 +95,14 @@ namespace Web.Api.Controllers
                 Title = taskCreatedDto.Title,
                 Priority = taskCreatedDto.Priority,
                 CreatedDate = DateTime.Now,
-                CreatedUserId = userId                                              //set the UserId which is given by the user from the header
+                CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
+                TaskItemStatusHistories = [
+                    new TaskItemStatusHistory() { 
+                        StatusId = _statusChange.PendingId, 
+                        CreatedDate = DateTime.Now, 
+                        CreatedUserId = userId 
+                    }
+                    ]
             };
 
             if(taskCreatedDto.DueDate == null)
@@ -108,6 +115,7 @@ namespace Web.Api.Controllers
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
+            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id);
 
             //Response DTO
             //create a new instance of TaskDto
