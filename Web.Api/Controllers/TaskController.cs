@@ -25,6 +25,7 @@ namespace Web.Api.Controllers
             _logger = logger;
         }
 
+
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
         {
@@ -76,6 +77,7 @@ namespace Web.Api.Controllers
             };
             return Ok(taskDetail);                                            //retun task details
         }
+
 
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) { 
@@ -152,6 +154,7 @@ namespace Web.Api.Controllers
             return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
         }
 
+
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
@@ -198,6 +201,7 @@ namespace Web.Api.Controllers
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
+
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]
         public Task<ActionResult<List<NoteDto>>> GetAllNotes([FromHeader]Guid userId, Guid taskId)
         {
@@ -242,6 +246,7 @@ namespace Web.Api.Controllers
             };
             return Ok(deleteNote);
         }
+
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
@@ -307,11 +312,13 @@ namespace Web.Api.Controllers
             return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = statusHistory.Id }, statusResult);
         }
 
+
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
         public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader]Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
+
 
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
@@ -375,6 +382,5 @@ namespace Web.Api.Controllers
             return Ok(editTaskResult);
 
         }
-
     }
 }
