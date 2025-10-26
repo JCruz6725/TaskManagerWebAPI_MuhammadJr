@@ -3,7 +3,7 @@ name: 'Feature: [Title]'
 about: Task item scoped to a feature.
 title: "[Title]"
 labels: ''
-assignees: ''
+assignees: JCruz6725
 
 ---
 
