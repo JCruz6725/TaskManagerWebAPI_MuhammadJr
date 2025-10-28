@@ -14,11 +14,12 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
+        
+        
         public ListController (UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
-
 
 
         [HttpPost(Name = "CreateList")]
@@ -26,6 +27,7 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
+
 
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
@@ -71,6 +73,7 @@ namespace Web.Api.Controllers
             return Ok(listDtos);
         }
 
+
         [HttpGet( Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
         {
@@ -89,6 +92,7 @@ namespace Web.Api.Controllers
               }).ToList();
             return Ok(getListDetail);
         }
+
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
         public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader]Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)

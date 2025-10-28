@@ -24,9 +24,9 @@ namespace Web.Api
 
             // Register DbContext with Singleton lifetime
             builder.Services.AddDbContext<TaskManagerAppDBContext>(options =>
-                options.UseSqlServer(connectionString), ServiceLifetime.Singleton);
+                options.UseSqlServer(connectionString));
 
-            builder.Services.AddSingleton<UnitOfWork>();
+            builder.Services.AddScoped<UnitOfWork>();
 
             // NLog: Setup NLog for Dependency injection
             builder.Logging.ClearProviders();
