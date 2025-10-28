@@ -17,29 +17,29 @@ namespace Web.Api.Controllers
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly ValidCheck _validCheck;
-        public ListController (UnitOfWork unitOfWork, ValidCheck validCheck)
+        public ListController(UnitOfWork unitOfWork, ValidCheck validCheck)
         {
             _unitOfWork = unitOfWork;
             _validCheck = validCheck;
         }
 
         [HttpPost(Name = "CreateList")]
-        public async Task<ActionResult<ListDto>> CreateList([FromHeader]Guid userId, ListCreateDto createListDto)
+        public async Task<ActionResult<ListDto>> CreateList([FromHeader] Guid userId, ListCreateDto createListDto)
         {
             throw new NotImplementedException();
         }
 
         [HttpGet("{listId}", Name = "GetListById")]
-        public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
+        public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
-            string validationMesasge = await _validCheck.ValidateUserListAsync(userId, listId);
-            if(validationMesasge != null)
-            {
-                return BadRequest(validationMesasge);
-            }
-
             List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            string? validationMessage = _validCheck.ValidateUserAndList(getUser!, getList!);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
 
             ListDto listDtos = new ListDto
             {
@@ -62,11 +62,13 @@ namespace Web.Api.Controllers
             return Ok(listDtos);
         }
 
-        [HttpGet( Name = "GetAllList")]
-        public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
+        [HttpGet(Name = "GetAllList")]
+        public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
-            string validationMessage = await _validCheck.ValidateUserAsync(userId);
-            if(validationMessage != null)
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            string? validationMessage = _validCheck.ValidateUserId(getUser);
+            if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
@@ -79,12 +81,12 @@ namespace Web.Api.Controllers
                 Name = sl.Name,
                 CreatedDate = sl.CreatedDate,
                 CreatedUserId = sl.CreatedUserId,
-              }).ToList();
+            }).ToList();
             return Ok(getListDetail);
         }
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
-        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader]Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
+        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
             throw new NotImplementedException();
         }

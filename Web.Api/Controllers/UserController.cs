@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
@@ -22,15 +23,17 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            string validationMessage = await _validCheck.ValidateRegistrationAsync(registerUserDto);
-            if(validationMessage != null)
+            User? getUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
+
+            string? validationMessage = _validCheck.ValidateUserRegistration(getUser);
+            if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
 
-                                                                         //RequestDTO
-                                                                         //create a new instance of User thats not existing
-                                                                        //call the User props and set the registerDto to its assign props 
+            //RequestDTO
+            //create a new instance of User thats not existing
+            //call the User props and set the registerDto to its assign props 
             User userCreation = new User                               
             {
                 FirstName = registerUserDto.FirstName,
@@ -49,13 +52,15 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            string validationMessage = await _validCheck.ValidateLoginAsync(userLoginDto);
+   
+
+            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
+
+            string? validationMessage = _validCheck.ValidateUserId(userLogin);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-            User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }

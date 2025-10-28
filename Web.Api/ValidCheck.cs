@@ -8,103 +8,100 @@ namespace Web.Api
 {
     public class ValidCheck
     {
-        private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-        public ValidCheck(UnitOfWork unitOfWork)
+        public string? ValidateUserAndTask(User user, TaskItem task)
         {
-            _unitOfWork = unitOfWork;
-        }
-
-        //Validate if userId and taskId are valid and if task belongs to user
-        public async Task<string> ValidateUserTaskAsync(Guid userId,Guid taskId)
-        {
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-
-            if (getTask == null && getUser == null)
+            //Validate if user and task are valid and if task belongs to user
+            if (!IsUserValid(user))
             {
-                return ($"UserId {userId} and TaskId {taskId} are invalid");
+                throw new Exception("User is Invalid");
             }
-            if (getTask == null && getUser != null)
+            if (!IsTaskValid(task))
             {
-                return ($"TaskId {taskId} is invalid");
+                throw new Exception("TaskId is invalid");
             }
-            if (getTask != null && getUser == null)
+            if (!IsTaskAssignedToUser(user, task))
             {
-                return ($"UserId {userId} is invalid");
+                throw new Exception("TaskId does not belong to UserId");
             }
-            if (getTask.CreatedUserId != getUser.Id)
+            if (!IsDefaultGuid(user.Id))
             {
-                return ($"TaskId {taskId} does not belong to this UserId{userId} ");
+                throw new Exception("UserId is invalid");
             }
             return null;
         }
 
-
-        //Validate if userId and listId are valid and if list belongs to user
-        public async Task<string> ValidateUserListAsync(Guid userId, Guid listId)
+        public string? ValidateUserAndList(User user, List list)
         {
-            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-            if (getList == null && getUser == null)
+            //Validate if user and list are valid and if list belongs to user
+            if (!IsUserValid(user))
             {
-                return ($"UserId {userId} and ListId {listId} are invalid");
+                throw new Exception("UserId is invalid");
             }
-            if (getList == null && getUser != null)
+            if (!IsListValid(list))
             {
-                return ($"ListId {listId} is invalid");
+                throw new Exception("ListId is invalid");
             }
-            if (getList != null && getUser == null)
+            if (!IsListAssignedToUser(user, list))
             {
-                return ($"UserId {userId} is invalid");
+                throw new Exception("ListId does not belong to UserId");
             }
-            if (getList.CreatedUserId != getUser.Id)
+            if (!IsDefaultGuid(list.Id))
             {
-                return ($"ListId {listId} does not belong to this UserId{userId} ");
+                throw new Exception("ListId is invalid");
+            }
+            return null;
+        }
+        public string? ValidateUserId(User? userId)
+        {
+            //Validate if userId is valid
+            if (!IsUserValid(userId))
+            {
+                throw new Exception("UserId is invalid");
+            }
+            return null;
+        }
+        public string? ValidateUserRegistration(User? registerUser)
+        {
+            //Validate if registerUserDto is valid
+            if (IsRegistrationValid(registerUser))
+            {
+                throw new Exception("Registration is invalid User already exits");
             }
             return null;
         }
 
-        //Validate if user exist before creating new user
-        public async Task<string> ValidateRegistrationAsync(RegisterUserDto registerUserDto)
+        //All validations
+        public bool IsUserValid(User? user)
         {
-            User? getUserRegistration = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
-
-           if(getUserRegistration != null)
-            {
-                return ("User already exists");
-            }
-            return null;
-
+            return user != null;
         }
-        //Validate user login and check if password matches to that user
-        public async Task<string> ValidateLoginAsync(LoginDto userLoginDto)
+        public bool IsTaskValid(TaskItem task)
         {
-            User? getUserLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);
-
-            if (getUserLogin == null)
-            {
-                return ("Invalid email entered");
-            }
-            
-            if (getUserLogin.Password != userLoginDto.Password)
-            {
-                return ("Invalid pasword entered");
-            }
-
-            return null;
+            return task != null;
         }
-
-        //Validate if userId is valid
-        public async Task<string> ValidateUserAsync(Guid userId)
+        public bool IsListValid(List list)
         {
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            if(getUser == null)
-            {
-                return ($"UserId {userId} is invalid");
-            }
-            return null;
+            return list != null;
         }
-
+        public bool IsTaskAssignedToUser(User user, TaskItem taskItem)
+        {
+            return user.Id == taskItem.CreatedUserId;
+        }
+        public bool IsListAssignedToUser(User user, List list)
+        {
+            return user.Id == list.CreatedUserId;
+        }
+        public bool IsLoginValid(User? loginDto)
+        {
+            return loginDto != null;
+        }
+        public bool IsRegistrationValid(User? registerUser)
+        {
+            return registerUser != null;
+        }
+        public bool IsDefaultGuid(Guid id)
+        {
+            return id != Guid.Empty;
+        }
     }
 }

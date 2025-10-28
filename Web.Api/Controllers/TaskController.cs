@@ -30,14 +30,14 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader] Guid userId, Guid taskId)
         {
-            string validationMessage = await _validCheck.ValidateUserTaskAsync(userId, taskId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -71,9 +71,9 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {
-            //Request DTO
-            //create a new instance of TaskItem 
-            string validationMessage = await _validCheck.ValidateUserAsync(userId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+            string? validationMessage = _validCheck.ValidateUserId(getUser!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
@@ -140,14 +140,16 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
-            string validationMessage = await _validCheck.ValidateUserTaskAsync(userId, taskId);
+
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             TaskItemNote noteCreation = new TaskItemNote
             {
@@ -181,14 +183,14 @@ namespace Web.Api.Controllers
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader] Guid userId, Guid taskId, Guid noteId)
         {
-            string validationMessage = await _validCheck.ValidateUserTaskAsync(userId, taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             TaskItemNote? getNote = getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
             if (getNote == null)
@@ -213,14 +215,14 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
         {
-            string validationMessage = await _validCheck.ValidateUserTaskAsync(userId, taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             TaskItemStatusHistory statusHistory = new TaskItemStatusHistory
             {
@@ -276,14 +278,14 @@ namespace Web.Api.Controllers
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
-            string validationMessage = await _validCheck.ValidateUserTaskAsync(userId, taskId);
+            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
+
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
-
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
             if (updateTaskDto.Title != null &&
                 updateTaskDto.DueDate.HasValue &&
