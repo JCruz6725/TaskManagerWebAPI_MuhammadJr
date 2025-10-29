@@ -33,7 +33,7 @@ namespace Web.Api.Controllers
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
-            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser, getTask);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);

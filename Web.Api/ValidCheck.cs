@@ -8,7 +8,7 @@ namespace Web.Api
 {
     public class ValidCheck
     {
-        public string? ValidateUserAndTask(User user, TaskItem task)
+        public string? ValidateUserAndTask(User? user, TaskItem? task)
         {
             //Validate if user and task are valid and if task belongs to user
             if (!IsUserValid(user))
@@ -19,11 +19,11 @@ namespace Web.Api
             {
                 throw new Exception("TaskId is invalid");
             }
-            if (!IsTaskAssignedToUser(user, task))
+            if (!IsTaskAssignedToUser(user!, task!))
             {
                 throw new Exception("TaskId does not belong to UserId");
             }
-            if (!IsDefaultGuid(user.Id))
+            if (!IsDefaultGuid(user!.Id))
             {
                 throw new Exception("UserId is invalid");
             }
@@ -75,7 +75,7 @@ namespace Web.Api
         {
             return user != null;
         }
-        public bool IsTaskValid(TaskItem task)
+        public bool IsTaskValid(TaskItem? task)
         {
             return task != null;
         }
