@@ -27,26 +27,26 @@ namespace Web.Api.Controllers
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
-        public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader]Guid userId, Guid taskId)
+        public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader] Guid userId, Guid taskId)
         {
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-            
-            if (getTask == null && getUser == null)                                               
+
+            if (getTask == null && getUser == null)
             {
                 return NotFound($"UserId {userId} and TaskId {taskId} are invalid");
             }
-            if(getTask == null && getUser != null)
+            if (getTask == null && getUser != null)
             {
                 return NotFound($"TaskId {taskId} is invalid");
-            } 
-            if(getTask != null &&  getUser == null)
+            }
+            if (getTask != null && getUser == null)
             {
                 return NotFound($"UserId {userId} is invalid");
             }
             if (getTask.CreatedUserId != getUser.Id)
             {
-                return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
+                return Unauthorized($"Task {taskId} does not belog to this user {userId} ");
             }
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
@@ -68,19 +68,28 @@ namespace Web.Api.Controllers
                     }).ToList(),                                                 //add notes to the list
 
                 CurrentStatus = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
-                 .Select (history => new StatusDto                                     //create new instance of StatusDto
-                     {
-                         Id = history.Status.Id,
-                         Name = history.Status.Name,
-                         Code = history.Status.Code,
-                     }).FirstOrDefault(),
+                 .Select(history => new StatusDto                                     //create new instance of StatusDto
+                 {
+                     Id = history.Status.Id,
+                     Name = history.Status.Name,
+                     Code = history.Status.Code,
+                 }).FirstOrDefault(),
+
+                StatusHistories = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
+                .Select(history => new StatusDto
+                {
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,
+                    Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate,
+                }).ToList(),
             };
-            return Ok(taskDetail);                                            //retun task details
+            return Ok(taskDetail);                                           
         }
 
-
         [HttpPost(Name = "CreateTask")]
-        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader]Guid userId, TaskCreateDto taskCreatedDto) { 
+        public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
+        {
             //Request DTO
             //create a new instance of TaskItem 
             User? userExist = await _unitOfWork.User.GetUserByIdAsync(userId);  //Check if user exists before adding task
@@ -99,15 +108,15 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
                 TaskItemStatusHistories = [
-                    new TaskItemStatusHistory() { 
-                        StatusId = _statusChange.PendingId, 
-                        CreatedDate = DateTime.Now, 
-                        CreatedUserId = userId 
+                    new TaskItemStatusHistory() {
+                        StatusId = _statusChange.PendingId,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId
                     }
                     ]
             };
 
-            if(taskCreatedDto.DueDate == null)
+            if (taskCreatedDto.DueDate == null)
             {
                 taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
             }
@@ -141,22 +150,21 @@ namespace Web.Api.Controllers
                     }).ToList(),
 
                 CurrentStatus = taskCreation.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
-                .Select(history => new StatusDto                                     
-                     {
-                         Id = history.Status.Id,
-                         Name = history.Status.Name,
-                         Code = history.Status.Code,
-                     }).FirstOrDefault(),
+                .Select(status => new StatusDto
+                {
+                    Id = status.Status.Id,
+                    Name = status.Status.Name,
+                    Code = status.Status.Code,
+                }).FirstOrDefault(),
 
                 CreatedDate = taskCreation.CreatedDate,
-                CreatedUserId = taskCreation.CreatedUserId
+                CreatedUserId = taskCreation.CreatedUserId,
             };
-            return CreatedAtAction(nameof(CreateTask),new {taskId = taskCreation.Id}, creationResult);
+            return CreatedAtAction(nameof(CreateTask), new { taskId = taskCreation.Id }, creationResult);
         }
 
-
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
-        public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader]Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
+        public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
@@ -197,19 +205,17 @@ namespace Web.Api.Controllers
                 CreatedDate = noteCreation.CreatedDate,
                 CreatedUser = noteCreation.CreatedUserId
             };
-
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
-
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]
-        public Task<ActionResult<List<NoteDto>>> GetAllNotes([FromHeader]Guid userId, Guid taskId)
+        public Task<ActionResult<List<NoteDto>>> GetAllNotes([FromHeader] Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
 
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
-        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader]Guid userId, Guid taskId, Guid noteId)
+        public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader] Guid userId, Guid taskId, Guid noteId)
         {
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
@@ -227,7 +233,7 @@ namespace Web.Api.Controllers
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
 
-            TaskItemNote? getNote =  getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
+            TaskItemNote? getNote = getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
             if (getNote == null)
             {
                 return NotFound($"NoteId {noteId} is invalid");
@@ -247,22 +253,21 @@ namespace Web.Api.Controllers
             return Ok(deleteNote);
         }
 
-
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
-        public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader]Guid userId, Guid taskId)
+        public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
         {
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
-            if(getUser == null)
+            if (getUser == null)
             {
-                 return NotFound($"UserId {userId} is invalid");
+                return NotFound($"UserId {userId} is invalid");
             }
-            if(getTask == null)
+            if (getTask == null)
             {
                 return NotFound($"TaskId {taskId} is invalid");
             }
-            if(getTask.CreatedUserId != getUser.Id)
+            if (getTask.CreatedUserId != getUser.Id)
             {
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
@@ -290,35 +295,34 @@ namespace Web.Api.Controllers
                 DueDate = getTask.DueDate,
                 Priority = getTask.Priority,
 
-                Notes = getTask.TaskItemNotes.Select(n => new NoteDto 
+                Notes = getTask.TaskItemNotes.Select(n => new NoteDto
                 {
-                    Id =n.Id,
+                    Id = n.Id,
                     TaskItemId = n.TaskItemId,
                     Note = n.Note,
                     CreatedDate = n.CreatedDate,
                     CreatedUser = n.CreatedUserId
                 }).ToList(),
-                
+
                 CurrentStatus = new StatusDto
                 {
-                   Id = getTask.Id,
-                   Name = _statusChange.Complete,
-                   Code = _statusChange.Code2
+                    Id = getTask.Id,
+                    Name = _statusChange.Complete,
+                    Code = _statusChange.Code2
                 },
-               
-               CreatedDate = getTask.CreatedDate,
-               CreatedUserId = getTask.CreatedUserId,
+
+                CreatedDate = getTask.CreatedDate,
+                CreatedUserId = getTask.CreatedUserId,
             };
             return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = statusHistory.Id }, statusResult);
         }
 
 
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
-        public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader]Guid userId, Guid taskId)
+        public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader] Guid userId, Guid taskId)
         {
             throw new NotImplementedException();
         }
-
 
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
@@ -339,8 +343,8 @@ namespace Web.Api.Controllers
                 return Unauthorized($"TaskId {taskId} does not belong to this UserId {userId}");
             }
 
-            if (updateTaskDto.Title != null && 
-                updateTaskDto.DueDate.HasValue && 
+            if (updateTaskDto.Title != null &&
+                updateTaskDto.DueDate.HasValue &&
                 updateTaskDto.Priority != 0)
             {
                 getTask.Title = updateTaskDto.Title;
@@ -376,7 +380,6 @@ namespace Web.Api.Controllers
 
                 CreatedDate = getTask.CreatedDate,
                 CreatedUserId = getTask.CreatedUserId
-
             };
 
             return Ok(editTaskResult);
