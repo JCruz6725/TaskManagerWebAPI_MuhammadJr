@@ -7,35 +7,103 @@ using Web.Api.Persistence.Models;
 
 namespace Web.Api.Controllers
 {
+
+    public class DummyUser
+    {
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+
+        public struct TaskStruct
+        { 
+            public required string Title {  get; set; }
+            public required int Priority { get; set; }
+            public required int NumNotes { get; set; }
+            public required List<string> Notes { get; set; }
+            public required int NumSubTasks {  get; set; }
+            public required List<string> SubTasks { get; set; }
+        }
+        public required List<TaskStruct> Tasks = new List<TaskStruct>();
+
+    }
+
+
     [ApiController]
     [Route("[controller]")]
     public class AdminController : ControllerBase
     {
-        //HARD DATA
-        private int numUsers = 5;
-        private static readonly string[] DummyFirstNames = { "Alex", "Jessie", "April", "Niko", "Brian" };
-        private static readonly string[] DummyLastNames = { "Farmer", "Hopkins", "Rice", "Logan", "Travis" };
-        private static readonly string[] DummyEmails = { "AFarmer@email.com", "JHopkins@email.com", "ARice@email.com", "NLogan@email.com", "BTravis@email.com" };
-        private static readonly string[] DummyPasswords = { "12345", "pasword", "ARice", "abc", "BrianT" };
-        //private List<Guid> Ids { get; set; } = [];
-
-        private int numTasks = 4;
-        private static readonly string[] DummyTaskTitles = { "Run", "Walk", "Cook", "Clean" };
-        private static readonly int[] DummyTaskPriorities = { 10, 20, 30, 40 };
-
-        private int numNotes = 4;
-        private static readonly string[] DummyNotes = { "Marathon", "Take dogs on a walk", "Spaghetti", "Bathroom" };
-
-        private int numSubTasks = 3; //per task
-        private static readonly string[,] DummySubTasks =
+        private readonly Random random = new(); //used to create random priorities for subtasks
+        private int numUsers = 4;
+        private DummyUser Alex = new DummyUser()
         {
-            { "Buy shoes", "Go to park", null },
-            { "Go to park", null, null },
-            { "Buy ingredients", "Wash dishes", "Chop veggies" },
-            { "Clean kitchen", "Clean bathroom", null }
+            FirstName = "Alex",
+            LastName = "Farmer",
+            Email = "AFarmer@email.com",
+            Password = "12345",
+            Tasks = [
+                new DummyUser.TaskStruct(){
+                    Title = "Run",
+                    Priority = 10,
+                    NumNotes = 1,
+                    Notes = new List<string> {"Marathon"},
+                    NumSubTasks = 2,
+                    SubTasks = new List<string> {"Buy shoes", "Go to park"}
+                },
+                new DummyUser.TaskStruct(){
+                    Title = "Walk",
+                    Priority = 20,
+                    NumNotes = 1,
+                    Notes = new List<string> {"Take dogs on walk"},
+                    NumSubTasks = 1,
+                    SubTasks = new List<string> {"Go to park"}
+                }
+            ]
         };
-        private Random random = new Random(); //used to create random priorities for subtasks
-        //
+        private DummyUser Jessie = new DummyUser()
+        {
+            FirstName = "Jessie",
+            LastName = "Hopkins",
+            Email = "JHopkins@email.com",
+            Password = "password",
+            Tasks = [
+                new DummyUser.TaskStruct(){
+                    Title = "Cook",
+                    Priority = 30,
+                    NumNotes = 2,
+                    Notes = new List<string> {"spaghetti", "tacos"},
+                    NumSubTasks = 3,
+                    SubTasks = new List<string> { "Buy ingredients", "Wash dishes", "Chop veggies" }
+                }
+            ]
+        };
+        private DummyUser April = new DummyUser()
+        {
+            FirstName = "April",
+            LastName = "Rice",
+            Email = "ARice@email.com",
+            Password = "ARice",
+            Tasks = [
+                new DummyUser.TaskStruct(){
+                    Title = "Clean",
+                    Priority = 40,
+                    NumNotes = 1,
+                    Notes = new List<string> {"Bathroom"},
+                    NumSubTasks = 2,
+                    SubTasks = new List<string> { "Clean kitchen", "Clean bathroom" }
+                }
+            ]
+        };
+        private DummyUser Niko = new DummyUser()
+        {
+            FirstName = "Niko",
+            LastName = "Logan",
+            Email = "Nlogan@email.com",
+            Password = "abc",
+            Tasks = []
+        };
+
+
 
 
         private readonly StatusChange statusChange;
@@ -52,8 +120,8 @@ namespace Web.Api.Controllers
         [HttpPost("/AddStatus", Name = "AddStatus")]
         public async Task<ActionResult<string>> AddStatus()
         {
-            Status pendingStatus = new Status() { Id = statusChange.PendingId, Name = "Pending", Code = 1 };
-            Status completedStatus = new Status() { Id = statusChange.CompleteId, Name = "Complete", Code = 2 };
+            Status pendingStatus = new() { Id = statusChange.PendingId, Name = statusChange.Pending, Code = statusChange.Code1 };
+            Status completedStatus = new() { Id = statusChange.CompleteId, Name = statusChange.Complete, Code = statusChange.Code2 };
 
             context.Add(pendingStatus);
             context.Add(completedStatus);
@@ -66,44 +134,75 @@ namespace Web.Api.Controllers
         [HttpPost("/AddDummyData", Name = "AddDummyData")]
         public async Task<ActionResult<string>> AddDummyData() 
         {
-            //CREATE TASKS, NOTES, & SUB-TASKS (For each user)
+            DummyUser[] DummyUsers = { Alex, Jessie, April, Niko };
+
+            //CREATE USERS, TASKS, NOTES, & SUB-TASKS (For each user)
             User user;
             TaskItem task;
             TaskItemNote note;
             SubTask subTask;
+            List list;
+            List<List> tempListsCollection;
+
 
             //Create multiple users
             for (int userIndex = 0; userIndex < numUsers; userIndex++) { 
+                DummyUser currDummyUser = DummyUsers[userIndex];
 
                 //new user from dummy data
                 user = new User
                 {
-                    FirstName = DummyFirstNames[userIndex],
-                    LastName = DummyLastNames[userIndex],
-                    Email = DummyEmails[userIndex],
-                    Password = DummyPasswords[userIndex],
+                    FirstName = currDummyUser.FirstName,
+                    LastName = currDummyUser.LastName,
+                    Email = currDummyUser.Password,
+                    Password = currDummyUser.Password,
                     CreatedDate = DateTime.Now,
                 };
-
                 context.Add(user);
                 await context.SaveChangesAsync();
                 user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
 
-                //create multiple tasks, notes, & subtasks for each user
-                for (int taskIndex = 0; taskIndex < numTasks; taskIndex++) 
+                
+                /*
+                //create list(s) for each user
+                tempListsCollection = new List<List>();
+                for (int listIndex = 0; listIndex < ; listIndex++)
                 {
+                    if (DummyLists[userIndex, listIndex] != null) //check if there is dummy data to be created
+                    {
+                        list = new List()
+                        {
+                            Name = DummyLists[userIndex,listIndex]!,
+                            CreatedDate = DateTime.Now,
+                            CreatedUserId = user.Id
+                        };
+                        context.Add(list);
+                        await context.SaveChangesAsync();
+                        list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
+                        tempListsCollection.Add(list);
+                    }
+                }*/
+
+
+
+                //int tempListIndex = 0;
+                //int numTaskInList = 0;
+                //create multiple lists, tasks, notes, & subtasks for each user
+                for (int taskIndex = 0; taskIndex < currDummyUser.Tasks.Count; taskIndex++) 
+                {
+                   DummyUser.TaskStruct currDummyTask = currDummyUser.Tasks[taskIndex];
                     //new task from dummy data
                     task = new TaskItem()
                     {
-                        Title = DummyTaskTitles[taskIndex],
-                        Priority = DummyTaskPriorities[taskIndex],
+                        Title = currDummyTask.Title,
+                        Priority = currDummyTask.Priority,
                         CreatedDate = DateTime.Now,
                         CreatedUserId = user.Id,
                         DueDate = DateTime.Now,
                         TaskItemStatusHistories = [
                             new TaskItemStatusHistory() {
-                                StatusId = statusChange.PendingId, 
-                                CreatedDate = DateTime.Now, 
+                                StatusId = statusChange.PendingId,
+                                CreatedDate = DateTime.Now,
                                 CreatedUserId = user.Id
                             }
                         ]
@@ -114,52 +213,80 @@ namespace Web.Api.Controllers
                                                   .Include(history => history.TaskItemStatusHistories)
                                                   .ThenInclude(stat => stat.Status)
                                                   .FirstOrDefaultAsync(ti => ti.Id == task.Id);
-
-
-                    //new note from dummy data
-                    note = new TaskItemNote()
-                    {
-                        TaskItemId = task.Id,
-                        Note = DummyNotes[taskIndex],
-                        CreatedDate = DateTime.Now,
-                        CreatedUserId = user.Id//userIds[taskIndex]
-                    };
-                    context.Add(note);
-                    context.SaveChanges();
+                    user.TaskItems.Add(task); //Add the task to the user
                     
                     
-                    //create multiple subtasks for each task
-                    for (int subTaskIndex = 0; subTaskIndex < numSubTasks; subTaskIndex++)
+                    //create multiple note(s) for each task
+                    for (int noteIndex = 0; noteIndex < currDummyTask.NumNotes; noteIndex++)
                     {
-                        if (DummySubTasks[taskIndex, subTaskIndex] != null) { //check if there is dummy data to create
-                            //new subtask from dummy data
-                            subTask = new SubTask()
+                        string currDummyNote = currDummyTask.Notes[noteIndex];
+                        //new note from dummy data
+                        note = new TaskItemNote()
+                        {
+                            TaskItemId = task.Id,
+                            Note = currDummyNote,
+                            CreatedDate = DateTime.Now,
+                            CreatedUserId = user.Id
+                        };
+                        context.Add(note);
+                        await context.SaveChangesAsync();
+                        task.TaskItemNotes.Add(note); //add note to task
+                    }
+
+
+                    
+                    //create multiple subtask(s) for each task
+                    for (int subTaskIndex = 0; subTaskIndex < currDummyTask.SubTasks.Count; subTaskIndex++)
+                    {
+                        //new subtask from dummy data
+                        subTask = new SubTask()
+                        {
+                            TaskItemId = task.Id,
+                            CreatedDate = DateTime.Now,
+                            CreatedUserId = user.Id,
+                            SubTaskItem = new TaskItem()
                             {
-                                TaskItemId = task.Id,
+                                Title = currDummyTask.SubTasks[subTaskIndex],
+                                Priority = random.Next(task.Priority), //Generates random priority value between: 0 - parent task priority 
+                                                                       //We want the priority of a subtask to be higher than the parent task (need to complete subtasks before parent task)
                                 CreatedDate = DateTime.Now,
                                 CreatedUserId = user.Id,
-                                SubTaskItem = new TaskItem()
-                                {
-                                    Title = DummySubTasks[taskIndex, subTaskIndex],
-                                    Priority = random.Next(task.Priority), //Generates random priority value between: 0 - parent task priority 
-                                                                           //We don't want the priority of a parent task to be higher than the subtask (need to complete subtasks before parent task)
-                                    CreatedDate = DateTime.Now,
-                                    CreatedUserId = user.Id,
-                                    DueDate = DateTime.Now,
-                                    TaskItemStatusHistories = [
-                                        new TaskItemStatusHistory() {
-                                            StatusId = statusChange.PendingId,
-                                            CreatedDate= DateTime.Now,
-                                            CreatedUserId = user.Id,
-                                        }
-                                    ]
-                                }
-                            };
-                            context.Add(subTask);
-                            context.SaveChanges();
-                        }
-                        
+                                DueDate = DateTime.Now,
+                                TaskItemStatusHistories = [
+                                    new TaskItemStatusHistory() {
+                                        StatusId = statusChange.PendingId,
+                                        CreatedDate= DateTime.Now,
+                                        CreatedUserId = user.Id,
+                                    }
+                                ]
+                            }
+                        };
+                        context.Add(subTask);
+                        context.SaveChanges();
+                        //task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
+
                     }
+
+                    /*
+                    //ADD THE TASK TO A LIST (If available)
+                    if (tempListsCollection[tempListIndex] != null) {
+                        //create new taskWithinList item using task just created
+                        TaskWithinList taskWithinList = new TaskWithinList()
+                        {
+                            TaskListId = tempListsCollection[tempListIndex].Id,
+                            TaskItemId = task.Id,
+                            CreatedDate = DateTime.Now,
+                            CreatedUserId = user.Id,
+                        };
+                        //add taskItem to list
+                        tempListsCollection[tempListIndex].TaskWithinLists.Add(taskWithinList);
+                        numTaskInList++; //we just added a task to the list  
+                    }
+
+                    if (numTaskInList == 2)
+                    {
+                        tempListIndex++; //we only move to a new list in the tempCollection when each list has 2 tasks
+                    }*/
                 }
             }
 

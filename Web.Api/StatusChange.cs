@@ -6,7 +6,7 @@
         public Guid PendingId { get; set; }
         public string Complete { get; set; } 
         public int Code2 { get; set; }
-        public string Incomplete { get; set; }
+        public string Pending { get; set; }
         public int Code1 { get; set; }   
     }
 }
