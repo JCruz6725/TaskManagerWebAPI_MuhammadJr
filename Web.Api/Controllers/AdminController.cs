@@ -15,14 +15,18 @@ namespace Web.Api.Controllers
         public required string Email { get; set; }
         public required string Password { get; set; }
 
+        public List<string> TaskList = new List<string>();
+
         public struct TaskStruct
-        { 
+        {
+            public TaskStruct() { }
             public required string Title {  get; set; }
             public required int Priority { get; set; }
             public required int NumNotes { get; set; }
             public required List<string> Notes { get; set; }
             public required int NumSubTasks {  get; set; }
             public required List<string> SubTasks { get; set; }
+            public string AssosciatedList { get; set; } = null!;
         }
         public required List<TaskStruct> Tasks = new List<TaskStruct>();
 
@@ -41,6 +45,7 @@ namespace Web.Api.Controllers
             LastName = "Farmer",
             Email = "AFarmer@email.com",
             Password = "12345",
+            TaskList = ["Exercise"],
             Tasks = [
                 new DummyUser.TaskStruct(){
                     Title = "Run",
@@ -48,7 +53,8 @@ namespace Web.Api.Controllers
                     NumNotes = 1,
                     Notes = new List<string> {"Marathon"},
                     NumSubTasks = 2,
-                    SubTasks = new List<string> {"Buy shoes", "Go to park"}
+                    SubTasks = new List<string> {"Buy shoes", "Go to park"},
+                    AssosciatedList = "Exercise"
                 },
                 new DummyUser.TaskStruct(){
                     Title = "Walk",
@@ -83,6 +89,7 @@ namespace Web.Api.Controllers
             LastName = "Rice",
             Email = "ARice@email.com",
             Password = "ARice",
+            TaskList = ["Work"],
             Tasks = [
                 new DummyUser.TaskStruct(){
                     Title = "Clean",
@@ -100,7 +107,8 @@ namespace Web.Api.Controllers
             LastName = "Logan",
             Email = "Nlogan@email.com",
             Password = "abc",
-            Tasks = []
+            Tasks = [],
+            TaskList = ["New list"]
         };
 
 
@@ -142,7 +150,8 @@ namespace Web.Api.Controllers
             TaskItemNote note;
             SubTask subTask;
             List list;
-            List<List> tempListsCollection;
+            TaskWithinList taskWithinList;
+            List<List> createdLists = new List<List>(); //used to keep track of the lists we created already
 
 
             //Create multiple users
@@ -162,35 +171,32 @@ namespace Web.Api.Controllers
                 await context.SaveChangesAsync();
                 user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
 
-                
-                /*
+
+
                 //create list(s) for each user
-                tempListsCollection = new List<List>();
-                for (int listIndex = 0; listIndex < ; listIndex++)
+                for (int listIndex = 0; listIndex < currDummyUser.TaskList.Count; listIndex++)
                 {
-                    if (DummyLists[userIndex, listIndex] != null) //check if there is dummy data to be created
+                    string currDummyListItem = currDummyUser.TaskList[listIndex];
+
+                    //new list from dummy data
+                    list = new List()
                     {
-                        list = new List()
-                        {
-                            Name = DummyLists[userIndex,listIndex]!,
-                            CreatedDate = DateTime.Now,
-                            CreatedUserId = user.Id
-                        };
-                        context.Add(list);
-                        await context.SaveChangesAsync();
-                        list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
-                        tempListsCollection.Add(list);
-                    }
-                }*/
+                        Name = currDummyListItem,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = user.Id
+                    };
+                    context.Add(list);
+                    await context.SaveChangesAsync();
+                    list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
+                    createdLists.Add(list);
+                }
 
 
-
-                //int tempListIndex = 0;
-                //int numTaskInList = 0;
-                //create multiple lists, tasks, notes, & subtasks for each user
+                //create task(s), note(s), & subtask(s) for each user
                 for (int taskIndex = 0; taskIndex < currDummyUser.Tasks.Count; taskIndex++) 
                 {
-                   DummyUser.TaskStruct currDummyTask = currDummyUser.Tasks[taskIndex];
+                    DummyUser.TaskStruct currDummyTask = currDummyUser.Tasks[taskIndex];
+
                     //new task from dummy data
                     task = new TaskItem()
                     {
@@ -216,15 +222,15 @@ namespace Web.Api.Controllers
                     user.TaskItems.Add(task); //Add the task to the user
                     
                     
+
                     //create multiple note(s) for each task
                     for (int noteIndex = 0; noteIndex < currDummyTask.NumNotes; noteIndex++)
-                    {
-                        string currDummyNote = currDummyTask.Notes[noteIndex];
+                    {   
                         //new note from dummy data
                         note = new TaskItemNote()
                         {
                             TaskItemId = task.Id,
-                            Note = currDummyNote,
+                            Note = currDummyTask.Notes[noteIndex],
                             CreatedDate = DateTime.Now,
                             CreatedUserId = user.Id
                         };
@@ -262,31 +268,34 @@ namespace Web.Api.Controllers
                             }
                         };
                         context.Add(subTask);
-                        context.SaveChanges();
-                        //task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
-
+                        await context.SaveChangesAsync();
+                        task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
                     }
 
-                    /*
-                    //ADD THE TASK TO A LIST (If available)
-                    if (tempListsCollection[tempListIndex] != null) {
-                        //create new taskWithinList item using task just created
-                        TaskWithinList taskWithinList = new TaskWithinList()
-                        {
-                            TaskListId = tempListsCollection[tempListIndex].Id,
-                            TaskItemId = task.Id,
-                            CreatedDate = DateTime.Now,
-                            CreatedUserId = user.Id,
-                        };
-                        //add taskItem to list
-                        tempListsCollection[tempListIndex].TaskWithinLists.Add(taskWithinList);
-                        numTaskInList++; //we just added a task to the list  
-                    }
 
-                    if (numTaskInList == 2)
+
+                    //for each created list, check if task is supposed to be a part of the list
+                    for (int listIndex = 0; listIndex < createdLists.Count; listIndex++)
                     {
-                        tempListIndex++; //we only move to a new list in the tempCollection when each list has 2 tasks
-                    }*/
+                        List currDummyList = createdLists[listIndex];
+
+                        //adding task to list if it is associated together
+                        if (currDummyTask.AssosciatedList == currDummyList.Name)
+                        { 
+                            //create new taskWithinList item using task just created
+                            taskWithinList = new TaskWithinList()
+                            {
+                                TaskListId = currDummyList.Id,
+                                TaskItemId = task.Id,
+                                CreatedDate = DateTime.Now,
+                                CreatedUserId = user.Id,
+                            };
+                            //add taskItem to list
+                            context.Add(taskWithinList);
+                            await context.SaveChangesAsync();
+                            currDummyList.TaskWithinLists.Add(taskWithinList);
+                        }
+                    }
                 }
             }
 
