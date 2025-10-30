@@ -33,7 +33,7 @@ namespace Web.Api.Controllers
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
-            string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
+            string? validationMessage = _validCheck.ValidateUserAndTask(getUser, getTask);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
@@ -53,7 +53,7 @@ namespace Web.Api.Controllers
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
-                Id = getTask.Id,
+                Id = getTask!.Id,
                 Title = getTask.Title,
                 DueDate = getTask.DueDate,
                 Priority = getTask.Priority,
