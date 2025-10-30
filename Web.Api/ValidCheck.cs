@@ -8,44 +8,44 @@ namespace Web.Api
 {
     public class ValidCheck
     {
-        public string? ValidateUserAndTask(User user, TaskItem task)
+        public string? ValidateUserAndTask(User? user, TaskItem? task)
         {
             //Validate if user and task are valid and if task belongs to user
             if (!IsUserValid(user))
             {
                 throw new Exception("User is Invalid");
             }
-            if (!IsTaskValid(task))
+            if (!IsTaskValid(task!))
             {
                 throw new Exception("TaskId is invalid");
             }
-            if (!IsTaskAssignedToUser(user, task))
+            if (!IsTaskAssignedToUser(user!, task!))
             {
                 throw new Exception("TaskId does not belong to UserId");
             }
-            if (!IsDefaultGuid(user.Id))
+            if (!IsDefaultGuid(user!.Id))
             {
                 throw new Exception("UserId is invalid");
             }
             return null;
         }
 
-        public string? ValidateUserAndList(User user, List list)
+        public string? ValidateUserAndList(User? user, List? list)
         {
             //Validate if user and list are valid and if list belongs to user
             if (!IsUserValid(user))
             {
                 throw new Exception("UserId is invalid");
             }
-            if (!IsListValid(list))
+            if (!IsListValid(list!))
             {
                 throw new Exception("ListId is invalid");
             }
-            if (!IsListAssignedToUser(user, list))
+            if (!IsListAssignedToUser(user!, list!))
             {
                 throw new Exception("ListId does not belong to UserId");
             }
-            if (!IsDefaultGuid(list.Id))
+            if (!IsDefaultGuid(list!.Id))
             {
                 throw new Exception("ListId is invalid");
             }
@@ -75,21 +75,21 @@ namespace Web.Api
         {
             return user != null;
         }
-        public bool IsTaskValid(TaskItem task)
+        public bool IsTaskValid(TaskItem? task)
         {
             return task != null;
         }
-        public bool IsListValid(List list)
+        public bool IsListValid(List? list)
         {
             return list != null;
         }
-        public bool IsTaskAssignedToUser(User user, TaskItem taskItem)
+        public bool IsTaskAssignedToUser(User? user, TaskItem? taskItem)
         {
-            return user.Id == taskItem.CreatedUserId;
+            return user!.Id == taskItem!.CreatedUserId;
         }
-        public bool IsListAssignedToUser(User user, List list)
+        public bool IsListAssignedToUser(User? user, List? list)
         {
-            return user.Id == list.CreatedUserId;
+            return user!.Id == list!.CreatedUserId;
         }
         public bool IsLoginValid(User? loginDto)
         {

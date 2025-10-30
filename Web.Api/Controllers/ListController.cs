@@ -35,7 +35,7 @@ namespace Web.Api.Controllers
             List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
-            string? validationMessage = _validCheck.ValidateUserAndList(getUser!, getList!);
+            string? validationMessage = _validCheck.ValidateUserAndList(getUser, getList);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
@@ -43,7 +43,7 @@ namespace Web.Api.Controllers
 
             ListDto listDtos = new ListDto
             {
-                Id = getList.Id,
+                Id = getList!.Id,
                 Name = getList.Name,
                 CreatedDate = getList.CreatedDate,
                 CreatedUserId = getList.CreatedUserId,
