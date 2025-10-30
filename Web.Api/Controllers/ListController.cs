@@ -17,13 +17,11 @@ namespace Web.Api.Controllers
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly ValidCheck _validCheck;
-        public ListController(UnitOfWork unitOfWork, ValidCheck validCheck)
         private readonly ILogger<ListController> _logger;
-        public ListController (UnitOfWork unitOfWork, ILogger<ListController> logger)
+        public ListController(UnitOfWork unitOfWork, ILogger<ListController> logger, ValidCheck validCheck)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-
             _validCheck = validCheck;
         }
 
@@ -36,7 +34,7 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
-            _logger.LogInformation("Getting list by Id");
+            _logger.LogInformation("Getting list by Id initiated");
 
             List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
@@ -46,6 +44,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation of userId and listId is successful");
 
             ListDto listDtos = new ListDto
             {
@@ -65,13 +64,14 @@ namespace Web.Api.Controllers
                 }).ToArray()
 
             };
-            _logger.LogInformation("Getting list successfull");
+            _logger.LogInformation("Returning get list by Id result");
             return Ok(listDtos);
         }
 
         [HttpGet(Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
+            _logger.LogInformation("Getting all lists for user initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
             string? validationMessage = _validCheck.ValidateUserId(getUser);
@@ -79,6 +79,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation of userId is successful");
 
             List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
 
@@ -89,8 +90,9 @@ namespace Web.Api.Controllers
                 CreatedDate = sl.CreatedDate,
                 CreatedUserId = sl.CreatedUserId,
             }).ToList();
-            return Ok(getListDetail);
+            _logger.LogInformation("Returning get all lists result");
 
+            return Ok(getListDetail);
         }
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]

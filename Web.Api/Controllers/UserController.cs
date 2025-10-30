@@ -14,19 +14,18 @@ namespace Web.Api.Controllers
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
         private readonly ILogger<UserController> _logger;
-        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger)                    //constructor for the UofW that acceses the private field
         private readonly ValidCheck _validCheck;
-        public UserController(UnitOfWork unitOfWork, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
+        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _unitOfWork = unitOfWork;
             _validCheck = validCheck;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
+            _logger.LogInformation("Registering a new user");
             User? getUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
 
             string? validationMessage = _validCheck.ValidateUserRegistration(getUser);
@@ -34,7 +33,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
-
+            _logger.LogInformation("Validation of user registration is successful");
             //RequestDTO
             //create a new instance of User thats not existing
             //call the User props and set the registerDto to its assign props 
@@ -49,7 +48,8 @@ namespace Web.Api.Controllers
 
             await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
             await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
-
+            _logger.LogInformation("New user has been registered successfully");
+           
             return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
         }
 
@@ -63,7 +63,9 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
-            _logger.LogInformation("User has looged on");
+            _logger.LogInformation("Validation of user login is successful");
+            _logger.LogInformation("User has logged in successfully");
+            
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }

@@ -19,7 +19,7 @@ namespace Web.Api.Controllers
         private readonly StatusChange _statusChange;
         private readonly ILogger<TaskController> _logger;
         private readonly ValidCheck _validCheck;
-        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
+        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger, ValidCheck validCheck)                
         {
             _unitOfWork = unitOfWork;
             _statusChange = statusChangeOptions.Value;
@@ -30,6 +30,7 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader] Guid userId, Guid taskId)
         {
+            _logger.LogInformation("GetTaskById initiated");
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);    //UofW that takes the TaskItem and call the TaskItemRepo GetUserById
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
@@ -38,19 +39,8 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
-            if(getTask == null && getUser != null)
-            {
-                return NotFound($"TaskId {taskId} is invalid");
-            } 
-            if(getTask != null &&  getUser == null)
-            {
-                return NotFound($"UserId {userId} is invalid");
-            }
-            if (getTask.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
-            }
-
+            _logger.LogInformation($"Validation oftaskId and userId is Successfull");
+           
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
                 Id = getTask!.Id,
@@ -77,14 +67,14 @@ namespace Web.Api.Controllers
                      Code = history.Status.Code,
                  }).FirstOrDefault(),
             };
-            _logger.LogInformation("GetTaskById is all good");
-
-            return Ok(taskDetail);                                            //retun task details
+           _logger.LogInformation("Returning the task detail result");
+            return Ok(taskDetail);                                           
         }
 
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {
+            _logger.LogInformation("Create Task initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
 
             string? validationMessage = _validCheck.ValidateUserId(getUser!);
@@ -92,7 +82,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
-
+            _logger.LogInformation("Validation of userId is Successfull");
             //calls the TaskItem prop and set the task created dto to its prop
             //Request DTO
             //create a new instance of TaskItem 
@@ -116,6 +106,7 @@ namespace Web.Api.Controllers
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
 
+            _logger.LogInformation("Task Creation is Successfull");
             //Response DTO
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
@@ -148,21 +139,23 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId
             };
+            _logger.LogInformation("Returning the created task result");
             return CreatedAtAction(nameof(CreateTask), new { taskId = taskCreation.Id }, creationResult);
         }
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
+            _logger.LogInformation("Create note initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
-
 
             string? validationMessage = _validCheck.ValidateUserAndTask(getUser!, getTask!);
             if (validationMessage != null)
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation of taskId and userId is Successfull");
 
             TaskItemNote noteCreation = new TaskItemNote
             {
@@ -171,10 +164,12 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = getUser.Id
             };
-
+            
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Note Creation is Successfull");
 
+            //Response DTO
             var noteResult = new NoteDto
             {
                 Id = noteCreation.Id,
@@ -183,7 +178,7 @@ namespace Web.Api.Controllers
                 CreatedDate = noteCreation.CreatedDate,
                 CreatedUser = noteCreation.CreatedUserId
             };
-
+            _logger.LogInformation("Returning the created note result");
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
@@ -196,6 +191,7 @@ namespace Web.Api.Controllers
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader] Guid userId, Guid taskId, Guid noteId)
         {
+            _logger.LogInformation("Delete note initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -204,6 +200,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation taskId and userId is Successfull");
 
             TaskItemNote? getNote = getTask.TaskItemNotes.Where(n => n.Id == noteId).FirstOrDefault();
             if (getNote == null)
@@ -213,6 +210,7 @@ namespace Web.Api.Controllers
 
             _unitOfWork.TaskItem.DeleteNote(getNote);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Note Deletion is Successfull");
 
             NoteDto deleteNote = new NoteDto
             {
@@ -222,12 +220,14 @@ namespace Web.Api.Controllers
                 CreatedDate = getNote.CreatedDate,
                 CreatedUser = getNote.CreatedUserId,
             };
+            _logger.LogInformation("Returning the deleted note result");
             return Ok(deleteNote);
         }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
         {
+            _logger.LogInformation("Status change to complete initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -236,6 +236,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation of taskId and userId is Successfull");
 
             TaskItemStatusHistory statusHistory = new TaskItemStatusHistory
             {
@@ -252,6 +253,7 @@ namespace Web.Api.Controllers
             }
             taskStatus.TaskItemStatusHistories.Add(statusHistory);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Status Change to Complete is Successfull");
 
             TaskDto statusResult = new TaskDto
             {
@@ -279,6 +281,7 @@ namespace Web.Api.Controllers
                 CreatedDate = getTask.CreatedDate,
                 CreatedUserId = getTask.CreatedUserId,
             };
+            _logger.LogInformation("Returning the status changed to complete result");
             return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = statusHistory.Id }, statusResult);
         }
 
@@ -291,8 +294,7 @@ namespace Web.Api.Controllers
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
-            _logger.LogInformation("Editing Task");
-
+            _logger.LogInformation("Edit Task initiated");
             User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
             TaskItem? getTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId);
 
@@ -301,6 +303,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest(validationMessage);
             }
+            _logger.LogInformation("Validation of taskId and userId is Successfull");
 
             if (updateTaskDto.Title != null &&
                 updateTaskDto.DueDate.HasValue &&
@@ -310,8 +313,8 @@ namespace Web.Api.Controllers
                 getTask.DueDate = updateTaskDto.DueDate.Value;
                 getTask.Priority = updateTaskDto.Priority;
             }
-
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Task Edit is Successfull");
 
             TaskDto editTaskResult = new TaskDto
             {
@@ -340,7 +343,7 @@ namespace Web.Api.Controllers
                 CreatedDate = getTask.CreatedDate,
                 CreatedUserId = getTask.CreatedUserId
             };
-
+            _logger.LogInformation("Returning the edited task result");
             return Ok(editTaskResult);
         }
     }
