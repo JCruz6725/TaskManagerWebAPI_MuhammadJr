@@ -27,6 +27,7 @@ namespace Web.Api.Controllers
             throw new NotImplementedException();
         }
 
+
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
@@ -82,6 +83,7 @@ namespace Web.Api.Controllers
             }).ToList();
             return Ok(getListDetail);
         }
+
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
         public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)

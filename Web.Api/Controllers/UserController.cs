@@ -13,10 +13,13 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
+
+
         public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
         }
+
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
@@ -44,6 +47,7 @@ namespace Web.Api.Controllers
 
             return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
         }
+
 
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation

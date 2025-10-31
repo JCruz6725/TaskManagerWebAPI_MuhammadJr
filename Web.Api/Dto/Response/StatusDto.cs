@@ -1,4 +1,4 @@
-﻿    namespace Web.Api.Dto.Response
+﻿namespace Web.Api.Dto.Response
 {
     public class StatusDto
     {
