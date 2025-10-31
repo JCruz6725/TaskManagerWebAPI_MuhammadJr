@@ -26,9 +26,10 @@ namespace Web.Api.Controllers
             public required List<string> Notes { get; set; }
             public required int NumSubTasks {  get; set; }
             public required List<string> SubTasks { get; set; }
+            public required List<int> SubTasksPriorities { get; set; }
             public string AssosciatedList { get; set; } = null!;
         }
-        public required List<TaskStruct> Tasks = new List<TaskStruct>();
+        public required List<TaskStruct> Tasks = [];
 
     }
 
@@ -37,7 +38,7 @@ namespace Web.Api.Controllers
     [Route("[controller]")]
     public class AdminController : ControllerBase
     {
-        private readonly Random random = new(); //used to create random priorities for subtasks
+        //private readonly Random random = new(); //used to create random priorities for subtasks
         private int numUsers = 4;
         private DummyUser Alex = new DummyUser()
         {
@@ -54,6 +55,7 @@ namespace Web.Api.Controllers
                     Notes = new List<string> {"Marathon"},
                     NumSubTasks = 2,
                     SubTasks = new List<string> {"Buy shoes", "Go to park"},
+                    SubTasksPriorities = new List<int> {2, 5},
                     AssosciatedList = "Exercise"
                 },
                 new DummyUser.TaskStruct(){
@@ -62,7 +64,8 @@ namespace Web.Api.Controllers
                     NumNotes = 1,
                     Notes = new List<string> {"Take dogs on walk"},
                     NumSubTasks = 1,
-                    SubTasks = new List<string> {"Go to park"}
+                    SubTasks = new List<string> {"Go to park"},
+                    SubTasksPriorities = new List<int> {18}
                 }
             ]
         };
@@ -79,7 +82,8 @@ namespace Web.Api.Controllers
                     NumNotes = 2,
                     Notes = new List<string> {"spaghetti", "tacos"},
                     NumSubTasks = 3,
-                    SubTasks = new List<string> { "Buy ingredients", "Wash dishes", "Chop veggies" }
+                    SubTasks = new List<string> {"Buy ingredients", "Chop veggies", "Wash dishes"},
+                    SubTasksPriorities = new List<int> {5, 10, 20}
                 }
             ]
         };
@@ -97,7 +101,8 @@ namespace Web.Api.Controllers
                     NumNotes = 1,
                     Notes = new List<string> {"Bathroom"},
                     NumSubTasks = 2,
-                    SubTasks = new List<string> { "Clean kitchen", "Clean bathroom" }
+                    SubTasks = new List<string> {"Clean kitchen", "Clean bathroom"},
+                    SubTasksPriorities = new List<int> {20, 30}
                 }
             ]
         };
@@ -187,7 +192,8 @@ namespace Web.Api.Controllers
                     };
                     context.Add(list);
                     await context.SaveChangesAsync();
-                    list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
+                    list = context.Lists.Single(predicate: li => li.Id == list.Id);
+                    //list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
                     createdLists.Add(list);
                 }
 
@@ -215,10 +221,11 @@ namespace Web.Api.Controllers
                     };
                     context.Add(task);
                     await context.SaveChangesAsync();
-                    task = await context.TaskItems.Include(item => item.TaskItemNotes)
+                    task = context.TaskItems.Single(predicate: ti => ti.Id == task.Id);
+                    /*task = await context.TaskItems.Include(item => item.TaskItemNotes)
                                                   .Include(history => history.TaskItemStatusHistories)
                                                   .ThenInclude(stat => stat.Status)
-                                                  .FirstOrDefaultAsync(ti => ti.Id == task.Id);
+                                                  .FirstOrDefaultAsync(ti => ti.Id == task.Id);*/
                     user.TaskItems.Add(task); //Add the task to the user
                     
                     
@@ -244,6 +251,7 @@ namespace Web.Api.Controllers
                     //create multiple subtask(s) for each task
                     for (int subTaskIndex = 0; subTaskIndex < currDummyTask.SubTasks.Count; subTaskIndex++)
                     {
+
                         //new subtask from dummy data
                         subTask = new SubTask()
                         {
@@ -253,8 +261,9 @@ namespace Web.Api.Controllers
                             SubTaskItem = new TaskItem()
                             {
                                 Title = currDummyTask.SubTasks[subTaskIndex],
-                                Priority = random.Next(task.Priority), //Generates random priority value between: 0 - parent task priority 
+                                //Priority = random.Next(task.Priority), //Generates random priority value between: 0 - parent task priority 
                                                                        //We want the priority of a subtask to be higher than the parent task (need to complete subtasks before parent task)
+                                Priority = currDummyTask.SubTasksPriorities[subTaskIndex],
                                 CreatedDate = DateTime.Now,
                                 CreatedUserId = user.Id,
                                 DueDate = DateTime.Now,
@@ -301,7 +310,7 @@ namespace Web.Api.Controllers
 
 
            
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             
             return Ok("Completed");
         }
