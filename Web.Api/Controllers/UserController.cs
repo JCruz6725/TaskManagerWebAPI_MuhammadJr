@@ -23,18 +23,16 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            User? getUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
-
-            string? validationMessage = _validCheck.ValidateUserRegistration(getUser);
-            if (validationMessage != null)
-            {
-                return BadRequest(validationMessage);
+            User? user = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
+            if(user is not null) { 
+                return BadRequest("Email already in use.");
             }
+
 
             //RequestDTO
             //create a new instance of User thats not existing
             //call the User props and set the registerDto to its assign props 
-            User userCreation = new User                               
+            User newUser = new User                               
             {
                 FirstName = registerUserDto.FirstName,
                 LastName = registerUserDto.LastName,
@@ -43,23 +41,19 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
             };
 
-            await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+            await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
             await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
 
-            return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
+            return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
         }
 
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-   
-
             User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-
-            string? validationMessage = _validCheck.ValidateUserId(userLogin);
-            if (validationMessage != null)
+            if(userLogin is null || userLogin.Password != userLoginDto.Password) 
             {
-                return BadRequest(validationMessage);
+                return BadRequest("Invalid email or password.");
             }
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }

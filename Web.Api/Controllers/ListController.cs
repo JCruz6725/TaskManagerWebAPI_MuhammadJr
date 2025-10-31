@@ -32,23 +32,26 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
-            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-            string? validationMessage = _validCheck.ValidateUserAndList(getUser, getList);
-            if (validationMessage != null)
+            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
             {
-                return BadRequest(validationMessage);
+                return StatusCode(403);
             }
+            
+            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (list is null)
+            {
+                return NotFound(listId);
+            }
+
 
             ListDto listDtos = new ListDto
             {
-                Id = getList!.Id,
-                Name = getList.Name,
-                CreatedDate = getList.CreatedDate,
-                CreatedUserId = getList.CreatedUserId,
+                Id = list.Id,
+                Name = list.Name,
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
 
-                TaskItems = getList.TaskWithinLists.Select(twl => new TaskDto
+                TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
                 {
                     Id = twl.TaskItem.Id,
                     Title = twl.TaskItem.Title,
@@ -65,12 +68,9 @@ namespace Web.Api.Controllers
         [HttpGet(Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
-
-            string? validationMessage = _validCheck.ValidateUserId(getUser);
-            if (validationMessage != null)
+            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
             {
-                return BadRequest(validationMessage);
+                return StatusCode(403);
             }
 
             List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
