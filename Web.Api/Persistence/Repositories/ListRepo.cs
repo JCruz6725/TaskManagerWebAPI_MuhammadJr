@@ -20,11 +20,12 @@ namespace Web.Api.Persistence.Repositories
         }
 
 
-        public async Task<List?> GetListByIdAsync(Guid listId)
+        public async Task<List?> GetListByIdAsync(Guid listId, Guid userId)
         {
             return await _context.Lists.Include(twl => twl.TaskWithinLists)
                 .ThenInclude(ti => ti.TaskItem)
                 .SingleOrDefaultAsync(i => i.Id == listId && i.CreatedUserId == userId);
+        }
 
         public async Task<List<List>> GetAllListAsync(Guid Id)
         {
