@@ -13,11 +13,9 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-        private readonly ValidCheck _validCheck;
-        public UserController(UnitOfWork unitOfWork, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
+        public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
-            _validCheck = validCheck;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 

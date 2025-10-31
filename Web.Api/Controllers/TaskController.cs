@@ -14,13 +14,11 @@ namespace Web.Api.Controllers
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
         private readonly StatusChange _statusChange;
         private readonly ILogger<TaskController> _logger;
-        private readonly ValidCheck _validCheck;
-        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
+        public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _statusChange = statusChangeOptions.Value;
             _logger = logger;
-            _validCheck = validCheck;
         }
 
         [HttpGet("{taskId}", Name = "GetTaskById")]

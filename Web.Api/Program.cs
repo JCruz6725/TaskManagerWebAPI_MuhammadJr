@@ -29,9 +29,6 @@ namespace Web.Api
             // Register UnitOfWork as Singleton
             builder.Services.AddSingleton<UnitOfWork>();
 
-            // Register ValidCheck as Singleton
-            builder.Services.AddSingleton<ValidCheck>();
-
             // NLog: Setup NLog for Dependency injection
             builder.Logging.ClearProviders();
             builder.Host.UseNLog();
