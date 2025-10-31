@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -14,52 +16,41 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
-        
-        
-        public ListController (UnitOfWork unitOfWork)
+        public ListController(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-
         [HttpPost(Name = "CreateList")]
-        public async Task<ActionResult<ListDto>> CreateList([FromHeader]Guid userId, ListCreateDto createListDto)
+        public async Task<ActionResult<ListDto>> CreateList([FromHeader] Guid userId, ListCreateDto createListDto)
         {
             throw new NotImplementedException();
         }
 
 
         [HttpGet("{listId}", Name = "GetListById")]
-        public async Task<ActionResult<ListDto>> GetListById([FromHeader]Guid userId, Guid listId)
+        public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
-            List? getList = await _unitOfWork.List.GetListByIdAsync(listId);
-            User? getUser = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
+            {
+                return StatusCode(403);
+            }
+            
+            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (list is null)
+            {
+                return NotFound(listId);
+            }
 
-            if (getList == null && getUser == null)
-            {
-                return NotFound($"UserId {userId} and ListId {listId} are invalid");
-            }
-            if (getList == null && getUser != null)
-            {
-                return NotFound($"ListId {listId} is invalid");
-            }
-            if (getList != null && getUser == null)
-            {
-                return NotFound($"UserId {userId} is invalid");
-            }
-            if (getList.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"ListId {listId} does not belog to this UserId{userId} ");
-            }
 
             ListDto listDtos = new ListDto
             {
-                Id = getList.Id,
-                Name = getList.Name,
-                CreatedDate = getList.CreatedDate,
-                CreatedUserId = getList.CreatedUserId,
+                Id = list.Id,
+                Name = list.Name,
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
 
-                TaskItems = getList.TaskWithinLists.Select(twl => new TaskDto
+                TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
                 {
                     Id = twl.TaskItem.Id,
                     Title = twl.TaskItem.Title,
@@ -73,15 +64,15 @@ namespace Web.Api.Controllers
             return Ok(listDtos);
         }
 
-
-        [HttpGet( Name = "GetAllList")]
-        public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader]Guid userId)
+        [HttpGet(Name = "GetAllList")]
+        public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
-            List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
-            if(userLists == null)
+            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
             {
-               return NotFound($"No Lists Found With UserId {userId} ");
+                return StatusCode(403);
             }
+
+            List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
 
             List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
             {
@@ -89,13 +80,13 @@ namespace Web.Api.Controllers
                 Name = sl.Name,
                 CreatedDate = sl.CreatedDate,
                 CreatedUserId = sl.CreatedUserId,
-              }).ToList();
+            }).ToList();
             return Ok(getListDetail);
         }
 
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
-        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader]Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
+        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
             throw new NotImplementedException();
         }
