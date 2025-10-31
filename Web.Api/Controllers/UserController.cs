@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
@@ -16,22 +17,23 @@ namespace Web.Api.Controllers
 
         public UserController(UnitOfWork unitOfWork)                    //constructor for the UofW that acceses the private field
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
         }
 
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            User? existingUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email); //get user from UofW and user email from UserRepo
-            if(existingUser != null)                                                          //check if user already exists in the database
-            {
-                return BadRequest("User Already Exists");
+            User? user = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
+            if(user is not null) { 
+                return BadRequest("Email already in use.");
             }
-                                                                         //RequestDTO
-                                                                         //create a new instance of User thats not existing
-                                                                        //call the User props and set the registerDto to its assign props 
-            User userCreation = new User                               
+
+
+            //RequestDTO
+            //create a new instance of User thats not existing
+            //call the User props and set the registerDto to its assign props 
+            User newUser = new User                               
             {
                 FirstName = registerUserDto.FirstName,
                 LastName = registerUserDto.LastName,
@@ -40,10 +42,10 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
             };
 
-            await _unitOfWork.User.CreateUserAsync(userCreation);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+            await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
             await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
 
-            return Ok(userCreation.Id);                                    //a new Id Guid is return once user is registered
+            return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
         }
 
 
@@ -51,14 +53,9 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
             User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-            if (userLogin == null)                                                            //if login is null send invalid
+            if(userLogin is null || userLogin.Password != userLoginDto.Password) 
             {
-                return Unauthorized("Invalid Email or Password");
-            }
-
-            if (userLogin.Password != userLoginDto.Password)                        //if password from database User does not match password from login DTO 
-            {                                               
-                return Unauthorized("Invalid Email or Password");                   // retunrn invalid login 
+                return BadRequest("Invalid email or password.");
             }
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
