@@ -31,6 +31,8 @@ namespace Web.Api.Persistence
                 return _UserRepo;                         
             }
         } 
+
+
         public TaskItemRepo TaskItem                        
         {
             get
@@ -42,6 +44,8 @@ namespace Web.Api.Persistence
                 return _TaskItemRepo;
             }
         }
+
+
         public ListRepo List                           
         {
             get
@@ -53,6 +57,8 @@ namespace Web.Api.Persistence
                 return _ListRepo;
             }
         }
+
+
         public async Task SaveChangesAsync()                 //Save changes method
         {
            await _context.SaveChangesAsync();               //Save changes to the database
