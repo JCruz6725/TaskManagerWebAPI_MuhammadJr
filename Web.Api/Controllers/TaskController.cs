@@ -312,6 +312,12 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
             _logger.LogInformation("Initiating EditTask method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
+                return StatusCode(403);
+            }
+
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
             if (taskItem is null)
             {
