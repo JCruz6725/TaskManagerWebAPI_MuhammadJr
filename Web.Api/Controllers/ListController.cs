@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,13 +17,11 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
-        private readonly ValidCheck _validCheck;
         private readonly ILogger<ListController> _logger;
-        public ListController(UnitOfWork unitOfWork, ILogger<ListController> logger, ValidCheck validCheck)
+        public ListController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<ListController> logger)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _validCheck = validCheck;
         }
 
         [HttpPost(Name = "CreateList")]
@@ -35,18 +34,19 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
+            _logger.LogInformation("Innitiating GetListById");
             if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
             {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
             
             List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
             if (list is null)
             {
+                _logger.LogWarning($"ListId {listId} not found for UserId {userId}");
                 return NotFound(listId);
             }
-            _logger.LogInformation("Validation of userId and listId is successful");
-
 
             ListDto listDtos = new ListDto
             {
@@ -66,6 +66,7 @@ namespace Web.Api.Controllers
                 }).ToArray()
 
             };
+           _logger.LogInformation($"GetListById method successful for ListId {listId} and UserId {userId}");
             _logger.LogInformation("Returning get list by Id result");
             return Ok(listDtos);
         }
@@ -73,11 +74,12 @@ namespace Web.Api.Controllers
         [HttpGet(Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) 
+            _logger.LogInformation("Innitiating GetAllList");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) 
             {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
-            _logger.LogInformation("Validation of userId is successful");
 
             List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
 
@@ -88,8 +90,9 @@ namespace Web.Api.Controllers
                 CreatedDate = sl.CreatedDate,
                 CreatedUserId = sl.CreatedUserId,
             }).ToList();
-            _logger.LogInformation("Returning get all lists result");
 
+            _logger.LogInformation($"GetAllList method successful for UserId {userId}");
+            _logger.LogInformation("Returning get all lists result");
             return Ok(getListDetail);
         }
 

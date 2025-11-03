@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -13,25 +14,23 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
-        private readonly ValidCheck _validCheck;
-        public UserController(UnitOfWork unitOfWork, ValidCheck validCheck)                    //constructor for the UofW that acceses the private field
+        private readonly ILogger<UserController> _logger;
+        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
-            _validCheck = validCheck;
+            _logger = logger;
         }
-
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
         public async Task<ActionResult<Guid>> RegisterUser(RegisterUserDto registerUserDto)     //resgister User method user creation
         {
-            User? getUser = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
-
-            string? validationMessage = _validCheck.ValidateUserRegistration(getUser);
-            if (validationMessage != null)
+            User? user = await _unitOfWork.User.GetUserByEmailAsync(registerUserDto.Email);
+            if (user is not null)
             {
-                return BadRequest(validationMessage);
+                _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
+                return BadRequest("Email already in use.");
             }
-
+            _logger.LogInformation($"Registering with email {registerUserDto.Email}");
             //RequestDTO
             //create a new instance of User thats not existing
             //call the User props and set the registerDto to its assign props 
@@ -57,11 +56,11 @@ namespace Web.Api.Controllers
             User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
             if(userLogin is null || userLogin.Password != userLoginDto.Password) 
             {
+                _logger.LogWarning($"Invalid user login: {userLoginDto.Email} or Password: {userLoginDto.Password}");
                 return BadRequest("Invalid email or password.");
             }
-            _logger.LogInformation("Validation of user login is successful");
-            _logger.LogInformation("User has logged in successfully");
-            
+            _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
+
             return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
         }
     }
