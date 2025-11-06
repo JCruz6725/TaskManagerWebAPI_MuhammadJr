@@ -29,7 +29,7 @@ namespace Web.Api.Controllers
                     NumSubTasks = 2,
                     SubTasks = new List<string> {"Buy shoes", "Go to park"},
                     SubTasksPriorities = new List<int> {2, 5},
-                    AssosciatedList = "Exercise"
+                    AssociatedList = "Exercise"
                 },
                 new DummyUser.TaskStruct(){
                     Title = "Walk",
@@ -149,10 +149,10 @@ namespace Web.Api.Controllers
                 };
                 context.Add(user);
                 await context.SaveChangesAsync();
-                user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
+                //user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
                 logger.LogInformation($"Dummy user {user!.FirstName} created and saved to database");
 
-
+      
 
                 //create list(s) for each user
                 for (int listIndex = 0; listIndex < currDummyUser.TaskList.Count; listIndex++)
@@ -160,16 +160,23 @@ namespace Web.Api.Controllers
                     string currDummyListItem = currDummyUser.TaskList[listIndex];
 
                     //new list from dummy data
+                    user.Lists = [
+                        new List(){
+                            CreatedDate = DateTime.Now,
+                            Name = currDummyListItem, 
+                        }
+                    ];
+                    /*
                     list = new List()
                     {
                         Name = currDummyListItem,
                         CreatedDate = DateTime.Now,
                         CreatedUserId = user.Id
-                    };
-                    context.Add(list);
+                    };*/
+                    //context.Add(list);
                     await context.SaveChangesAsync();
-                    list = context.Lists.Single(predicate: li => li.Id == list.Id);
-                    createdLists.Add(list);
+                    //list = context.Lists.Single(predicate: li => li.Id == list.Id);
+                    //createdLists.Add(list);
                     logger.LogInformation($"{user.FirstName}'s task #{listIndex + 1} created and saved");
                 }
                 logger.LogInformation($"All of {user.FirstName}'s lists created and saved");
@@ -255,40 +262,52 @@ namespace Web.Api.Controllers
                     logger.LogInformation($"All of {user.FirstName}'s {task.Title} task subTasks created and saved");
 
 
-                    //for each created list, check if task is supposed to be a part of the list
-                    bool listFound = false;
-                    for (int listIndex = 0; listIndex < createdLists.Count; listIndex++)
-                    {
-                        List currDummyList = createdLists[listIndex];
 
-                        //adding task to list if it is associated together
-                        if (currDummyTask.AssosciatedList == currDummyList.Name)
-                        { 
-                            //create new taskWithinList item using task just created
-                            taskWithinList = new TaskWithinList()
+                    if (currDummyTask.AssociatedList != null) //check if task belongs in a list
+                    {
+                        bool listFound = false;
+                        //for each created list, check if task is supposed to be a part of that list
+                        for (int listIndex = 0; listIndex < user.Lists.Count; listIndex++)
+                        {
+                            List currDummyList = user.Lists.ElementAt(listIndex);
+
+                            //adding task to list if it is associated together
+                            if (currDummyTask.AssociatedList == currDummyList.Name)
                             {
-                                TaskListId = currDummyList.Id,
-                                TaskItemId = task.Id,
-                                CreatedDate = DateTime.Now,
-                                CreatedUserId = user.Id,
-                            };
-                            //add taskItem to list
-                            context.Add(taskWithinList);
-                            await context.SaveChangesAsync();
-                            currDummyList.TaskWithinLists.Add(taskWithinList);
-                            listFound = true;
-                            logger.LogInformation($"Adding and saving task {task.Title} to list {currDummyList.Name}");
+                                //create new taskWithinList item using task just created
+                                user.Lists.ElementAt(listIndex).TaskWithinLists = [
+                                    new TaskWithinList(){
+                                        TaskItemId = task.Id,
+                                        CreatedDate = DateTime.Now,
+                                        CreatedUser = user
+                                    }
+                                ];
+                                /*
+                                taskWithinList = new TaskWithinList()
+                                {
+                                    TaskListId = currDummyList.Id,
+                                    TaskItemId = task.Id,
+                                    CreatedDate = DateTime.Now,
+                                    CreatedUserId = user.Id,
+                                };*/
+                                //add taskItem to list
+                                //context.Add(taskWithinList);
+                                await context.SaveChangesAsync();
+                                //currDummyList.TaskWithinLists.Add(taskWithinList);
+                                listFound = true;
+                                logger.LogInformation($"Adding and saving task {task.Title} to list {currDummyList.Name}");
+                            }
+                            if (listFound) break;
                         }
-                        if (listFound) break;
                     }
+
                 }
                 logger.LogInformation($"All of {user.FirstName}'s tasks created and saved");
             }
+            logger.LogInformation("All users added");
 
             await context.SaveChangesAsync();
 
-            logger.LogInformation("All users added");
-            
             return Ok("Completed");
         }
         

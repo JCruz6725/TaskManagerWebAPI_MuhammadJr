@@ -19,7 +19,7 @@
             public required int NumSubTasks { get; set; }
             public required List<string> SubTasks { get; set; }
             public required List<int> SubTasksPriorities { get; set; }
-            public string AssosciatedList { get; set; } = null!;
+            public string AssociatedList { get; set; } = null!;
         }
         public required List<TaskStruct> Tasks = [];
 
