@@ -129,7 +129,6 @@ namespace Web.Api.Controllers
             TaskItem task;
             TaskItemNote note;
             SubTask subTask;
-            List<List> createdLists = new List<List>(); //used to keep track of the lists we created already
 
 
             //Create multiple users
@@ -158,7 +157,8 @@ namespace Web.Api.Controllers
 
                     //new list from dummy data
                     user.Lists.Add(
-                        new List(){
+                        new List()
+                        {
                             CreatedDate = DateTime.Now,
                             Name = currDummyListItem, 
                         }
@@ -177,62 +177,40 @@ namespace Web.Api.Controllers
 
                     //new task from dummy data
                     user.TaskItems.Add(
-                        new TaskItem(){
+                        new TaskItem()
+                        {
                             Title = currDummyTask.Title,
                             Priority = currDummyTask.Priority,
                             CreatedDate = DateTime.Now,
                             DueDate = DateTime.Now,
-                            //CreatedUser = user,
                             TaskItemStatusHistories = [
                                 new TaskItemStatusHistory() {
                                     StatusId = statusChange.PendingId,
                                     CreatedDate = DateTime.Now,
-                                    //CreatedUserId = user.Id
                                     CreatedUser = user
                                 }
                             ]
                         }
                     );
-                    
-                    /*
-                    task = new TaskItem()
-                    {
-                        Title = currDummyTask.Title,
-                        Priority = currDummyTask.Priority,
-                        CreatedDate = DateTime.Now,
-                        CreatedUserId = user.Id,
-                        DueDate = DateTime.Now,
-                        TaskItemStatusHistories = [
-                            new TaskItemStatusHistory() {
-                                StatusId = statusChange.PendingId,
-                                CreatedDate = DateTime.Now,
-                                CreatedUserId = user.Id
-                            }
-                        ]
-                    };*/
-                    //context.Add(task);
                     await context.SaveChangesAsync();
                     task = user.TaskItems.ElementAt(taskIndex);
-                    //task = context.TaskItems.Single(predicate: ti => ti.Id == task.Id);
-                    //user.TaskItems.Add(task); //Add the task to the user
                     logger.LogInformation($"{user.FirstName}'s {task.Title} task created and saved");
                     
 
 
                     //create multiple note(s) for each task
                     for (int noteIndex = 0; noteIndex < currDummyTask.NumNotes; noteIndex++)
-                    {   
+                    {
                         //new note from dummy data
-                        note = new TaskItemNote()
-                        {
-                            TaskItemId = task.Id,
-                            Note = currDummyTask.Notes[noteIndex],
-                            CreatedDate = DateTime.Now,
-                            CreatedUserId = user.Id
-                        };
-                        context.Add(note);
+                        task.TaskItemNotes.Add(
+                            new TaskItemNote()
+                            {
+                                Note = currDummyTask.Notes[noteIndex],
+                                CreatedDate = DateTime.Now,
+                                CreatedUser = user
+                            }
+                        );
                         await context.SaveChangesAsync();
-                        task.TaskItemNotes.Add(note); //add note to task
                         logger.LogInformation($"{task.Title}'s note #{noteIndex+1} created and saved");
                     }
                     logger.LogInformation($"All of {user.FirstName}'s {task.Title} task notes created and saved");
@@ -244,6 +222,29 @@ namespace Web.Api.Controllers
                     {
 
                         //new subtask from dummy data
+                        task.SubTaskTaskItems.Add(
+                            new SubTask()
+                            {
+                                CreatedDate = DateTime.Now,
+                                CreatedUser = user,
+                                SubTaskItem = new TaskItem()
+                                {
+                                    Title = currDummyTask.SubTasks[subTaskIndex],
+                                    Priority = currDummyTask.SubTasksPriorities[subTaskIndex],
+                                    CreatedDate = DateTime.Now,
+                                    CreatedUser = user,
+                                    DueDate = DateTime.Now,
+                                    TaskItemStatusHistories = [
+                                        new TaskItemStatusHistory() {
+                                            StatusId = statusChange.PendingId,
+                                            CreatedDate= DateTime.Now,
+                                            CreatedUser = user
+                                        }
+                                    ]
+                                }
+                            }
+                        );
+                        /*
                         subTask = new SubTask()
                         {
                             TaskItemId = task.Id,
@@ -264,10 +265,11 @@ namespace Web.Api.Controllers
                                     }
                                 ]
                             }
-                        };
-                        context.Add(subTask);
+                        };*/
+                        //context.Add(subTask);
                         await context.SaveChangesAsync();
-                        task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
+                        //task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
+                        subTask = task.SubTaskTaskItems.ElementAt(subTaskIndex);
                         logger.LogInformation($"{task.Title}'s subtask {subTask.SubTaskItem.Title} created and saved");
                     }
                     logger.LogInformation($"All of {user.FirstName}'s {task.Title} task subTasks created and saved");
@@ -287,10 +289,11 @@ namespace Web.Api.Controllers
                             {
                                 //create new taskWithinList item using task just created
                                 currDummyList.TaskWithinLists = [
-                                    new TaskWithinList(){
-                                        TaskItemId = task.Id,
-                                        CreatedDate = DateTime.Now,
-                                        CreatedUser = user
+                                    new TaskWithinList()
+                                    {
+                                        CreatedUser = user,
+                                        TaskItem = task,
+                                        CreatedDate = DateTime.Now
                                     }
                                 ];
                                 await context.SaveChangesAsync();
