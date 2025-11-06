@@ -8,37 +8,10 @@ using Web.Api.Persistence.Models;
 namespace Web.Api.Controllers
 {
 
-    public class DummyUser
-    {
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-
-        public List<string> TaskList = new List<string>();
-
-        public struct TaskStruct
-        {
-            public TaskStruct() { }
-            public required string Title {  get; set; }
-            public required int Priority { get; set; }
-            public required int NumNotes { get; set; }
-            public required List<string> Notes { get; set; }
-            public required int NumSubTasks {  get; set; }
-            public required List<string> SubTasks { get; set; }
-            public required List<int> SubTasksPriorities { get; set; }
-            public string AssosciatedList { get; set; } = null!;
-        }
-        public required List<TaskStruct> Tasks = [];
-
-    }
-
-
     [ApiController]
     [Route("[controller]")]
     public class AdminController : ControllerBase
     {
-        //private readonly Random random = new(); //used to create random priorities for subtasks
         private int numUsers = 4;
         private DummyUser Alex = new DummyUser()
         {
@@ -118,15 +91,16 @@ namespace Web.Api.Controllers
 
 
 
-
         private readonly StatusChange statusChange;
         private readonly TaskManagerAppDBContext context;
+        private readonly ILogger<AdminController> logger;
 
 
-        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context)
+        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
         {
             statusChange = statusChangeOptions.Value;
             this.context = context;
+            this.logger = logger;
         }
 
         
@@ -140,7 +114,8 @@ namespace Web.Api.Controllers
             context.Add(completedStatus);
 
             await context.SaveChangesAsync();
-            return Ok("Status Added");
+            logger.LogInformation("Pending and completed status saved to database");
+            return Ok("Status' Added");
         }
         
 
@@ -175,6 +150,7 @@ namespace Web.Api.Controllers
                 context.Add(user);
                 await context.SaveChangesAsync();
                 user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
+                logger.LogInformation($"Dummy user {user!.FirstName} created and saved to database");
 
 
 
@@ -193,10 +169,10 @@ namespace Web.Api.Controllers
                     context.Add(list);
                     await context.SaveChangesAsync();
                     list = context.Lists.Single(predicate: li => li.Id == list.Id);
-                    //list = await context.Lists.FirstOrDefaultAsync(li => li.Id == list.Id);
                     createdLists.Add(list);
+                    logger.LogInformation($"{user.FirstName}'s task #{listIndex + 1} created and saved");
                 }
-
+                logger.LogInformation($"All of {user.FirstName}'s lists created and saved");
 
                 //create task(s), note(s), & subtask(s) for each user
                 for (int taskIndex = 0; taskIndex < currDummyUser.Tasks.Count; taskIndex++) 
@@ -222,12 +198,8 @@ namespace Web.Api.Controllers
                     context.Add(task);
                     await context.SaveChangesAsync();
                     task = context.TaskItems.Single(predicate: ti => ti.Id == task.Id);
-                    /*task = await context.TaskItems.Include(item => item.TaskItemNotes)
-                                                  .Include(history => history.TaskItemStatusHistories)
-                                                  .ThenInclude(stat => stat.Status)
-                                                  .FirstOrDefaultAsync(ti => ti.Id == task.Id);*/
                     user.TaskItems.Add(task); //Add the task to the user
-                    
+                    logger.LogInformation($"{user.FirstName}'s {task.Title} task created and saved");
                     
 
                     //create multiple note(s) for each task
@@ -244,8 +216,9 @@ namespace Web.Api.Controllers
                         context.Add(note);
                         await context.SaveChangesAsync();
                         task.TaskItemNotes.Add(note); //add note to task
+                        logger.LogInformation($"{task.Title}'s note #{noteIndex+1} created and saved");
                     }
-
+                    logger.LogInformation($"All of {user.FirstName}'s {task.Title} task notes created and saved");
 
                     
                     //create multiple subtask(s) for each task
@@ -261,8 +234,6 @@ namespace Web.Api.Controllers
                             SubTaskItem = new TaskItem()
                             {
                                 Title = currDummyTask.SubTasks[subTaskIndex],
-                                //Priority = random.Next(task.Priority), //Generates random priority value between: 0 - parent task priority 
-                                                                       //We want the priority of a subtask to be higher than the parent task (need to complete subtasks before parent task)
                                 Priority = currDummyTask.SubTasksPriorities[subTaskIndex],
                                 CreatedDate = DateTime.Now,
                                 CreatedUserId = user.Id,
@@ -279,11 +250,13 @@ namespace Web.Api.Controllers
                         context.Add(subTask);
                         await context.SaveChangesAsync();
                         task.SubTaskTaskItems.Add(subTask); //Add the subtask to the task
+                        logger.LogInformation($"{task.Title}'s subtask {subTask.SubTaskItem.Title} created and saved");
                     }
-
+                    logger.LogInformation($"All of {user.FirstName}'s {task.Title} task subTasks created and saved");
 
 
                     //for each created list, check if task is supposed to be a part of the list
+                    bool listFound = false;
                     for (int listIndex = 0; listIndex < createdLists.Count; listIndex++)
                     {
                         List currDummyList = createdLists[listIndex];
@@ -303,14 +276,17 @@ namespace Web.Api.Controllers
                             context.Add(taskWithinList);
                             await context.SaveChangesAsync();
                             currDummyList.TaskWithinLists.Add(taskWithinList);
+                            listFound = true;
+                            logger.LogInformation($"Adding and saving task {task.Title} to list {currDummyList.Name}");
                         }
+                        if (listFound) break;
                     }
                 }
             }
 
-
-           
             await context.SaveChangesAsync();
+
+            logger.LogInformation("All users added");
             
             return Ok("Completed");
         }
