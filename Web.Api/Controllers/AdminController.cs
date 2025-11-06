@@ -19,7 +19,7 @@ namespace Web.Api.Controllers
             LastName = "Farmer",
             Email = "AFarmer@email.com",
             Password = "12345",
-            TaskList = ["Exercise"],
+            TaskList = ["Exercise", "Random"],
             Tasks = [
                 new DummyUser.TaskStruct(){
                     Title = "Run",
@@ -157,12 +157,12 @@ namespace Web.Api.Controllers
                     string currDummyListItem = currDummyUser.TaskList[listIndex];
 
                     //new list from dummy data
-                    user.Lists = [
+                    user.Lists.Add(
                         new List(){
                             CreatedDate = DateTime.Now,
                             Name = currDummyListItem, 
                         }
-                    ];
+                    );
                     await context.SaveChangesAsync();
                     logger.LogInformation($"{user.FirstName}'s task #{listIndex + 1} created and saved");
                 }
@@ -176,6 +176,25 @@ namespace Web.Api.Controllers
                     DummyUser.TaskStruct currDummyTask = currDummyUser.Tasks[taskIndex];
 
                     //new task from dummy data
+                    user.TaskItems.Add(
+                        new TaskItem(){
+                            Title = currDummyTask.Title,
+                            Priority = currDummyTask.Priority,
+                            CreatedDate = DateTime.Now,
+                            DueDate = DateTime.Now,
+                            //CreatedUser = user,
+                            TaskItemStatusHistories = [
+                                new TaskItemStatusHistory() {
+                                    StatusId = statusChange.PendingId,
+                                    CreatedDate = DateTime.Now,
+                                    //CreatedUserId = user.Id
+                                    CreatedUser = user
+                                }
+                            ]
+                        }
+                    );
+                    
+                    /*
                     task = new TaskItem()
                     {
                         Title = currDummyTask.Title,
@@ -190,11 +209,12 @@ namespace Web.Api.Controllers
                                 CreatedUserId = user.Id
                             }
                         ]
-                    };
-                    context.Add(task);
+                    };*/
+                    //context.Add(task);
                     await context.SaveChangesAsync();
-                    task = context.TaskItems.Single(predicate: ti => ti.Id == task.Id);
-                    user.TaskItems.Add(task); //Add the task to the user
+                    task = user.TaskItems.ElementAt(taskIndex);
+                    //task = context.TaskItems.Single(predicate: ti => ti.Id == task.Id);
+                    //user.TaskItems.Add(task); //Add the task to the user
                     logger.LogInformation($"{user.FirstName}'s {task.Title} task created and saved");
                     
 
@@ -257,7 +277,7 @@ namespace Web.Api.Controllers
                     if (currDummyTask.AssociatedList != null) //check if task belongs in a list
                     {
                         bool listFound = false;
-                        //for each created list, check if task is supposed to be a part of that list
+                        //for each list in the user, check if task is supposed to be a part of that list
                         for (int listIndex = 0; listIndex < user.Lists.Count; listIndex++)
                         {
                             List currDummyList = user.Lists.ElementAt(listIndex);
