@@ -101,7 +101,7 @@ namespace Web.Api.Controllers
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
-            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id);
+            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId);
 
             //Response DTO
             //create a new instance of TaskDto
