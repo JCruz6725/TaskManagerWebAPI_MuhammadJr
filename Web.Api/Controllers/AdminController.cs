@@ -282,6 +282,7 @@ namespace Web.Api.Controllers
                         if (listFound) break;
                     }
                 }
+                logger.LogInformation($"All of {user.FirstName}'s tasks created and saved");
             }
 
             await context.SaveChangesAsync();
