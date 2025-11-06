@@ -129,8 +129,6 @@ namespace Web.Api.Controllers
             TaskItem task;
             TaskItemNote note;
             SubTask subTask;
-            List list;
-            TaskWithinList taskWithinList;
             List<List> createdLists = new List<List>(); //used to keep track of the lists we created already
 
 
@@ -149,7 +147,6 @@ namespace Web.Api.Controllers
                 };
                 context.Add(user);
                 await context.SaveChangesAsync();
-                //user = await context.Users.FirstOrDefaultAsync(ui => ui.Id == user.Id);
                 logger.LogInformation($"Dummy user {user!.FirstName} created and saved to database");
 
       
@@ -166,20 +163,12 @@ namespace Web.Api.Controllers
                             Name = currDummyListItem, 
                         }
                     ];
-                    /*
-                    list = new List()
-                    {
-                        Name = currDummyListItem,
-                        CreatedDate = DateTime.Now,
-                        CreatedUserId = user.Id
-                    };*/
-                    //context.Add(list);
                     await context.SaveChangesAsync();
-                    //list = context.Lists.Single(predicate: li => li.Id == list.Id);
-                    //createdLists.Add(list);
                     logger.LogInformation($"{user.FirstName}'s task #{listIndex + 1} created and saved");
                 }
                 logger.LogInformation($"All of {user.FirstName}'s lists created and saved");
+
+
 
                 //create task(s), note(s), & subtask(s) for each user
                 for (int taskIndex = 0; taskIndex < currDummyUser.Tasks.Count; taskIndex++) 
@@ -209,6 +198,7 @@ namespace Web.Api.Controllers
                     logger.LogInformation($"{user.FirstName}'s {task.Title} task created and saved");
                     
 
+
                     //create multiple note(s) for each task
                     for (int noteIndex = 0; noteIndex < currDummyTask.NumNotes; noteIndex++)
                     {   
@@ -228,6 +218,7 @@ namespace Web.Api.Controllers
                     logger.LogInformation($"All of {user.FirstName}'s {task.Title} task notes created and saved");
 
                     
+
                     //create multiple subtask(s) for each task
                     for (int subTaskIndex = 0; subTaskIndex < currDummyTask.SubTasks.Count; subTaskIndex++)
                     {
@@ -275,25 +266,14 @@ namespace Web.Api.Controllers
                             if (currDummyTask.AssociatedList == currDummyList.Name)
                             {
                                 //create new taskWithinList item using task just created
-                                user.Lists.ElementAt(listIndex).TaskWithinLists = [
+                                currDummyList.TaskWithinLists = [
                                     new TaskWithinList(){
                                         TaskItemId = task.Id,
                                         CreatedDate = DateTime.Now,
                                         CreatedUser = user
                                     }
                                 ];
-                                /*
-                                taskWithinList = new TaskWithinList()
-                                {
-                                    TaskListId = currDummyList.Id,
-                                    TaskItemId = task.Id,
-                                    CreatedDate = DateTime.Now,
-                                    CreatedUserId = user.Id,
-                                };*/
-                                //add taskItem to list
-                                //context.Add(taskWithinList);
                                 await context.SaveChangesAsync();
-                                //currDummyList.TaskWithinLists.Add(taskWithinList);
                                 listFound = true;
                                 logger.LogInformation($"Adding and saving task {task.Title} to list {currDummyList.Name}");
                             }
