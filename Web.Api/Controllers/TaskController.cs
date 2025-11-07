@@ -216,10 +216,6 @@ namespace Web.Api.Controllers
             return Ok(deleteNote);
         }
 
-
-
-
-
         [HttpDelete("{taskId}", Name = "DeleteTaskById")]
         public async Task<ActionResult<TaskDto>> DeleteTaskById([FromHeader] Guid userId, Guid taskId)
 
@@ -233,9 +229,6 @@ namespace Web.Api.Controllers
             {
                 return NotFound(taskId);
             }
-
-
-
 
             _unitOfWork.TaskItem.DeleteTask(taskItem);
             await _unitOfWork.SaveChangesAsync();
@@ -269,10 +262,6 @@ namespace Web.Api.Controllers
                
             return Ok(deleteTask);
         }
-            
-
-
-
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
