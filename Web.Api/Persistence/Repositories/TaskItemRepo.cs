@@ -55,5 +55,27 @@ namespace Web.Api.Persistence.Repositories
         {
              _context.Remove(taskItemNote);
         }
+
+        public void DeleteTask(TaskItem taskItem)
+        {
+            
+
+
+            foreach (var item in _context.TaskItems.Single(t => t.Id == taskItem.Id).TaskItemStatusHistories)
+            {
+                _context.Remove(item);
+            }
+            _context.SaveChanges();
+
+            //foreach(var item in _context.TaskItems.Single( t => t.Id == taskItem.Id).TaskItemNotes)
+            //{
+            //    _context.Remove(item);
+            //}
+            //_context.SaveChanges();
+
+
+
+            _context.Remove(taskItem);
+        }
     }
 }
