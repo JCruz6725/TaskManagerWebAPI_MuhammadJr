@@ -33,18 +33,6 @@ namespace Web.Api.Controllers
             if (taskItem is null) { 
                 return NotFound(taskId);    
             }
-            if(getTask == null && getUser != null)
-            {
-                return NotFound($"TaskId {taskId} is invalid");
-            } 
-            if(getTask != null &&  getUser == null)
-            {
-                return NotFound($"UserId {userId} is invalid");
-            }
-            if (getTask.CreatedUserId != getUser.Id)
-            {
-                return Unauthorized($"Task {taskId } does not belog to this user {userId} ");
-            }
 
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
@@ -53,7 +41,6 @@ namespace Web.Api.Controllers
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
-                CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId,
                 Notes = taskItem.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                     (note => new NoteDto                                         //create new instance of NoteDto
@@ -65,7 +52,7 @@ namespace Web.Api.Controllers
                         CreatedUser = note.CreatedUserId,
                     }).ToList(),                                                 //add notes to the list
 
-                CurrentStatus = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
+                CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
                  .Select(history => new StatusDto                                     //create new instance of StatusDto
                  {
                      Id = history.Status.Id,
@@ -73,7 +60,7 @@ namespace Web.Api.Controllers
                      Code = history.Status.Code,
                  }).FirstOrDefault(),
 
-                StatusHistories = getTask.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
+                StatusHistories = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
                 .Select(history => new StatusDto
                 {
                     Id = history.Status.Id,
