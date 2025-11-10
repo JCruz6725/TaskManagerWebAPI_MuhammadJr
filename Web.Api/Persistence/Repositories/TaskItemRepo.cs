@@ -17,10 +17,16 @@ namespace Web.Api.Persistence.Repositories
         }
 
 
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId)
+        /// <summary>
+        /// Get Task by Id that only pertains to specific user. If not found, returns null.
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
             return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-                .ThenInclude(stat => stat.Status).FirstOrDefaultAsync(ti => ti.Id == taskId);
+                .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
 
