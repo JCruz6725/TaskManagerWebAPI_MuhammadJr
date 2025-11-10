@@ -21,19 +21,21 @@ namespace Web.Api.Controllers
             _logger = logger;
         }
 
-
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader] Guid userId, Guid taskId)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            _logger.LogInformation("Initiating GetTaskById method"); 
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) 
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
 
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
             if (taskItem is null) { 
+                _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                 return NotFound(taskId);    
             }
-
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -61,17 +63,21 @@ namespace Web.Api.Controllers
                      Code = history.Status.Code,
                  }).FirstOrDefault(),
             };
-            return Ok(taskDetail);                                            //retun task details
+           _logger.LogInformation($"GetTaskById method successful for TaskId {taskId} and UserId {userId}");
+            _logger.LogInformation("Returning get task by Id result");
+            return Ok(taskDetail);                                           
         }
-
 
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {
-             if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            _logger.LogInformation("Initiating CreateTask method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) 
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
              }
-
+            
             //calls the TaskItem prop and set the task created dto to its prop
             //Request DTO
             //create a new instance of TaskItem 
@@ -103,13 +109,15 @@ namespace Web.Api.Controllers
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
             taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId);
 
+            _logger.LogInformation($"Task Creation is Successfull for userId {userId}");
+            
             //Response DTO
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
             TaskDto creationResult = new TaskDto()
             {
-                Id = taskCreation.Id,
+                Id = taskCreation!.Id,
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
@@ -135,20 +143,24 @@ namespace Web.Api.Controllers
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId
             };
+            _logger.LogInformation($"Created task result for TaskId {taskCreation.Id} and UserId {userId}");
+            _logger.LogInformation("Returning the created task result");
             return CreatedAtAction(nameof(CreateTask), new { taskId = taskCreation.Id }, creationResult);
         }
-
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
-
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            _logger.LogInformation("Initiating CreateNote method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) 
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
 
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
             if (taskItem is null) { 
+                _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                 return NotFound(taskId);    
             }
 
@@ -159,10 +171,12 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId
             };
-
+            
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation($"Note Creation is Successfull for userId {userId}");
 
+            //Response DTO
             var noteResult = new NoteDto
             {
                 Id = noteCreation.Id,
@@ -171,7 +185,8 @@ namespace Web.Api.Controllers
                 CreatedDate = noteCreation.CreatedDate,
                 CreatedUser = noteCreation.CreatedUserId
             };
-
+            _logger.LogInformation($"Created note result for NoteId {noteCreation.Id} and UserId {userId}");
+            _logger.LogInformation("Returning the created note result");
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
 
@@ -185,24 +200,30 @@ namespace Web.Api.Controllers
         [HttpDelete("{taskId}/notes/{noteId}", Name = "DeleteNote")]
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader] Guid userId, Guid taskId, Guid noteId)
         {
-
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+        _logger.LogInformation("Initiating DeleteNote method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
 
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
-            if (taskItem is null) { 
+            if (taskItem is null) 
+            {
+                _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                 return NotFound(taskId);    
             }
 
             TaskItemNote? note = taskItem.TaskItemNotes.SingleOrDefault(n => n.Id == noteId);
             if(note is null)
             {
+                _logger.LogWarning($"NoteId {noteId} not found for TaskId {taskId} and UserId {userId}");
                 return NotFound(noteId);
             }
 
             _unitOfWork.TaskItem.DeleteNote(note);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation($"Note Deletion is Successfull for userId {userId}");
 
             NoteDto deleteNote = new NoteDto
             {
@@ -212,6 +233,8 @@ namespace Web.Api.Controllers
                 CreatedDate = note.CreatedDate,
                 CreatedUser = note.CreatedUserId,
             };
+            _logger.LogInformation($"Deleted note result for NoteId {note.Id}, TaskId {taskId} and UserId {userId}");
+            _logger.LogInformation("Returning the deleted note result");
             return Ok(deleteNote);
         }
 
@@ -219,16 +242,19 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            _logger.LogInformation("Initiating StatusChangeComplete method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
 
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
             if (taskItem is null)
             {
+                _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                 return NotFound(taskId);
             }
-
 
             TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
             {
@@ -241,6 +267,7 @@ namespace Web.Api.Controllers
 
             taskItem.TaskItemStatusHistories.Add(newTaskStatus);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation($"Status Change to Complete is Successfull for userId {userId}");
 
             TaskDto statusResult = new TaskDto
             {
@@ -268,6 +295,8 @@ namespace Web.Api.Controllers
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId,
             };
+            _logger.LogInformation($"Status changed to Complete result for TaskId {taskItem.Id} and UserId {userId}");
+            _logger.LogInformation("Returning the status changed to complete result");
             return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = newTaskStatus.Id }, statusResult);
         }
 
@@ -282,13 +311,17 @@ namespace Web.Api.Controllers
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            _logger.LogInformation("Initiating EditTask method");
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                _logger.LogWarning($"UserId {userId} not found in database");
                 return StatusCode(403);
             }
 
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
             if (taskItem is null)
             {
+                _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                 return NotFound(taskId);
             }
 
@@ -300,8 +333,8 @@ namespace Web.Api.Controllers
                 taskItem.DueDate = updateTaskDto.DueDate.Value;
                 taskItem.Priority = updateTaskDto.Priority;
             }
-
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation($"Task Edit is Successfull for userId {userId}");
 
             TaskDto editTaskResult = new TaskDto
             {
@@ -330,6 +363,8 @@ namespace Web.Api.Controllers
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId
             };
+            _logger.LogInformation($"Edited task result for TaskId {taskItem.Id} and UserId {userId}");
+            _logger.LogInformation("Returning the edited task result");
             return Ok(editTaskResult);
         }
     }
