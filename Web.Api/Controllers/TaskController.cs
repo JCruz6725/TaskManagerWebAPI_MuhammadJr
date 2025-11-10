@@ -35,8 +35,6 @@ namespace Web.Api.Controllers
             {
                 return NotFound(taskId);
             }
-            
-            //Guid? parentId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty;
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -44,8 +42,7 @@ namespace Web.Api.Controllers
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
-                //ParentTaskId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.SubTaskItemId ?? Guid.Empty,
-                ParentTaskId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.TaskItemId?? Guid.Empty,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
 
                 CreatedDate = taskItem.CreatedDate,
@@ -99,7 +96,7 @@ namespace Web.Api.Controllers
             {
                 Title = taskCreatedDto.Title,
                 Priority = taskCreatedDto.Priority,
-                
+
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
                 TaskItemStatusHistories = [
@@ -144,7 +141,6 @@ namespace Web.Api.Controllers
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
-            Guid? parentId = taskCreation.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty;
 
             TaskDto creationResult = new TaskDto()
             {
@@ -152,7 +148,7 @@ namespace Web.Api.Controllers
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
-                ParentTaskId = (Guid)parentId,
+                ParentTaskId = taskCreation.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskCreation.TaskItemNotes.Select
                     (note => new NoteDto
@@ -282,10 +278,10 @@ namespace Web.Api.Controllers
                     .Select(st => st.SubTaskItem)
                     .Any(child =>
                     {
-                        TaskItemStatusHistory? latest = child.TaskItemStatusHistories
+                        TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
                             .OrderByDescending(s => s.CreatedDate)
                             .FirstOrDefault();
-                        return latest == null || latest.StatusId != _statusChange.CompleteId;
+                        return latestStatus == null || latestStatus.StatusId != _statusChange.CompleteId;
                     });
 
                 if (hasIncompletedChild)
@@ -294,15 +290,13 @@ namespace Web.Api.Controllers
                 }
             }
 
-
-                TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
+            TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
             {
                 TaskItemId = taskItem.Id,
                 StatusId = _statusChange.CompleteId,
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId,
             };
-
 
             taskItem.TaskItemStatusHistories.Add(newTaskStatus);
             await _unitOfWork.SaveChangesAsync();
@@ -313,6 +307,7 @@ namespace Web.Api.Controllers
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                 {
@@ -358,12 +353,14 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
-            //TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId, userId);
-            //if (parentTask is null)
-            //{
-            //    return NotFound(updateTaskDto.ParentTaskId);
-            //}
+            //check if parent task exists
+            TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId, userId);
+            if (parentTask is null)
+            {
+                return NotFound(updateTaskDto.ParentTaskId);
+            }
 
+            //subtask creation if ParentId is provided
             if (updateTaskDto.ParentTaskId != Guid.Empty)
             {
                 SubTask? subTask = new SubTask
@@ -378,7 +375,6 @@ namespace Web.Api.Controllers
             }
             await _unitOfWork.SaveChangesAsync();
 
-
             //update only provided property fields
             if (updateTaskDto.Title != null &&
                 updateTaskDto.DueDate.HasValue &&
@@ -390,14 +386,13 @@ namespace Web.Api.Controllers
             }
             await _unitOfWork.SaveChangesAsync();
 
-
             TaskDto editTaskResult = new TaskDto
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
-                ParentTaskId = updateTaskDto.ParentTaskId,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                 {
@@ -465,7 +460,7 @@ namespace Web.Api.Controllers
             };
 
             return Ok(deleteTaskResult);
-          
+
         }
 
     }
