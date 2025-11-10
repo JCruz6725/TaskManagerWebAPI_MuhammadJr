@@ -9,13 +9,10 @@ namespace Web.Api.Persistence.Repositories
     public class TaskItemRepo
     {
         private readonly TaskManagerAppDBContext _context;
-
-
         public TaskItemRepo(TaskManagerAppDBContext context)
         { 
             _context = context;  
         }
-
 
         /// <summary>
         /// Get Task by Id that only pertains to specific user. If not found, returns null.
@@ -55,17 +52,9 @@ namespace Web.Api.Persistence.Repositories
             throw new NotImplementedException();
 
         }
-
-
         public void DeleteNote(TaskItemNote taskItemNote)
         {
              _context.Remove(taskItemNote);
         }
-
-        public void DeleteTask(TaskItem taskItem)
-        {
-            _context.Remove(taskItem);
-        }
-
     }
 }

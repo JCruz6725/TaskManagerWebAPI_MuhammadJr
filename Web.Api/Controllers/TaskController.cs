@@ -417,51 +417,5 @@ namespace Web.Api.Controllers
             return Ok(editTaskResult);
         }
 
-        [HttpDelete("{taskId}", Name = "DeleteTaskById")]
-        public async Task<ActionResult<TaskDto>> DeleteTaskById([FromHeader] Guid userId, Guid taskId)
-        {
-            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
-            {
-                return StatusCode(403);
-            }
-            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
-            if (taskItem is null)
-            {
-                return NotFound(taskId);
-            }
-
-
-            await _unitOfWork.SaveChangesAsync();
-            _unitOfWork.TaskItem.DeleteTask(taskItem);
-
-            TaskDto deleteTaskResult = new TaskDto
-            {
-                Id = taskId,
-                Title = taskItem.Title,
-                DueDate = taskItem.DueDate,
-                Priority = taskItem.Priority,
-                Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
-                {
-                    Id = n.Id,
-                    TaskItemId = n.TaskItemId,
-                    Note = n.Note,
-                    CreatedDate = n.CreatedDate,
-                    CreatedUser = n.CreatedUserId
-                }).ToList(),
-                CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
-                .Select(history => new StatusDto
-                {
-                    Id = history.Id,
-                    Name = history.Status.Name,
-                    Code = history.Status.Code,
-                }).FirstOrDefault(),
-                CreatedDate = taskItem.CreatedDate,
-                CreatedUserId = taskItem.CreatedUserId
-            };
-
-            return Ok(deleteTaskResult);
-
-        }
-
     }
 }
