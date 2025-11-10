@@ -35,7 +35,8 @@ namespace Web.Api.Controllers
             {
                 return NotFound(taskId);
             }
-
+            
+            //Guid? parentId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty;
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -43,6 +44,9 @@ namespace Web.Api.Controllers
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                //ParentTaskId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.SubTaskItemId ?? Guid.Empty,
+                ParentTaskId = taskItem.SubTaskTaskItems?.FirstOrDefault()?.TaskItemId?? Guid.Empty,
+
 
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId,
@@ -140,12 +144,15 @@ namespace Web.Api.Controllers
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
+            Guid? parentId = taskCreation.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty;
+
             TaskDto creationResult = new TaskDto()
             {
                 Id = taskCreation.Id,
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
+                ParentTaskId = (Guid)parentId,
 
                 Notes = taskCreation.TaskItemNotes.Select
                     (note => new NoteDto
@@ -268,27 +275,27 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
-            //var incompleteSubTask = taskItem.SubTaskSubTaskItems.Any(st => st.SubTaskItem.TaskItemStatusHistories
-            //        .OrderByDescending(th => th.CreatedDate)
-            //        .FirstOrDefault().Status.Equals(_statusChange.CompleteId));
-
-            //if (!incompleteSubTask)
-            //{
-            //    return BadRequest("Cannot complete task with incomplete sub-tasks.");
-            //}
-
-
-            var incompleteSubTask = taskItem.SubTaskSubTaskItems.Where(st => st.SubTaskItem.TaskItemStatusHistories
-                    .OrderByDescending(th => th.CreatedDate)
-                    .FirstOrDefault().StatusId == _statusChange.PendingId)
-                .ToList();
-
-            if (incompleteSubTask != null)
+            // Prevent completing a parent task when any child sub-task is not complete.
+            if (taskItem.SubTaskTaskItems != null && taskItem.SubTaskTaskItems.Any())
             {
-                return BadRequest("Cannot complete task with incomplete sub-tasks.");
+                bool hasIncompletedChild = taskItem.SubTaskTaskItems
+                    .Select(st => st.SubTaskItem)
+                    .Any(child =>
+                    {
+                        TaskItemStatusHistory? latest = child.TaskItemStatusHistories
+                            .OrderByDescending(s => s.CreatedDate)
+                            .FirstOrDefault();
+                        return latest == null || latest.StatusId != _statusChange.CompleteId;
+                    });
+
+                if (hasIncompletedChild)
+                {
+                    return BadRequest("Cannot complete parent task with incomplete child sub-tasks.");
+                }
             }
 
-            TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
+
+                TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
             {
                 TaskItemId = taskItem.Id,
                 StatusId = _statusChange.CompleteId,

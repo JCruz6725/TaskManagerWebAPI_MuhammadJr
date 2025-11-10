@@ -27,7 +27,20 @@ namespace Web.Api.Persistence.Repositories
         {
             return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
                 .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+
+            return await _context.TaskItems
+                     .Include(item => item.TaskItemNotes)
+                     .Include(item => item.TaskItemStatusHistories)
+                         .ThenInclude(stat => stat.Status)
+                     .Include(t => t.SubTaskTaskItems)
+                         .ThenInclude(st => st.SubTaskItem)
+                             .ThenInclude(si => si.TaskItemStatusHistories)
+                                 .ThenInclude(h => h.Status)
+                     .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+
         }
+
+        
 
 
         public async Task CreateTaskAsync(TaskItem taskItem)
