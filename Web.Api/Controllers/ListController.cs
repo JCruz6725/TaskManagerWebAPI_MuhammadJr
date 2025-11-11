@@ -86,9 +86,44 @@ namespace Web.Api.Controllers
 
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
-        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
+        public async Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
-            throw new NotImplementedException();
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            TaskItem? userTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+            List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (userTask != null && userList != null)
+            {
+                if (userTask.TaskWithinLists.Count == 0) //task not assigned to a list
+                {
+                    userList.TaskWithinLists.Add(
+                        new TaskWithinList()
+                        {
+                            TaskListId = listId,
+                            TaskItemId = userTask.Id,
+                            CreatedDate = userTask.CreatedDate,
+                            //TaskItem = userTask,
+                            CreatedUserId = userId
+                        }
+                    );
+                }
+                else //task is in a preexisting list
+                {
+                    //throw new NotImplementedException();
+                    return BadRequest("Task already belongs to a list");
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else if (userList == null)
+            {
+                return BadRequest($"Requested list does not exist for user {userId}");
+            }
+
+            return Ok(listId);
         }
     }
 }
