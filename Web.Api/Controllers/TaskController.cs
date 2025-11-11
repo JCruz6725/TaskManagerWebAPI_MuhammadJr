@@ -272,7 +272,7 @@ namespace Web.Api.Controllers
             }
 
             // Prevent completing a parent task when any child sub-task is not complete.
-            if (taskItem.SubTaskTaskItems != null && taskItem.SubTaskTaskItems.Any())
+            if (taskItem.SubTaskTaskItems != null)
             {
                 bool hasIncompletedChild = taskItem.SubTaskTaskItems
                     .Select(st => st.SubTaskItem)
