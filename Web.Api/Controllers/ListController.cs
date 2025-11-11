@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,9 +17,12 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
-        public ListController(UnitOfWork unitOfWork)
+        private readonly StatusChange _statusChange;
+
+        public ListController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions)
         {
             _unitOfWork = unitOfWork;
+            _statusChange = statusChangeOptions.Value;
         }
 
         [HttpPost(Name = "CreateList")]
@@ -49,17 +53,22 @@ namespace Web.Api.Controllers
                 Name = list.Name,
                 CreatedDate = list.CreatedDate,
                 CreatedUserId = list.CreatedUserId,
-
                 TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
                 {
                     Id = twl.TaskItem.Id,
                     Title = twl.TaskItem.Title,
                     DueDate = twl.TaskItem.DueDate,
                     Priority = twl.TaskItem.Priority,
+                    CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
+                                .Select(s => new StatusDto
+                                {
+                                    Id = s.Status.Id,
+                                    Name = s.Status.Name,
+                                    Code = s.Status.Code
+                                }).FirstOrDefault(),
                     CreatedDate = twl.TaskItem.CreatedDate,
                     CreatedUserId = twl.TaskItem.CreatedUserId,
-                }).ToArray()
-
+                }).ToArray(),
             };
             return Ok(listDtos);
         }
