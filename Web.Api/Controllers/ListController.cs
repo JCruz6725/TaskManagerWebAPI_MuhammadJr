@@ -105,17 +105,26 @@ namespace Web.Api.Controllers
                             TaskListId = listId,
                             TaskItemId = userTask.Id,
                             CreatedDate = userTask.CreatedDate,
-                            //TaskItem = userTask,
                             CreatedUserId = userId
                         }
                     );
                 }
+                //need to check if task is already in the list user wants to put it in 
                 else //task is in a preexisting list
                 {
-                    //throw new NotImplementedException();
-                    return BadRequest("Task already belongs to a list");
-                }
+                    userTask.TaskWithinLists.Clear(); //Remove list from task
+                    //Remove task from list
+                    List<List> list = await _unitOfWork.List.GetAllListAsync(userId);
+                    (list.ElementAt(0)).TaskWithinLists.Clear();
 
+                    userTask.TaskWithinLists = [
+                        new TaskWithinList(){
+                            TaskListId = listId,
+                            CreatedDate = userTask.CreatedDate,
+                            CreatedUserId = userTask.CreatedUserId,
+                        }
+                    ];
+                }
                 await _unitOfWork.SaveChangesAsync();
             }
             else if (userList == null)
