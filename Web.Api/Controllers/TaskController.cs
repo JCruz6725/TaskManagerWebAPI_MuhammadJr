@@ -320,7 +320,7 @@ namespace Web.Api.Controllers
 
                 CurrentStatus = new StatusDto
                 {
-                    Id = taskItem.Id,
+                    Id = _statusChange.CompleteId,
                     Name = _statusChange.Complete,
                     Code = _statusChange.Code2
                 },
