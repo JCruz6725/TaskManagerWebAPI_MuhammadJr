@@ -46,7 +46,7 @@ namespace Web.Api.Controllers
                 return NotFound(listId);
             }
 
-
+            //Map List to ListDto
             ListDto listDtos = new ListDto
             {
                 Id = list.Id,
@@ -83,6 +83,7 @@ namespace Web.Api.Controllers
 
             List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
 
+            //Map List to ShortListDto
             List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
             {
                 Id = sl.Id,
