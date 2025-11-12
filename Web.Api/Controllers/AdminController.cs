@@ -52,7 +52,7 @@ namespace Web.Api.Controllers
             return Ok("Dummy Data Added");
         }
 
-        public User GetUser1() { 
+        private User GetUser1() { 
             User user = new User() 
             { 
                 CreatedDate = DateTime.Now,
@@ -216,7 +216,7 @@ namespace Web.Api.Controllers
             return user;
         }
 
-         public User GetUser2() { 
+        private User GetUser2() { 
             User user = new User() 
             { 
                 CreatedDate = DateTime.Now.AddDays(-30.00),
