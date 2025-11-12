@@ -98,7 +98,7 @@ namespace Web.Api.Controllers
                 Priority = taskCreatedDto.Priority,
 
                 CreatedDate = DateTime.Now,
-                CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
+                CreatedUserId = userId,                                             
                 TaskItemStatusHistories = [
                     new TaskItemStatusHistory() {
                         StatusId = _statusChange.PendingId,
@@ -168,7 +168,6 @@ namespace Web.Api.Controllers
                     Code = history.Status.Code,
                 }).FirstOrDefault(),
 
-
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId
             };
@@ -191,6 +190,7 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
+            //Request DTO
             TaskItemNote noteCreation = new TaskItemNote
             {
                 TaskItemId = taskId,
@@ -202,6 +202,7 @@ namespace Web.Api.Controllers
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             var noteResult = new NoteDto
             {
                 Id = noteCreation.Id,
@@ -245,6 +246,7 @@ namespace Web.Api.Controllers
             _unitOfWork.TaskItem.DeleteNote(note);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             NoteDto deleteNote = new NoteDto
             {
                 Id = note.Id,
@@ -280,16 +282,18 @@ namespace Web.Api.Controllers
                     {
                         TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
                             .OrderByDescending(s => s.CreatedDate)
-                            .FirstOrDefault();
-                        return latestStatus == null || latestStatus.StatusId != _statusChange.CompleteId;
+                            .FirstOrDefault(); 
+                        return latestStatus == null || latestStatus.StatusId != _statusChange.CompleteId; // Check if the latest status is not "Complete"
                     });
 
-                if (hasIncompletedChild)
+                if (hasIncompletedChild) 
                 {
-                    return BadRequest("Cannot complete parent task with incomplete child sub-tasks.");
+                    return BadRequest("Cannot complete parent task with incomplete child sub-tasks."); 
                 }
             }
-
+            
+            //add new status history for Complete
+            //Reuest DTO
             TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
             {
                 TaskItemId = taskItem.Id,
@@ -301,6 +305,7 @@ namespace Web.Api.Controllers
             taskItem.TaskItemStatusHistories.Add(newTaskStatus);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             TaskDto statusResult = new TaskDto
             {
                 Id = taskItem.Id,
@@ -386,6 +391,7 @@ namespace Web.Api.Controllers
             }
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             TaskDto editTaskResult = new TaskDto
             {
                 Id = taskItem.Id,
