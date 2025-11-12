@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
@@ -14,9 +15,9 @@ namespace Web.Api.Persistence.Repositories
         }
 
 
-        public List CreateList(List list)
+        public async Task CreateList(List list)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(list);
         }
 
 
