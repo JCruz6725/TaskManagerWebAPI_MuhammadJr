@@ -28,7 +28,8 @@ namespace Web.Api.Controllers
             {
                 return StatusCode(403);
             }
-            var list = new List
+
+            List? createList = new List
             {
                 Id = Guid.NewGuid(),
                 Name = createListDto.Name,
@@ -36,15 +37,22 @@ namespace Web.Api.Controllers
                 CreatedUserId = userId,
             };
 
-            _unitOfWork.List;  // add the list 
-                await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
+            await _unitOfWork.SaveChangesAsync();
 
-            var listDto = new ListDto
+            ListDto listDtos = new ListDto
             {
-                Id=
+                Id = createList.Id,
+                Name = createList.Name,
+                CreatedDate = createList.CreatedDate,
+                CreatedUserId = createList.CreatedUserId,
+
+                TaskItems = []
+            
+            };
+
+               return Ok(listDtos);   
             }
-            //return CreatedAtRoute(listDto);
-        }
 
 
         [HttpGet("{listId}", Name = "GetListById")]
