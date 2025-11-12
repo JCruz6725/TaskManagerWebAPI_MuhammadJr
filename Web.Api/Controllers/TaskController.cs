@@ -25,15 +25,16 @@ namespace Web.Api.Controllers
         [HttpGet("{taskId}", Name = "GetTaskById")]
         public async Task<ActionResult<TaskDto>> GetTaskById([FromHeader] Guid userId, Guid taskId)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
             }
 
-            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
-            if (taskItem is null) { 
-                return NotFound(taskId);    
+            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+            if (taskItem is null)
+            {
+                return NotFound(taskId);
             }
-
 
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
@@ -41,8 +42,12 @@ namespace Web.Api.Controllers
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
+
+
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId,
+
                 Notes = taskItem.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                     (note => new NoteDto                                         //create new instance of NoteDto
                     {
@@ -68,9 +73,20 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {
-             if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
-             }
+            }
+
+            //TaskItem? parentTask = null;
+            if (taskCreatedDto.ParentTaskId != Guid.Empty)
+            {
+                TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreatedDto.ParentTaskId, userId);
+                if (parentTask is null)
+                {
+                    return NotFound(taskCreatedDto.ParentTaskId);
+                }
+            }
 
             //calls the TaskItem prop and set the task created dto to its prop
             //Request DTO
@@ -80,15 +96,17 @@ namespace Web.Api.Controllers
             {
                 Title = taskCreatedDto.Title,
                 Priority = taskCreatedDto.Priority,
+
                 CreatedDate = DateTime.Now,
-                CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
+                CreatedUserId = userId,                                             
                 TaskItemStatusHistories = [
-                    new TaskItemStatusHistory() { 
-                        StatusId = _statusChange.PendingId, 
-                        CreatedDate = DateTime.Now, 
-                        CreatedUserId = userId 
+                    new TaskItemStatusHistory() {
+                        StatusId = _statusChange.PendingId,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId
                     }
                 ]
+
             };
 
             if (taskCreatedDto.DueDate == null)
@@ -99,20 +117,38 @@ namespace Web.Api.Controllers
                 taskCreation.DueDate = taskCreatedDto.DueDate.Value; //enetered value
             }
 
+
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
             taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId);
+
+            //SubTask creation if ParentId is provided
+            if (taskCreatedDto.ParentTaskId != Guid.Empty)
+            {
+                SubTask subTask = new SubTask
+                {
+                    TaskItemId = taskCreatedDto.ParentTaskId,
+                    SubTaskItemId = taskCreation.Id,
+                    CreatedDate = DateTime.Now,
+                    CreatedUserId = userId
+                };
+                taskCreation.SubTaskSubTaskItems.Add(subTask);
+            }
+            await _unitOfWork.SaveChangesAsync();
+
 
             //Response DTO
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
+
             TaskDto creationResult = new TaskDto()
             {
                 Id = taskCreation.Id,
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
+                ParentTaskId = taskCreation.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskCreation.TaskItemNotes.Select
                     (note => new NoteDto
@@ -143,15 +179,18 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
         {
 
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
             }
 
-            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
-            if (taskItem is null) { 
-                return NotFound(taskId);    
+            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+            if (taskItem is null)
+            {
+                return NotFound(taskId);
             }
 
+            //Request DTO
             TaskItemNote noteCreation = new TaskItemNote
             {
                 TaskItemId = taskId,
@@ -163,6 +202,7 @@ namespace Web.Api.Controllers
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             var noteResult = new NoteDto
             {
                 Id = noteCreation.Id,
@@ -186,17 +226,19 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<NoteDto>> DeleteNote([FromHeader] Guid userId, Guid taskId, Guid noteId)
         {
 
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
             }
 
-            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);  
-            if (taskItem is null) { 
-                return NotFound(taskId);    
+            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+            if (taskItem is null)
+            {
+                return NotFound(taskId);
             }
 
             TaskItemNote? note = taskItem.TaskItemNotes.SingleOrDefault(n => n.Id == noteId);
-            if(note is null)
+            if (note is null)
             {
                 return NotFound(noteId);
             }
@@ -204,6 +246,7 @@ namespace Web.Api.Controllers
             _unitOfWork.TaskItem.DeleteNote(note);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             NoteDto deleteNote = new NoteDto
             {
                 Id = note.Id,
@@ -219,7 +262,8 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
             }
 
@@ -229,7 +273,27 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
+            // Prevent completing a parent task when any child sub-task is not complete.
+            if (taskItem.SubTaskTaskItems != null)
+            {
+                bool hasIncompletedChild = taskItem.SubTaskTaskItems
+                    .Select(st => st.SubTaskItem)
+                    .Any(child =>
+                    {
+                        TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
+                            .OrderByDescending(s => s.CreatedDate)
+                            .FirstOrDefault(); 
+                        return latestStatus == null || latestStatus.StatusId != _statusChange.CompleteId; // Check if the latest status is not "Complete"
+                    });
 
+                if (hasIncompletedChild) 
+                {
+                    return BadRequest("Cannot complete parent task with incomplete child sub-tasks."); 
+                }
+            }
+            
+            //add new status history for Complete
+            //Reuest DTO
             TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
             {
                 TaskItemId = taskItem.Id,
@@ -238,16 +302,17 @@ namespace Web.Api.Controllers
                 CreatedUserId = userId,
             };
 
-
             taskItem.TaskItemStatusHistories.Add(newTaskStatus);
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             TaskDto statusResult = new TaskDto
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                 {
@@ -260,7 +325,7 @@ namespace Web.Api.Controllers
 
                 CurrentStatus = new StatusDto
                 {
-                    Id = taskItem.Id,
+                    Id = _statusChange.CompleteId,
                     Name = _statusChange.Complete,
                     Code = _statusChange.Code2
                 },
@@ -282,7 +347,8 @@ namespace Web.Api.Controllers
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
         {
-            if(!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
                 return StatusCode(403);
             }
 
@@ -292,6 +358,29 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
+            //check if parent task exists
+            TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId, userId);
+            if (parentTask is null)
+            {
+                return NotFound(updateTaskDto.ParentTaskId);
+            }
+
+            //subtask creation if ParentId is provided
+            if (updateTaskDto.ParentTaskId != Guid.Empty)
+            {
+                SubTask? subTask = new SubTask
+                {
+                    TaskItemId = updateTaskDto.ParentTaskId,
+                    SubTaskItemId = taskItem.Id,
+                    CreatedDate = DateTime.Now,
+                    CreatedUserId = userId
+                };
+
+                taskItem.SubTaskSubTaskItems.Add(subTask);
+            }
+            await _unitOfWork.SaveChangesAsync();
+
+            //update only provided property fields
             if (updateTaskDto.Title != null &&
                 updateTaskDto.DueDate.HasValue &&
                 updateTaskDto.Priority != 0)
@@ -300,15 +389,16 @@ namespace Web.Api.Controllers
                 taskItem.DueDate = updateTaskDto.DueDate.Value;
                 taskItem.Priority = updateTaskDto.Priority;
             }
-
             await _unitOfWork.SaveChangesAsync();
 
+            //Response DTO
             TaskDto editTaskResult = new TaskDto
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                ParentTaskId = taskItem.SubTaskSubTaskItems?.FirstOrDefault()?.TaskItemId ?? Guid.Empty,
 
                 Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                 {
@@ -332,5 +422,6 @@ namespace Web.Api.Controllers
             };
             return Ok(editTaskResult);
         }
+
     }
 }

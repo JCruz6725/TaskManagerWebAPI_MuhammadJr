@@ -10,9 +10,7 @@ public partial class TaskItem
     public string Title { get; set; } = null!;
 
     public DateTime? DueDate { get; set; }
-
     public int Priority { get; set; }
-
     public DateTime CreatedDate { get; set; }
 
     public Guid CreatedUserId { get; set; }
