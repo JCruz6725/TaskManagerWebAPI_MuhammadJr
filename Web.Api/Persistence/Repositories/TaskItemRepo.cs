@@ -29,14 +29,11 @@ namespace Web.Api.Persistence.Repositories
                 .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
-
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
             await _context.AddAsync(taskItem);
 
         }
-
-
         public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
             await _context.AddAsync(taskItemItemNote);
