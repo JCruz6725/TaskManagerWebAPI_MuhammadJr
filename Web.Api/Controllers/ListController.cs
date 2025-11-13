@@ -106,7 +106,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest("List does not exist");
             }
-            return Ok();
+            return Ok(userList);
         }
     }
 }
