@@ -91,7 +91,7 @@ namespace Web.Api.Controllers
             throw new NotImplementedException();
         }
        
-        [HttpPost("{listId}/edit-list", Name = "Edit List")]
+        [HttpPut("{listId}/edit-list", Name = "Edit List")]
         public async Task<ActionResult<ListDto>> EditList([FromHeader] Guid userId, Guid listId, EditListDto editListDto)
         {
             if (!await _unitOfWork.User.IsUserInDbAsync(userId)) { return StatusCode(403); }
@@ -106,7 +106,7 @@ namespace Web.Api.Controllers
             {
                 return BadRequest("List does not exist");
             }
-            return Ok(userList);
+            return Ok(userList.Name);
         }
     }
 }
