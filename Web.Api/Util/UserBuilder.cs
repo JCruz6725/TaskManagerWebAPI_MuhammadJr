@@ -13,7 +13,7 @@ namespace Web.Api.Util
         };
 
         private List? currentList = null;
-        private List<TaskItem> taskList = [];
+        private List<TaskItem> taskItems = [];
         private TaskItem? currentTaskItem = null;
 
 
@@ -57,7 +57,7 @@ namespace Web.Api.Util
                 }
             );
 
-            taskList.Add(taskItem);
+            taskItems.Add(taskItem);
             currentTaskItem = taskItem;
 
             return this;    
@@ -78,15 +78,9 @@ namespace Web.Api.Util
                 ]
             };
 
-            user.TaskWithinLists.Add(
-                new TaskWithinList() { 
-                    CreatedDate = DateTime.Now,
-                    CreatedUser= user,
-                    TaskItem = taskItem
-                }
-            );
+            user.TaskItems.Add(taskItem);
 
-            taskList.Add(taskItem);
+            taskItems.Add(taskItem);
             currentTaskItem = taskItem;
 
             return this;    
@@ -136,6 +130,18 @@ namespace Web.Api.Util
                     CreatedDate = DateTime.Now,
                     TaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
                     SubTaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
+                }
+            );
+            return this;
+        }
+
+        public UserBuilder AddSubTaskForOrphan(string parent, string child) {
+            user.SubTasks.Add(
+                new SubTask() { 
+                    CreatedUser = user,
+                    CreatedDate = DateTime.Now,
+                    TaskItem = taskItems.Single(ti => ti.Title == parent ),
+                    SubTaskItem = taskItems.Single(ti => ti.Title == child ),
                 }
             );
             return this;

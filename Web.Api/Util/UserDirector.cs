@@ -35,9 +35,9 @@ namespace Web.Api.Util {
                 .AddOrphanTask("Chop veggies", statusChange.PendingId)
                 .AddOrphanTask("Wash dishes", statusChange.PendingId)
 
-                .AddSubTask("Cook", "Buy ingredients")
-                .AddSubTask("Cook", "Chop veggies")
-                .AddSubTask("Cook", "Wash dishes")
+                .AddSubTaskForOrphan("Cook", "Buy ingredients")
+                .AddSubTaskForOrphan("Cook", "Chop veggies")
+                .AddSubTaskForOrphan("Cook", "Wash dishes")
 
                 .GetFinalUser();
         }
@@ -52,8 +52,8 @@ namespace Web.Api.Util {
                 .AddOrphanTask("Clean kitchen",statusChange.PendingId)
                 .AddOrphanTask("Clean bathroom",statusChange.PendingId)
 
-                .AddSubTask("Clean", "Clean kitchen")
-                .AddSubTask("Clean", "Clean bathroom")
+                .AddSubTaskForOrphan("Clean", "Clean kitchen")
+                .AddSubTaskForOrphan("Clean", "Clean bathroom")
                 
                 .GetFinalUser();
         }
@@ -87,6 +87,9 @@ namespace Web.Api.Util {
                     .AddSubTask("Test Drive", "Check tire pressure")
                     .AddSubTask("Test Drive", "Replace Spark plugs")
                     .AddSubTask("Add water", "Fix radiator")
+
+                .AddList("ArchiveItems")
+                    .AddTask("Replace heads", statusChange.CompleteId)
                 
                 .GetFinalUser();
         }
