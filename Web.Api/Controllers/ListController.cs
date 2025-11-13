@@ -93,45 +93,43 @@ namespace Web.Api.Controllers
                 return StatusCode(403);
             }
 
-            TaskItem? userTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
-            List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
-            if (userTask != null && userList != null)
+            TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+            List? destinationList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (task != null && destinationList != null)
             {
-                if (userTask.TaskWithinLists.Count == 0) //task not assigned to a list
+                if (task.TaskWithinLists.Count == 0) //task not assigned to a list
                 {
-                    userList.TaskWithinLists.Add(
+                    destinationList.TaskWithinLists.Add(
                         new TaskWithinList()
                         {
-                            TaskListId = listId,
-                            TaskItemId = userTask.Id,
-                            CreatedDate = userTask.CreatedDate,
-                            CreatedUserId = userId
+                            TaskItem = task,
+                            CreatedUserId = userId,
+                            CreatedDate = task.CreatedDate,
                         }
                     );
                 }
-                //need to check if task is already in the list user wants to put it in 
-                else if (userTask.TaskWithinLists.ElementAt(0).TaskList == userList)
+                else if (task.TaskWithinLists.First().TaskList == destinationList) //check if task is already in the list user wants to put it in 
                 {
                     return BadRequest("Task already exist in the list");
                 }
-                else //task is in a different preexisting list
+                else //task is currently in a different preexisting list
                 {
-                    userTask.TaskWithinLists.Clear(); //Remove list from task
-                    //Remove task from list
-                    List<List> list = await _unitOfWork.List.GetAllListAsync(userId);
-                    (list.ElementAt(0)).TaskWithinLists.Clear();
+                    //Remove connection to old list
+                    TaskWithinList oldTaskWithinList = task.TaskWithinLists.First(); 
+                    _unitOfWork.TaskItem.DeleteTaskWithinLists(oldTaskWithinList);  
 
-                    userTask.TaskWithinLists = [
+                    //Reassign connection to destinationList
+                    destinationList.TaskWithinLists.Add(
                         new TaskWithinList(){
-                            TaskListId = listId,
-                            CreatedDate = userTask.CreatedDate,
-                            CreatedUserId = userTask.CreatedUserId,
+                            TaskItem = task,
+                            CreatedUserId = userId,
+                            CreatedDate = task.CreatedDate,
                         }
-                    ];
+                    );
                 }
                 await _unitOfWork.SaveChangesAsync();
             }
-            else if (userList == null)
+            else if (destinationList == null)
             {
                 return BadRequest($"Requested list does not exist for user {userId}");
             }
