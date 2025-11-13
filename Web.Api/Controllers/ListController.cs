@@ -110,7 +110,11 @@ namespace Web.Api.Controllers
                     );
                 }
                 //need to check if task is already in the list user wants to put it in 
-                else //task is in a preexisting list
+                else if (userTask.TaskWithinLists.ElementAt(0).TaskList == userList)
+                {
+                    return BadRequest("Task already exist in the list");
+                }
+                else //task is in a different preexisting list
                 {
                     userTask.TaskWithinLists.Clear(); //Remove list from task
                     //Remove task from list
