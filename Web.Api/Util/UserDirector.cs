@@ -5,12 +5,6 @@ namespace Web.Api.Util {
         public User MakeAlexFarmerProfile() {
              return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345")
                 .AddList("Exercise")
-                    .AddTask("Run", statusChange.PendingId)
-
-                .AddList("Some list from FluentAPI")
-                    .AddTask("FluentTask01", statusChange.PendingId)
-                        .AddNote("SomeContent")
-                        .AddNote("SomeOtherContent")
 
                     .AddTask("Run", statusChange.PendingId)
                     .AddTask("Buy Shoes", statusChange.PendingId)
@@ -73,7 +67,7 @@ namespace Web.Api.Util {
                     .AddTask("Test Drive", statusChange.PendingId)
                         .AddNote("Destination, the mall. Far enough to satisfy the test drive.")
                     
-                        .AddTask("Fix radiator", statusChange.PendingId)
+                    .AddTask("Fix radiator", statusChange.PendingId)
                     .AddTask("Add water", statusChange.PendingId)
                     .AddTask("Check oil", statusChange.PendingId)
                     .AddTask("Check tire pressure", statusChange.PendingId)
