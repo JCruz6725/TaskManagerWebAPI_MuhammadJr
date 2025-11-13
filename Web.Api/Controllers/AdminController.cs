@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NLog.Config;
 using NLog.Filters;
+using NLog.Web.LayoutRenderers;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -44,8 +49,9 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<string>> AddDummyData() {
 
             context.AddRange([
-                GetUser1(), 
-                GetUser2()
+                //GetUser1(), 
+                //GetUser2(),
+                GetUser3(),
             ]);
 
             await context.SaveChangesAsync();
@@ -249,12 +255,7 @@ namespace Web.Api.Controllers
                                         CreatedDate = DateTime.Now.AddDays(-4.00),
                                         CreatedUser = user
                                     },
-                                    new TaskItemStatusHistory()
-                                    {
-                                        StatusId = statusChange.CompleteId,
-                                        CreatedDate = DateTime.Now,
-                                        CreatedUser = user
-                                    }
+
                                 ]
                             }
                         },
@@ -272,6 +273,12 @@ namespace Web.Api.Controllers
                                     new TaskItemStatusHistory()
                                     {
                                         StatusId = statusChange.PendingId,
+                                        CreatedDate = DateTime.Now.AddDays(-4.00),
+                                        CreatedUser = user
+                                    },
+                                    new TaskItemStatusHistory()
+                                    {
+                                        StatusId = statusChange.CompleteId,
                                         CreatedDate = DateTime.Now,
                                         CreatedUser = user
                                     }
@@ -332,6 +339,12 @@ namespace Web.Api.Controllers
                                     new TaskItemStatusHistory()
                                     {
                                         StatusId = statusChange.PendingId,
+                                        CreatedDate = DateTime.Now.AddDays(-4.00),
+                                        CreatedUser = user
+                                    },
+                                    new TaskItemStatusHistory()
+                                    {
+                                        StatusId = statusChange.CompleteId,
                                         CreatedDate = DateTime.Now,
                                         CreatedUser = user
                                     }
@@ -392,5 +405,93 @@ namespace Web.Api.Controllers
 
             return user;
         }
+
+        private User GetUser3() {
+             return new UserBuilder("a@a.","from","fluent", "pass")
+                .AddList("Some list from FluentAPI")
+                    .AddTask("FluentTask01", statusChange.PendingId)
+                    .AddTask("FluentTask02", statusChange.PendingId)
+                .AddList("Other")
+                .GetFinalUser();
+        }
+
+
+    }
+
+
+    public class UserBuilder(string email, string first, string last, string pass) { 
+        
+        private User user = new User(){ 
+            CreatedDate = DateTime.Now,
+            Email = email,
+            FirstName = first,
+            LastName = last,
+            Password = pass
+        };
+        private List? currentList = null;
+        private List<TaskItem> taskList = [];
+
+        public UserBuilder AddTask(string taskname, Guid StatusPendingId) {
+
+            if (currentList == null) { throw new Exception("must add list prior to adding a task item."); }
+
+            TaskItem taskItem = new() {
+                CreatedDate = DateTime.Now,
+                CreatedUser = user,
+                Title = taskname,
+                TaskItemStatusHistories = [
+                    new TaskItemStatusHistory(){
+                        StatusId = StatusPendingId,
+                        CreatedDate = DateTime.Now,
+                        CreatedUser = user,
+                    }
+                ]
+            };
+
+
+            currentList.TaskWithinLists.Add(
+                new TaskWithinList() { 
+                    CreatedDate = DateTime.Now,
+                    CreatedUser= user,
+                    TaskItem = taskItem
+                }
+            );
+
+            taskList.Add(taskItem);
+
+            return this;    
+        }
+
+
+        public UserBuilder AddList(string listname) {
+
+            List list = new() {
+                CreatedDate = DateTime.Now,
+                CreatedUser = user,
+                Name = listname,
+            };
+
+            user.Lists.Add(list);
+            currentList = list;
+            return this;    
+        }
+
+
+        public UserBuilder AddSubTask(string listnameP, string parent, string listnameC, string child) {
+            user.SubTasks.Add(
+                new SubTask() { 
+                    CreatedUser = user,
+                    CreatedDate = DateTime.Now,
+                    TaskItem = user.Lists.Single(l => l.Name == listnameP).TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
+                    SubTaskItem = user.Lists.Single(l => l.Name == listnameC).TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
+                }
+            );
+            return this;
+        }
+
+        public User GetFinalUser() { 
+            return user;    
+        }
+
     }
 }
