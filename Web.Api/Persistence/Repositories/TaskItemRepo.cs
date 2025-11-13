@@ -25,8 +25,11 @@ namespace Web.Api.Persistence.Repositories
         /// <returns></returns>
         public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-                .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems.Include(item => item.TaskItemNotes)
+                                           .Include(twl => twl.TaskWithinLists)
+                                           .Include(history => history.TaskItemStatusHistories)
+                                                .ThenInclude(stat => stat.Status)
+                                                .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
 
@@ -54,6 +57,16 @@ namespace Web.Api.Persistence.Repositories
         public void DeleteNote(TaskItemNote taskItemNote)
         {
              _context.Remove(taskItemNote);
+        }
+
+        public void DeleteTask(TaskItem taskItem)
+        {
+            _context.Remove(taskItem);
+        }
+
+        public void DeleteTaskWithinLists(TaskWithinList taskWithinLists)
+        {
+            _context.Remove(taskWithinLists);
         }
     }
 }
