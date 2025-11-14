@@ -106,7 +106,15 @@ namespace Web.Api.Controllers
             {
                 return BadRequest("List does not exist");
             }
-            return Ok(userList.Name);
+
+            EditListResDto editListResDto = new EditListResDto
+            {
+                Id = listId,
+                Name = userList.Name,
+                CreatedUserId = userId,
+            };
+
+            return Ok(editListResDto);
         }
     }
 }
