@@ -34,7 +34,6 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);    
             }
 
-
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
                 Id = taskItem.Id,
@@ -59,11 +58,20 @@ namespace Web.Api.Controllers
                      Id = history.Status.Id,
                      Name = history.Status.Name,
                      Code = history.Status.Code,
+                     CreatedDate = history.CreatedDate
                  }).FirstOrDefault(),
-            };
-            return Ok(taskDetail);                                            //retun task details
-        }
 
+                StatusHistories = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
+                .Select(history => new StatusDto
+                {
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,
+                    Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate,
+                }).ToList(),
+            };
+            return Ok(taskDetail);                                           
+        }
 
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
@@ -83,10 +91,10 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId,                                              //set the UserId which is given by the user from the header
                 TaskItemStatusHistories = [
-                    new TaskItemStatusHistory() { 
-                        StatusId = _statusChange.PendingId, 
-                        CreatedDate = DateTime.Now, 
-                        CreatedUserId = userId 
+                    new TaskItemStatusHistory() {
+                        StatusId = _statusChange.PendingId,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId
                     }
                 ]
             };
@@ -113,7 +121,6 @@ namespace Web.Api.Controllers
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
-
                 Notes = taskCreation.TaskItemNotes.Select
                     (note => new NoteDto
                     {
@@ -123,21 +130,19 @@ namespace Web.Api.Controllers
                         CreatedDate = note.CreatedDate,
                         CreatedUser = note.CreatedUserId,
                     }).ToList(),
-
                 CurrentStatus = taskCreation.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
                 .Select(history => new StatusDto
                 {
                     Id = history.Status.Id,
                     Name = history.Status.Name,
                     Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate
                 }).FirstOrDefault(),
-
                 CreatedDate = taskCreation.CreatedDate,
-                CreatedUserId = taskCreation.CreatedUserId
+                CreatedUserId = taskCreation.CreatedUserId,
             };
             return CreatedAtAction(nameof(CreateTask), new { taskId = taskCreation.Id }, creationResult);
         }
-
 
         [HttpPost("{taskId}/notes", Name = "CreateNote")]
         public async Task<ActionResult<NoteCreateDto>> CreateNote([FromHeader] Guid userId, Guid taskId, NoteCreateDto noteCreateDto)
@@ -159,7 +164,7 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId
             };
-
+            
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
 
@@ -171,10 +176,8 @@ namespace Web.Api.Controllers
                 CreatedDate = noteCreation.CreatedDate,
                 CreatedUser = noteCreation.CreatedUserId
             };
-
             return CreatedAtAction(nameof(CreateNote), new { id = noteCreation.Id }, noteResult);
         }
-
 
         [HttpGet("{taskId}/notes", Name = "GetAllNotes")]
         public Task<ActionResult<List<NoteDto>>> GetAllNotes([FromHeader] Guid userId, Guid taskId)
@@ -214,7 +217,6 @@ namespace Web.Api.Controllers
             };
             return Ok(deleteNote);
         }
-
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
@@ -260,7 +262,7 @@ namespace Web.Api.Controllers
 
                 CurrentStatus = new StatusDto
                 {
-                    Id = taskItem.Id,
+                    Id = _statusChange.CompleteId,
                     Name = _statusChange.Complete,
                     Code = _statusChange.Code2
                 },
@@ -277,7 +279,6 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
-
 
         [HttpPut("{taskId}", Name = "EditTask")]
         public async Task<ActionResult<TaskDto>> EditTask([FromHeader] Guid userId, Guid taskId, TaskDto updateTaskDto)
@@ -318,15 +319,14 @@ namespace Web.Api.Controllers
                     CreatedDate = n.CreatedDate,
                     CreatedUser = n.CreatedUserId
                 }).ToList(),
-
                 CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
                 .Select(history => new StatusDto
                 {
                     Id = history.Status.Id,
                     Name = history.Status.Name,
                     Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate,
                 }).FirstOrDefault(),
-
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId
             };
