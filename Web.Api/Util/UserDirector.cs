@@ -17,14 +17,17 @@ namespace Web.Api.Util {
 
                                           };
 
+        /*
         public User MakeAlexFarmerProfile() {
              return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345", userId: guidId[0])
                 .AddList("Exercise", new Guid("8c227c61-c566-4991-b208-fd534d3d868b"))
                     .AddTask("Run", statusChange.PendingId, guidId[1], guidId[2])
+                        .AddTask("Buy Shoes", statusChange.PendingId, guidId[5], guidId[6])                
                         .AddSubTask("Run", "Buy Shoes", guidId[3])
+                        .AddTask("Go to park", statusChange.PendingId, guidId[7], guidId[8])
                         .AddSubTask("Run", "Go to park", guidId[4])
-                    .AddTask("Buy Shoes", statusChange.PendingId, guidId[5], guidId[6])
-                    .AddTask("Go to park", statusChange.PendingId, guidId[7], guidId[8])
+                    
+                    
                     .AddTask("Walk", statusChange.PendingId, guidId[9], guidId[10])
                         .AddNote("Take the dogs on the walk", new Guid("bf5e6489-9164-4078-bfd4-67ef9ed82b75"))
                         .AddSubTask("Walk", "Go to park", new Guid("90dd4508-eea7-435c-8390-2b7221ed6c44"))
@@ -99,6 +102,42 @@ namespace Web.Api.Util {
                 .AddList("ArchiveItems")
                     .AddTask("Replace heads", statusChange.CompleteId)
                 
+                .GetFinalUser();
+        }*/
+
+        public User MakeAlexFarmerProfile() { 
+            return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345", userId: guidId[0]).GetFinalUser(); 
+        }
+
+        public User MakeJessieHopkinsProfile()
+        {
+            return new UserBuilder(email: "JHopkins@email.com", first: "Jessie", last: "Hopkins", pass: "password", userId: new Guid("b631308c-a4d6-4bbd-a935-3b6a10d2d52d"))
+                .AddOrphanTask(taskname: "Play sports", statusId: statusChange.PendingId, taskId: new Guid("6f5db359-e994-4f0b-8c79-0287da440a24"), taskItemStatusHistoryId: new Guid("c799916f-45b3-45b7-ba96-f24d042120fd"))
+                    .AddNote(content: "Play sports for 1 hour", noteId: new Guid("c0be5fb0-cecf-48f7-82ce-89d9bb9a1356"))
+                    .AddOrphanTask(taskname: "Basketball", statusId: statusChange.PendingId, taskId: new Guid("8ab01f57-682f-4a77-84c1-49b81e073fbe"), taskItemStatusHistoryId: new Guid("31b90f14-adc2-426b-8733-dad5659064bb"))
+                    .AddSubTaskForOrphan(parent: "Play sports", child: "Basketball")
+                .GetFinalUser();
+        }
+
+        public User MakeAprilRiceProfile()
+        {
+            return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", pass: "ARice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"))
+                .AddList(listname: "Shopping", listId: new Guid("1e4220df-eb3f-488a-9bb0-7e4ad078081e"))
+                .AddList(listname: "School project", listId: new Guid("6c7dd6b3-0ee4-476d-885f-6a281c19a8bd"))
+                    .AddTask(taskname: "Buy poster", statusId: statusChange.PendingId, taskId: new Guid("88f9c41a-9c5e-468b-9370-a7212a6a1f5a"), taskItemStatusHistoryId: new Guid("c13b279a-dc0a-4a42-a0df-1595f548c708"))
+                        .AddNote(content: "The budget is $10", noteId: new Guid("f1b2f010-3f0e-49ea-84f5-d7b73fad41c7"))
+                        .AddNote(content: "The poster has to be PINK", new Guid("3d9211db-e649-4b8b-8b6a-3ea3d671bc70"))
+                        
+                    .GetFinalUser();
+        }
+
+        public User MakeNikoLoganProfile()
+        {
+            return new UserBuilder(email: "Nlogan@email.com", first: "Niko", last: "Logan", pass: "abc", userId: new Guid("87c42ac5-cda9-4672-9fb9-3bd7c8d93363"))
+                .AddList(listname: "Party planning", listId: new Guid("da604851-6dc0-40f3-bfc4-524cdf574f46"))
+                .AddOrphanTask(taskname: "Homework", statusId: statusChange.PendingId, taskId: new Guid("6fbf7ace-0be3-4065-90c8-0dcb1eed94d5"), taskItemStatusHistoryId: new Guid("f03ee943-5882-440c-8783-97d93c20f871"))
+                    .AddOrphanTask()    
+                    .AddSubTaskForOrphan(parent: "Party planning", child: )
                 .GetFinalUser();
         }
 

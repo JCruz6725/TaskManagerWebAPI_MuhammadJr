@@ -2,14 +2,15 @@
 
 namespace Web.Api.Util
 {
-    public class UserBuilder(string email, string first, string last, string pass) { 
+    public class UserBuilder(string email, string first, string last, string pass, Guid userId) { 
         
-        private User user = new User(){ 
+        private User user = new User(){
+            Id = userId,
             CreatedDate = DateTime.Now,
             Email = email,
             FirstName = first,
             LastName = last,
-            Password = pass
+            Password = pass,
         };
 
         private List? currentList = null;
@@ -17,11 +18,13 @@ namespace Web.Api.Util
         private TaskItem? currentTaskItem = null;
 
 
-        public UserBuilder AddList(string listname) {
+        public UserBuilder AddList(string listname, Guid listId) {
             List list = new() {
+                Id = listId,
                 CreatedDate = DateTime.Now,
                 CreatedUser = user,
                 Name = listname,
+
             };
 
             user.Lists.Add(list);
@@ -30,18 +33,20 @@ namespace Web.Api.Util
         }
 
 
-        public UserBuilder AddTask(string taskname, Guid StatusPendingId) {
+        public UserBuilder AddTask(string taskname, Guid StatusPendingId, Guid taskId, Guid taskItemStatusHistoryId) {
             if (currentList == null) 
             { 
                 throw new Exception("Must add list prior to adding a task item."); 
             }
 
             TaskItem taskItem = new() {
+                Id = taskId,
                 CreatedDate = DateTime.Now,
                 CreatedUser = user,
                 Title = taskname,
                 TaskItemStatusHistories = [
                     new TaskItemStatusHistory(){
+                        Id = taskItemStatusHistoryId,
                         StatusId = StatusPendingId,
                         CreatedDate = DateTime.Now,
                         CreatedUser = user,
@@ -64,13 +69,15 @@ namespace Web.Api.Util
         }
 
 
-        public UserBuilder AddOrphanTask(string taskname, Guid StatusPendingId) {
+        public UserBuilder AddOrphanTask(string taskname, Guid StatusPendingId, Guid orphanTaskId, Guid orphanTaskItemStatusHistoryId) {
             TaskItem taskItem = new() {
+                Id = orphanTaskId,
                 CreatedDate = DateTime.Now,
                 CreatedUser = user,
                 Title = taskname,
                 TaskItemStatusHistories = [
                     new TaskItemStatusHistory(){
+                        Id= orphanTaskItemStatusHistoryId,
                         StatusId = StatusPendingId,
                         CreatedDate = DateTime.Now,
                         CreatedUser = user,
@@ -87,7 +94,7 @@ namespace Web.Api.Util
         }
 
 
-        public UserBuilder AddNote(string content) {
+        public UserBuilder AddNote(string content, Guid noteId) {
             if (currentTaskItem is null) 
             {
                 throw new Exception("Must create a task item first.");
@@ -95,6 +102,7 @@ namespace Web.Api.Util
 
             currentTaskItem.TaskItemNotes.Add(
                 new TaskItemNote() { 
+                    Id= noteId,
                     CreatedUser = user,
                     CreatedDate= DateTime.Now,
                     Note = content
@@ -105,9 +113,10 @@ namespace Web.Api.Util
 
 
 
-        public UserBuilder AddSubTask(string listnameP, string parent, string listnameC, string child) {
+        public UserBuilder AddSubTask(string listnameP, string parent, string listnameC, string child, Guid subTaskId) {
             user.SubTasks.Add(
                 new SubTask() { 
+                    Id= subTaskId,
                     CreatedUser = user,
                     CreatedDate = DateTime.Now,
                     TaskItem = user.Lists.Single(l => l.Name == listnameP).TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
@@ -118,7 +127,7 @@ namespace Web.Api.Util
         }
         
 
-        public UserBuilder AddSubTask(string parent, string child) {
+        public UserBuilder AddSubTask(string parent, string child, Guid subTaskId) {
             if (currentList == null) 
             { 
                 throw new Exception("Must add list prior to adding a task item."); 
@@ -126,6 +135,7 @@ namespace Web.Api.Util
 
             user.SubTasks.Add(
                 new SubTask() { 
+                    Id= subTaskId,
                     CreatedUser = user,
                     CreatedDate = DateTime.Now,
                     TaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
@@ -135,9 +145,10 @@ namespace Web.Api.Util
             return this;
         }
 
-        public UserBuilder AddSubTaskForOrphan(string parent, string child) {
+        public UserBuilder AddSubTaskForOrphan(string parent, string child, Guid orphanSubTaskId) {
             user.SubTasks.Add(
                 new SubTask() { 
+                    Id= orphanSubTaskId,
                     CreatedUser = user,
                     CreatedDate = DateTime.Now,
                     TaskItem = taskItems.Single(ti => ti.Title == parent ),
