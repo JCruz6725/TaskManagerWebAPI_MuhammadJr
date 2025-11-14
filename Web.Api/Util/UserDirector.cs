@@ -150,7 +150,7 @@ namespace Web.Api.Util {
                 .GetFinalUser();
         }
 
-        public User MakeChuckFinelyProfile()
+        public User MakeChuckFinleyProfile()
         {
             return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", pass: "abc", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
                 .AddOrphanTask(taskname: "Cook dinner", statusId: statusChange.PendingId, priority: 15, taskId: new Guid("023af9db-2d82-4f2c-aa40-c393d38de31b"), taskItemStatusHistoryId: new Guid("80e93f32-a8c7-4da0-8d9b-f777ca6c093f"))
