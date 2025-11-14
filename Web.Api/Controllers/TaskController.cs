@@ -34,13 +34,13 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);    
             }
 
-
             TaskDto? taskDetail = new TaskDto                                   //create a new instance of TaskDto and set their properties 
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
                 DueDate = taskItem.DueDate,
                 Priority = taskItem.Priority,
+                CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId,
                 Notes = taskItem.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                     (note => new NoteDto                                         //create new instance of NoteDto
@@ -58,6 +58,7 @@ namespace Web.Api.Controllers
                      Id = history.Status.Id,
                      Name = history.Status.Name,
                      Code = history.Status.Code,
+                     CreatedDate = history.CreatedDate
                  }).FirstOrDefault(),
 
                 StatusHistories = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
@@ -120,7 +121,6 @@ namespace Web.Api.Controllers
                 Title = taskCreation.Title,
                 DueDate = taskCreation.DueDate,
                 Priority = taskCreation.Priority,
-
                 Notes = taskCreation.TaskItemNotes.Select
                     (note => new NoteDto
                     {
@@ -130,15 +130,14 @@ namespace Web.Api.Controllers
                         CreatedDate = note.CreatedDate,
                         CreatedUser = note.CreatedUserId,
                     }).ToList(),
-
                 CurrentStatus = taskCreation.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
-                .Select(status => new StatusDto
+                .Select(history => new StatusDto
                 {
-                    Id = status.Status.Id,
-                    Name = status.Status.Name,
-                    Code = status.Status.Code,
+                    Id = history.Status.Id,
+                    Name = history.Status.Name,
+                    Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate
                 }).FirstOrDefault(),
-
                 CreatedDate = taskCreation.CreatedDate,
                 CreatedUserId = taskCreation.CreatedUserId,
             };
@@ -165,7 +164,7 @@ namespace Web.Api.Controllers
                 CreatedDate = DateTime.Now,
                 CreatedUserId = userId
             };
-
+            
             await _unitOfWork.TaskItem.CreateNoteAsync(noteCreation);
             await _unitOfWork.SaveChangesAsync();
 
@@ -320,15 +319,14 @@ namespace Web.Api.Controllers
                     CreatedDate = n.CreatedDate,
                     CreatedUser = n.CreatedUserId
                 }).ToList(),
-
                 CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
                 .Select(history => new StatusDto
                 {
                     Id = history.Status.Id,
                     Name = history.Status.Name,
                     Code = history.Status.Code,
+                    CreatedDate = history.CreatedDate,
                 }).FirstOrDefault(),
-
                 CreatedDate = taskItem.CreatedDate,
                 CreatedUserId = taskItem.CreatedUserId
             };
