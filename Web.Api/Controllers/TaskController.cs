@@ -97,7 +97,7 @@ namespace Web.Api.Controllers
                 Priority = taskCreatedDto.Priority,
 
                 CreatedDate = DateTime.Now,
-                CreatedUserId = userId,                                             
+                CreatedUserId = userId,
                 TaskItemStatusHistories = [
                     new TaskItemStatusHistory() {
                         StatusId = _statusChange.PendingId,
@@ -131,13 +131,13 @@ namespace Web.Api.Controllers
 
             await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
-            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId) ?? throw new Exception ("The object you tried to create does not exist in db");
+            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId) ?? throw new Exception("The object you tried to create does not exist in db");
 
             //Response DTO
             //create a new instance of TaskDto
             //calls the TaskDto prop and call the taskCreation and set the prop for user view
             //return the result of the tasks created
-            TaskDto creationResult = new ()
+            TaskDto creationResult = new()
             {
                 Id = taskCreation.Id,
                 Title = taskCreation.Title,
@@ -253,6 +253,42 @@ namespace Web.Api.Controllers
             return Ok(deleteNote);
         }
 
+        public bool HasIncompletedDescendants(TaskItem task)
+        {
+            //If task has no subtasks end the check
+            if (task.SubTaskTaskItems == null)
+            {
+                return false;
+            }
+
+            //Loop through every single subtask
+            foreach (var sub in task.SubTaskTaskItems)
+            {
+                //Get the subtask under Task Item
+                TaskItem child = sub.SubTaskItem;
+
+                //Get the latest status history of a subtask and sort by created date
+                TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
+                                        .OrderByDescending(c => c.CreatedDate)
+                                        .FirstOrDefault();
+                //Get the impcompleted task statuses Status != Complete
+                bool inCompletedChild = latestStatus!.StatusId != _statusChange.CompleteId;
+
+                //If task is incomplete return true
+                if (inCompletedChild)
+                {
+                    return true;
+                }
+                
+                //Recursiveley check for any SubTask that is incomplete
+                if (HasIncompletedDescendants(child))
+                {
+                    return true;
+                }
+            }
+            //If all subtasks in descedndants are complete end the check
+            return false;
+        }
 
         [HttpPost("{taskId}/status-change/complete", Name = "StatusChangeComplete")]
         public async Task<ActionResult<TaskDto>> StatusChangeComplete([FromHeader] Guid userId, Guid taskId)
@@ -268,28 +304,15 @@ namespace Web.Api.Controllers
                 return NotFound(taskId);
             }
 
-            // Prevent completing a parent task when any child sub-task is not complete.
-            if (taskItem.SubTaskTaskItems != null )
+            // Prevent completing a task when any child SubTask is not complete.
+            if (HasIncompletedDescendants(taskItem))
             {
-                bool hasIncompletedChild = taskItem.SubTaskTaskItems
-                    .Select(st => st.SubTaskItem)
-                    .Any(child =>
-                    {
-                        TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
-                            .OrderByDescending(s => s.CreatedDate)
-                            .FirstOrDefault(); 
-                        return latestStatus == null || latestStatus.StatusId != _statusChange.CompleteId; // Check if the latest status is not "Complete"
-                    });
-
-                if (hasIncompletedChild) 
-                {
-                    return BadRequest("Cannot complete parent task with incomplete child sub-tasks."); 
-                }
+                return BadRequest("Cannot complete parent task with incomplete child sub-tasks.");
             }
-            
+
             //add new status history for Complete
             //Reuest DTO
-            TaskItemStatusHistory newTaskStatus = new ()
+            TaskItemStatusHistory newTaskStatus = new()
             {
                 TaskItemId = taskItem.Id,
                 StatusId = _statusChange.CompleteId,
@@ -301,7 +324,7 @@ namespace Web.Api.Controllers
             await _unitOfWork.SaveChangesAsync();
 
             //Response DTO
-            TaskDto statusResult = new ()
+            TaskDto statusResult = new()
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
