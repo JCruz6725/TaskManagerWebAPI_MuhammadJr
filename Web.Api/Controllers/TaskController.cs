@@ -253,7 +253,7 @@ namespace Web.Api.Controllers
             return Ok(deleteNote);
         }
 
-        public bool HasIncompletedDescendants(TaskItem task)
+        private bool HasIncompletedDescendants(TaskItem task)
         {
             //If task has no subtasks end the check and return false
             if (task.SubTaskTaskItems == null)
@@ -265,7 +265,8 @@ namespace Web.Api.Controllers
             foreach (var sub in task.SubTaskTaskItems)
             {
                 //Get the child task from the subtask
-                TaskItem child = sub.TaskItem;
+                //TaskItem child = sub.TaskItem;
+                TaskItem child = sub.SubTaskItem;
 
                 //Get the latest status history of a subtask and sort by created date
                 TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
