@@ -255,7 +255,7 @@ namespace Web.Api.Controllers
 
         public bool HasIncompletedDescendants(TaskItem task)
         {
-            //If task has no subtasks end the check
+            //If task has no subtasks end the check and return false
             if (task.SubTaskTaskItems == null)
             {
                 return false;
@@ -264,15 +264,15 @@ namespace Web.Api.Controllers
             //Loop through every single subtask
             foreach (var sub in task.SubTaskTaskItems)
             {
-                //Get the subtask under Task Item
-                TaskItem child = sub.SubTaskItem;
+                //Get the child task from the subtask
+                TaskItem child = sub.TaskItem;
 
                 //Get the latest status history of a subtask and sort by created date
                 TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
                                         .OrderByDescending(c => c.CreatedDate)
                                         .FirstOrDefault();
-                //Get the impcompleted task statuses Status != Complete
-                bool inCompletedChild = latestStatus!.StatusId != _statusChange.CompleteId;
+                //Check if the latest status is not complete (StatusId != CompleteId)
+                bool inCompletedChild =latestStatus!.StatusId != _statusChange.CompleteId;
 
                 //If task is incomplete return true
                 if (inCompletedChild)
