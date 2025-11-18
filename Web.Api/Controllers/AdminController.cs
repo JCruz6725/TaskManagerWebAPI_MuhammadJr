@@ -15,10 +15,11 @@ namespace Web.Api.Controllers
         const int DEFAULT_PRIORITY = 5;
 
 
-        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context)
+        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
         {
             statusChange = statusChangeOptions.Value;
             this.context = context;
+            this.logger = logger;
         }
 
         
@@ -32,7 +33,8 @@ namespace Web.Api.Controllers
             context.Add(completedStatus);
 
             await context.SaveChangesAsync();
-            return Ok("Status Added");
+            logger.LogInformation("Pending and completed status saved to database");
+            return Ok("Status' Added");
         }
         
 
