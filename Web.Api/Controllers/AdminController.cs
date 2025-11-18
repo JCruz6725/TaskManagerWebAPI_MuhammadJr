@@ -13,6 +13,7 @@ namespace Web.Api.Controllers
         private readonly StatusChange statusChange;
         private readonly TaskManagerAppDBContext context;
         const int DEFAULT_PRIORITY = 5;
+        private ILogger<AdminController> logger;
 
 
         public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)

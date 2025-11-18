@@ -133,8 +133,27 @@ namespace Web.Api.Controllers
             {
                 return BadRequest($"Requested list does not exist for user {userId}");
             }
+            else //task is null
+            {
+                return BadRequest($"Requested task does not exist for user {userId}");
+            }
 
-            return Ok(listId);
+            ListDto destinationListDto = new ListDto()
+            {
+                Id = destinationList.Id,
+                Name = destinationList.Name,
+                TaskItems = destinationList.TaskWithinLists.Select(twl => new TaskDto
+                {
+                    Id = twl.TaskItem.Id,
+                    Title = twl.TaskItem.Title,
+                    DueDate = twl.TaskItem.DueDate,
+                    Priority = twl.TaskItem.Priority,
+                    CreatedDate = twl.TaskItem.CreatedDate,
+                    CreatedUserId = twl.TaskItem.CreatedUserId,
+                }).ToArray()
+            };
+            
+            return Ok(destinationListDto);
         }
     }
 }
