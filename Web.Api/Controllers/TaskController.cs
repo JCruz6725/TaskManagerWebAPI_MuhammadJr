@@ -102,9 +102,9 @@ namespace Web.Api.Controllers
             }
 
             List<List>? userListCollection = await _unitOfWork.List.GetAllListAsync(userId);
-            if (taskCreatedDto.ListTitle != null && userListCollection.Count != 0) //user has existing list(s)
+            if (taskCreatedDto.ListId != null && userListCollection.Count != 0) //user request to add task to list & has existing list(s)
             {
-                List? listUserChose = userListCollection.FirstOrDefault(l => l.Name == taskCreatedDto.ListTitle);
+                List? listUserChose = userListCollection.FirstOrDefault(l => l.Id == taskCreatedDto.ListId);
                 if (listUserChose != null)
                 {
                     listUserChose.TaskWithinLists.Add(
@@ -119,10 +119,10 @@ namespace Web.Api.Controllers
                 else
                 {
                     //Return to user, list does not exist
-                    return NotFound($"{taskCreatedDto.ListTitle} list does not exist for user {userId}.");
+                    return NotFound($"{taskCreatedDto.ListId} list does not exist for user {userId}.");
                 }
             }
-            else if (taskCreatedDto.ListTitle != null && userListCollection.Count == 0)
+            else if (taskCreatedDto.ListId != null && userListCollection.Count == 0)
             {
                 //Return to user, you have not created any lists
                 return BadRequest($"No lists exist under user {userId}");
