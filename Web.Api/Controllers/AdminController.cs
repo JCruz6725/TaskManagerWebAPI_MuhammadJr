@@ -42,11 +42,12 @@ namespace Web.Api.Controllers
         public async Task<ActionResult<string>> AddDummyData() {
             UserDirector userDirector = new UserDirector(statusChange);
             context.AddRange([
-                userDirector.MakeChuckFinleyProfile(),
-                userDirector.MakeJessieHopkinsProfile(),
                 userDirector.MakeAlexFarmerProfile(),
+                userDirector.MakeJessieHopkinsProfile(),
                 userDirector.MakeAprilRiceProfile(),
-                userDirector.MakeNikoLogamProfile(),
+                userDirector.MakeNikoLoganProfile(),
+                userDirector.MakeChuckFinleyProfile(),
+                userDirector.MakeIrenePetersonProfile(),
             ]);
 
             await context.SaveChangesAsync();
