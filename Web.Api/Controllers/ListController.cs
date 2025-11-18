@@ -150,6 +150,13 @@ namespace Web.Api.Controllers
                     Priority = twl.TaskItem.Priority,
                     CreatedDate = twl.TaskItem.CreatedDate,
                     CreatedUserId = twl.TaskItem.CreatedUserId,
+                    CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
+                                .Select(s => new StatusDto
+                                {
+                                    Id = s.Status.Id,
+                                    Name = s.Status.Name,
+                                    Code = s.Status.Code
+                                }).FirstOrDefault(),
                 }).ToArray()
             };
             
