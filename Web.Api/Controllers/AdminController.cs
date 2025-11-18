@@ -12,6 +12,7 @@ namespace Web.Api.Controllers
     {
         private readonly StatusChange statusChange;
         private readonly TaskManagerAppDBContext context;
+        private readonly ILogger<AdminController> logger;
         const int DEFAULT_PRIORITY = 5;
 
 
