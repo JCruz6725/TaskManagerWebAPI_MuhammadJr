@@ -71,6 +71,16 @@ namespace Web.Api.Persistence.Repositories
             }
             _context.SaveChanges();
 
+            foreach(var item in _context.TaskItems.Single(taskItem => taskItem.Id == taskItem.Id).TaskWithinLists)
+            {
+                _context.Remove(item);
+            }
+            foreach (var item in _context.TaskItems.Single(taskItem=> taskItem.Id == taskItem.Id).SubTaskSubTaskItems)
+            {
+                _context.Remove(item);
+            }
+         
+
             _context.Remove(taskItem);
         }
     }
