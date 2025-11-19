@@ -56,41 +56,27 @@ namespace Web.Api.Persistence.Repositories
              _context.Remove(taskItemNote);
         }
 
-        public void DeleteTask(TaskItem taskItem)
+        public async Task DeleteTask(TaskItem taskItem)
         {
+            // searches for any task or subtask containing the same Taskitem.ID
+            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(AllSubTask);
+           
+            TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(taskWithinList);
+
+
             TaskItem taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
 
             foreach (TaskItemStatusHistory item in taskselection.TaskItemStatusHistories)
             {
                 _context.Remove(item);
             }
-            _context.SaveChanges();
 
             foreach (TaskItemNote item in taskselection.TaskItemNotes)
             {
                 _context.Remove(item);
             }
-            _context.SaveChanges();
-
-            foreach (TaskWithinList item in taskselection.TaskWithinLists)
-            {
-                _context.Remove(item);
-            }
-            _context.SaveChanges();
-
-            // Delete SubTask linking table
-            foreach (SubTask item in taskselection.SubTaskSubTaskItems)
-            {
-                _context.Remove(item);
-            }
-            _context.SaveChanges();
-
-            //  DELETE actual SubTasks
-            foreach (SubTask? sub in _context.SubTasks.Where(s => s.TaskItemId == taskItem.Id))
-            {
-                _context.Remove(sub);
-            }
-            _context.SaveChanges();
 
             _context.Remove(taskselection);
         }

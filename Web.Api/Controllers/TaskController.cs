@@ -225,12 +225,12 @@ namespace Web.Api.Controllers
                 return StatusCode(403);
             }
             TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
-            if (taskItem is null)
+            if (taskItem is null)          
             {
                 return NotFound(taskId);
             }
 
-            _unitOfWork.TaskItem.DeleteTask(taskItem);
+            await _unitOfWork.TaskItem.DeleteTask(taskItem);
             await _unitOfWork.SaveChangesAsync();
 
             TaskDto deleteTask = new TaskDto
