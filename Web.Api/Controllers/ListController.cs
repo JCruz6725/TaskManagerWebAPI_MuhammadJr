@@ -40,7 +40,7 @@ namespace Web.Api.Controllers
             await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
             await _unitOfWork.SaveChangesAsync();
 
-            ListDto listDtos = new ListDto
+            ListDto listDtos = new ListDto     // should we use shortlistDto?
             {
                 Id = createList.Id,
                 Name = createList.Name,
