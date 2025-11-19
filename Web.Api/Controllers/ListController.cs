@@ -105,6 +105,7 @@ namespace Web.Api.Controllers
             {
                 return NotFound();
             }
+            //checks if there is any items within the list being deleted. 
             if (list.TaskWithinLists.Any())
             {
                 return BadRequest();
