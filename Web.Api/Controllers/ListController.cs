@@ -93,7 +93,7 @@ namespace Web.Api.Controllers
         }
 
         [HttpDelete("{listId}", Name = "DeleteList")]
-        public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid listId, Guid userId)
+        public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid userId, Guid listId)
         {
             if (!await _unitOfWork.User.IsUserInDbAsync(userId))
             {
@@ -103,7 +103,7 @@ namespace Web.Api.Controllers
             List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId); 
             if (list is null)
             {
-                return NotFound();
+                return NotFound(listId);
             }
             //checks if there is any items within the list being deleted. 
             if (list.TaskWithinLists.Any())
@@ -120,7 +120,7 @@ namespace Web.Api.Controllers
                 Name = list.Name,
                 CreatedDate = list.CreatedDate,
                 CreatedUserId = list.CreatedUserId,
-                TaskItems=Array.Empty<TaskDto>()
+                TaskItems=[]
             };
 
             return Ok(deletelist);  // fix the returnvalue 
