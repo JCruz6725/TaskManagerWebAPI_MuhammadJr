@@ -58,30 +58,42 @@ namespace Web.Api.Persistence.Repositories
 
         public void DeleteTask(TaskItem taskItem)
         {
-            
-            foreach (var item in _context.TaskItems.Single(t => t.Id == taskItem.Id).TaskItemStatusHistories)
+            var taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
+
+            foreach (var item in taskselection.TaskItemStatusHistories)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
-            foreach (var item in _context.TaskItems.Single(t => t.Id == taskItem.Id).TaskItemNotes)
+            foreach (var item in taskselection.TaskItemNotes)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
-            foreach(var item in _context.TaskItems.Single(taskItem => taskItem.Id == taskItem.Id).TaskWithinLists)
+            foreach (var item in taskselection.TaskWithinLists)
             {
                 _context.Remove(item);
             }
-            foreach (var item in _context.TaskItems.Single(taskItem=> taskItem.Id == taskItem.Id).SubTaskSubTaskItems)
-            {
-                _context.Remove(item);
-            }
-         
+            _context.SaveChanges();
 
-            _context.Remove(taskItem);
+            // Delete SubTask linking table
+            foreach (var item in taskselection.SubTaskSubTaskItems)
+            {
+                _context.Remove(item);
+            }
+            _context.SaveChanges();
+
+            //  DELETE actual SubTasks
+            foreach (var sub in _context.SubTasks.Where(s => s.TaskItemId == taskItem.Id))
+            {
+                _context.Remove(sub);
+            }
+            _context.SaveChanges();
+
+            _context.Remove(taskselection);
         }
     }
 }
+
