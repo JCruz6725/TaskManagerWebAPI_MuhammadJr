@@ -90,5 +90,42 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
+
+        [HttpDelete("{listId}", Name = "DeleteList")]
+        public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid listId, Guid userId)
+        {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId); 
+            if (list is null)
+            {
+                return NotFound();
+            }
+            
+            _unitOfWork.List.DeleteList(list);
+            await _unitOfWork.SaveChangesAsync();
+
+            ListDto deletelist = new ListDto
+            {
+                Id = list.Id,
+                Name = list.Name,
+                TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
+                {
+                    Id = twl.TaskItem.Id,
+                    Title = twl.TaskItem.Title,
+                    DueDate = twl.TaskItem.DueDate,
+                    Priority = twl.TaskItem.Priority,
+                    CreatedDate = twl.TaskItem.CreatedDate,
+                    CreatedUserId = twl.TaskItem.CreatedUserId,
+                }).ToArray(),
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
+            };
+
+            return Ok(deletelist);  // fix the returnvalue 
+        }
     }
 }
