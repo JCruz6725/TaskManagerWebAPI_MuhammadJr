@@ -179,16 +179,19 @@ namespace Web.Api.Util {
             return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", pass: "secret", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"))
                 .AddList(listname: "Party planning", listId: new Guid("9c615bc5-79c1-4bc5-9697-c7b62333f15d"))
                     .AddTask(taskname: "Surprise Jessie!", statusId: statusChange.PendingId, priority: 50, taskId: new Guid("3de3ba44-d578-4f82-890d-205d2c04cdcf"), taskItemStatusHistoryId: new Guid("d9d14a0d-1ff8-4cea-99ca-0181e63d8c7c"))
-                        .AddTask(taskname: "Setup party", statusId: statusChange.CompleteId, priority: 55, taskId: new Guid("15cbf50a-3da9-4535-a506-130f422d37ba"), taskItemStatusHistoryId: new Guid("29da6f71-1d41-45a5-83d0-cd37a381dacf"))
-                        .LinkTasks(parent: "Surprise Jessie!", child: "Setup party")
-                            .AddTask(taskname: "Cater food", statusId: statusChange.PendingId, priority: 60, taskId: new Guid("8f344f5b-368f-492a-9e85-ea2772784f5e"), taskItemStatusHistoryId: new Guid("966f8d35-e85e-42c2-aa55-9b7f5b8291e0"))
-                            .LinkTasks(parent: "Setup party", child: "Cater food")
+                    .AddTask(taskname: "Setup party", statusId: statusChange.CompleteId, priority: 55, taskId: new Guid("15cbf50a-3da9-4535-a506-130f422d37ba"), taskItemStatusHistoryId: new Guid("29da6f71-1d41-45a5-83d0-cd37a381dacf"))
+                        .AddNote("Some note1", Guid.NewGuid())
+                        .AddNote("Some note2", Guid.NewGuid())
+                        .AddNote("Some note3", Guid.NewGuid())
 
-                            .AddTask(taskname: "Buy party decor", statusId: statusChange.CompleteId, priority: 60, taskId: new Guid("d6c1e8ad-cff0-493f-b9f8-57fabcfc1566"), taskItemStatusHistoryId: new Guid("908b838f-5a83-4fc9-8573-0188fda80b31"))
-                            .LinkTasks(parent: "Setup party", child: "Buy party decor")
-
-                            .AddTask(taskname: "Buy present", statusId: statusChange.CompleteId, priority: 62, taskId: new Guid("b1160ddc-4c8c-442c-afab-235e631054c9"), taskItemStatusHistoryId: new Guid("f2f00bfa-9c74-4032-bea7-8f43866d4035"))
-                            .LinkTasks(parent: "Setup party", child: "Buy present")
+                    .AddTask(taskname: "Cater food", statusId: statusChange.PendingId, priority: 60, taskId: new Guid("8f344f5b-368f-492a-9e85-ea2772784f5e"), taskItemStatusHistoryId: new Guid("966f8d35-e85e-42c2-aa55-9b7f5b8291e0"))
+                    .AddTask(taskname: "Buy party decor", statusId: statusChange.CompleteId, priority: 60, taskId: new Guid("d6c1e8ad-cff0-493f-b9f8-57fabcfc1566"), taskItemStatusHistoryId: new Guid("908b838f-5a83-4fc9-8573-0188fda80b31"))
+                    .AddTask(taskname: "Buy present", statusId: statusChange.CompleteId, priority: 62, taskId: new Guid("b1160ddc-4c8c-442c-afab-235e631054c9"), taskItemStatusHistoryId: new Guid("f2f00bfa-9c74-4032-bea7-8f43866d4035"))
+                    
+                    .LinkTasks(parent: "Surprise Jessie!", child: "Setup party")
+                    .LinkTasks(parent: "Setup party", child: "Cater food")
+                    .LinkTasks(parent: "Setup party", child: "Buy party decor")
+                    .LinkTasks(parent: "Setup party", child: "Buy present")
                 
                 .GetFinalUser();
         }

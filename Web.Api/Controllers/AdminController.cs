@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -39,8 +40,30 @@ namespace Web.Api.Controllers
         }
         
 
-        [HttpPost("/AddDummyData", Name = "AddDummyData")]
+        [HttpPost("/Refresh", Name = "Refresh")]
         public async Task<ActionResult<string>> AddDummyData() {
+
+
+            context.Database.ExecuteSqlRaw("""
+                delete from SubTasks
+                delete from TaskItemStatusHistory
+                delete from TaskWithinList
+                delete from TaskItemNotes
+                delete from Lists
+                delete from TaskItems
+                delete from Statuses
+                delete from users
+                """);
+
+
+            Status pendingStatus = new() { Id = statusChange.PendingId, Name = statusChange.Pending, Code = statusChange.Code1 };
+            Status completedStatus = new() { Id = statusChange.CompleteId, Name = statusChange.Complete, Code = statusChange.Code2 };
+
+            context.Add(pendingStatus);
+            context.Add(completedStatus);
+
+
+
             UserDirector userDirector = new UserDirector(statusChange);
             context.AddRange([
                 userDirector.MakeAlexFarmerProfile(),
