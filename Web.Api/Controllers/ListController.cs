@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -104,7 +105,11 @@ namespace Web.Api.Controllers
             {
                 return NotFound();
             }
-            
+            if (list.TaskWithinLists.Any())
+            {
+                return BadRequest();
+            }
+
             _unitOfWork.List.DeleteList(list);
             await _unitOfWork.SaveChangesAsync();
 
@@ -112,17 +117,9 @@ namespace Web.Api.Controllers
             {
                 Id = list.Id,
                 Name = list.Name,
-                TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
-                {
-                    Id = twl.TaskItem.Id,
-                    Title = twl.TaskItem.Title,
-                    DueDate = twl.TaskItem.DueDate,
-                    Priority = twl.TaskItem.Priority,
-                    CreatedDate = twl.TaskItem.CreatedDate,
-                    CreatedUserId = twl.TaskItem.CreatedUserId,
-                }).ToArray(),
                 CreatedDate = list.CreatedDate,
                 CreatedUserId = list.CreatedUserId,
+                TaskItems=Array.Empty<TaskDto>()
             };
 
             return Ok(deletelist);  // fix the returnvalue 
