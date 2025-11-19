@@ -58,35 +58,35 @@ namespace Web.Api.Persistence.Repositories
 
         public void DeleteTask(TaskItem taskItem)
         {
-            var taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
+            TaskItem taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
 
-            foreach (var item in taskselection.TaskItemStatusHistories)
+            foreach (TaskItemStatusHistory item in taskselection.TaskItemStatusHistories)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
-            foreach (var item in taskselection.TaskItemNotes)
+            foreach (TaskItemNote item in taskselection.TaskItemNotes)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
-            foreach (var item in taskselection.TaskWithinLists)
+            foreach (TaskWithinList item in taskselection.TaskWithinLists)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
             // Delete SubTask linking table
-            foreach (var item in taskselection.SubTaskSubTaskItems)
+            foreach (SubTask item in taskselection.SubTaskSubTaskItems)
             {
                 _context.Remove(item);
             }
             _context.SaveChanges();
 
             //  DELETE actual SubTasks
-            foreach (var sub in _context.SubTasks.Where(s => s.TaskItemId == taskItem.Id))
+            foreach (SubTask? sub in _context.SubTasks.Where(s => s.TaskItemId == taskItem.Id))
             {
                 _context.Remove(sub);
             }
