@@ -114,6 +114,23 @@ namespace Web.Api.Util
         }
 
 
+        public UserBuilder AddStatus(Guid statusId, Guid taskItemStatusHistoryId) 
+        {
+            if(currentTaskItem is null)
+            {
+                throw new Exception("Must create a task item first.");
+            }
+            currentTaskItem.TaskItemStatusHistories.Add(
+                new TaskItemStatusHistory() { 
+                    Id = taskItemStatusHistoryId,
+                    CreatedUser = user,
+                    CreatedDate= DateTime.Now,
+                    StatusId = statusId
+                }
+            );
+            return this;
+        }
+
 
         public UserBuilder AddSubTask(string listnameP, string parent, string listnameC, string child, Guid subTaskId) {
             user.SubTasks.Add(
