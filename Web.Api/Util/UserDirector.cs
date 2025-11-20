@@ -155,7 +155,7 @@ namespace Web.Api.Util {
                     .AddTask(taskname: "Add water", statusId: statusChange.PendingId, priority: 42, taskId: new Guid("f43cb68a-cc9b-42d9-8b3c-ca6cea270b54"), taskItemStatusHistoryId: new Guid("3dc115a6-1dea-4c86-aed2-7587b00a77d9"))
                     .AddTask(taskname: "Check oil", statusId: statusChange.PendingId, priority: 43, taskId: new Guid("24b6895a-1a00-4858-b6d7-0b876c8bcf1c"), taskItemStatusHistoryId: new Guid("f45da603-da3f-4626-ab42-94963e9a1998"))
                     .AddTask(taskname: "Check tire pressure", statusId: statusChange.PendingId, priority: 44, taskId: new Guid("2c95d5a2-938c-4f3a-aa25-70721acaf5b6"), taskItemStatusHistoryId: new Guid("e363ed27-9b6b-4922-8e77-5e96109e6022"))
-                        .AddStatus(statusChange.CompleteId, new Guid("e363ed27-9b6b-4922-8e77-5e96109e6022"))                    
+                        .AddStatus(statusChange.CompleteId, new Guid("7799ba7f-b21a-4853-b354-a1bf85aea3e1"))                    
                     .AddTask(taskname: "Replace Spark plugs", statusId: statusChange.PendingId, priority: 45, taskId: new Guid("524f6219-9843-4752-b7d2-0370310272db"), taskItemStatusHistoryId: new Guid("48ed3625-c94a-42ac-a36e-b955445204a2"))
                         .AddNote("The plugs were fouled from the last test run.", new Guid("c05b2426-a930-42dd-a406-e91a74bf628b"))
                         .AddNote("Auto parts store has a set for $23.45 out the door.", new Guid("d1d73a46-ef17-420d-9343-d9dd42b69dfa"))
