@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
@@ -252,6 +253,54 @@ namespace Web.Api.Controllers
             };
             return Ok(deleteNote);
         }
+
+        [HttpDelete("{taskId}", Name = "DeleteTaskById")]
+        public async Task<ActionResult<TaskDto>> DeleteTaskById([FromHeader] Guid userId, Guid taskId)
+
+        {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+            if (taskItem is null)          
+            {
+                return NotFound(taskId);
+            }
+
+            await _unitOfWork.TaskItem.DeleteTask(taskItem);
+            await _unitOfWork.SaveChangesAsync();
+
+            TaskDto deleteTask = new TaskDto
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                DueDate = taskItem.DueDate,
+                Priority = taskItem.Priority,
+                Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
+                {
+                    Id = n.Id,
+                    TaskItemId=n.TaskItemId,
+                    Note = n.Note,
+                    CreatedDate = n.CreatedDate,
+                    CreatedUser = n.CreatedUserId,
+                }
+                ).ToList(),
+                CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(x => x.CreatedUserId)
+                .Select(n => new StatusDto
+                {
+                   Id=n.Status.Id,
+                   Name= n.Status.Name,
+                   Code=n.Status.Code,
+                  
+                }).FirstOrDefault(),
+                CreatedDate=taskItem.CreatedDate,
+                CreatedUserId=taskItem.CreatedUserId,
+            };
+               
+            return Ok(deleteTask);
+        }
+
 
         private bool HasIncompletedDescendants(TaskItem task)
         {
