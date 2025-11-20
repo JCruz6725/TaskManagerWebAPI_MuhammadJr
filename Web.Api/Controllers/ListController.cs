@@ -28,8 +28,35 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateList")]
         public async Task<ActionResult<ListDto>> CreateList([FromHeader] Guid userId, ListCreateDto createListDto)
         {
-            throw new NotImplementedException();
-        }
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            List? createList = new List
+            {
+                Id = Guid.NewGuid(),
+                Name = createListDto.Name,
+                CreatedDate = DateTime.Now,
+                CreatedUserId = userId,
+            };
+
+            await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
+            await _unitOfWork.SaveChangesAsync();
+
+            ListDto listDtos = new ListDto     // should we use shortlistDto?
+            {
+                Id = createList.Id,
+                Name = createList.Name,
+                CreatedDate = createList.CreatedDate,
+                CreatedUserId = createList.CreatedUserId,
+
+                TaskItems = []
+            
+            };
+
+               return Ok(listDtos);   
+            }
 
 
         [HttpGet("{listId}", Name = "GetListById")]
@@ -99,6 +126,32 @@ namespace Web.Api.Controllers
         public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
             throw new NotImplementedException();
+        }
+       
+        [HttpPut("{listId}/edit-list", Name = "Edit List")]
+        public async Task<ActionResult<ListDto>> EditList([FromHeader] Guid userId, Guid listId, EditListDto editListDto)
+        {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) { return StatusCode(403); }
+
+            List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (userList != null)
+            {
+                userList.Name = editListDto.NewListTitle;
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                return BadRequest("List does not exist");
+            }
+
+            EditListResDto editListResDto = new EditListResDto
+            {
+                Id = listId,
+                Name = userList.Name,
+                CreatedUserId = userId,
+            };
+
+            return Ok(editListResDto);
         }
     }
 }

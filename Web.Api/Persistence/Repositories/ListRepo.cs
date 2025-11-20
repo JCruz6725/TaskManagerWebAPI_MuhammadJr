@@ -15,9 +15,9 @@ namespace Web.Api.Persistence.Repositories
         }
 
 
-        public List CreateList(List list)
+        public async Task CreateList(List list)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(list);
         }
         public async Task<List?> GetListByIdAsync(Guid listId, Guid userId)
         {
