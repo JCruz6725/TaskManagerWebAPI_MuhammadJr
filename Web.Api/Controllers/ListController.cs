@@ -24,8 +24,35 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateList")]
         public async Task<ActionResult<ListDto>> CreateList([FromHeader] Guid userId, ListCreateDto createListDto)
         {
-            throw new NotImplementedException();
-        }
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            List? createList = new List
+            {
+                Id = Guid.NewGuid(),
+                Name = createListDto.Name,
+                CreatedDate = DateTime.Now,
+                CreatedUserId = userId,
+            };
+
+            await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
+            await _unitOfWork.SaveChangesAsync();
+
+            ListDto listDtos = new ListDto     // should we use shortlistDto?
+            {
+                Id = createList.Id,
+                Name = createList.Name,
+                CreatedDate = createList.CreatedDate,
+                CreatedUserId = createList.CreatedUserId,
+
+                TaskItems = []
+            
+            };
+
+               return Ok(listDtos);   
+            }
 
 
         [HttpGet("{listId}", Name = "GetListById")]
