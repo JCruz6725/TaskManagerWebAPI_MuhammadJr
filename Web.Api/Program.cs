@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NLog.Extensions.Logging;
 using NLog.Web;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
@@ -30,7 +31,11 @@ namespace Web.Api
 
             // NLog: Setup NLog for Dependency injection
             builder.Logging.ClearProviders();
-            builder.Host.UseNLog();
+            builder.Host.UseNLog(new NLogAspNetCoreOptions()
+            {
+                IncludeScopes = true,
+            });
+            builder.Logging.AddSimpleConsole(options => options.IncludeScopes = true);
 
             // Add Bind StatusChange settings from appsettings.json
             builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));
