@@ -2,6 +2,6 @@
 {
     public class EditListDto
     {
-        public required string NewListTitle { get; set; }
+        public required string Title { get; set; }
     }
 }
