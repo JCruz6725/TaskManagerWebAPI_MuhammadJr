@@ -126,7 +126,7 @@ namespace Web.Api.Controllers
             List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
             if (userList != null)
             {
-                userList.Name = editListDto.NewListTitle;
+                userList.Name = editListDto.Title;
                 await _unitOfWork.SaveChangesAsync();
             }
             else
