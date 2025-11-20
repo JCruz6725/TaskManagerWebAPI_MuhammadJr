@@ -117,5 +117,31 @@ namespace Web.Api.Controllers
         {
             throw new NotImplementedException();
         }
+       
+        [HttpPut("{listId}/edit-list", Name = "Edit List")]
+        public async Task<ActionResult<ListDto>> EditList([FromHeader] Guid userId, Guid listId, EditListDto editListDto)
+        {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId)) { return StatusCode(403); }
+
+            List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (userList != null)
+            {
+                userList.Name = editListDto.NewListTitle;
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                return BadRequest("List does not exist");
+            }
+
+            EditListResDto editListResDto = new EditListResDto
+            {
+                Id = listId,
+                Name = userList.Name,
+                CreatedUserId = userId,
+            };
+
+            return Ok(editListResDto);
+        }
     }
 }
