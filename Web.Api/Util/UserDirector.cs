@@ -77,34 +77,7 @@ namespace Web.Api.Util {
                 
                 .GetFinalUser();
         }
-
-
-        public User MakeChuckFinleyProfile() {
-             return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", pass: "abc", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
-                .AddList("Mustang Project")
-                    .AddTask("Test Drive", statusChange.PendingId)
-                        .AddNote("Destination, the mall. Far enough to satisfy the test drive.")
-                    
-                    .AddTask("Fix radiator", statusChange.PendingId)
-                    .AddTask("Add water", statusChange.PendingId)
-                    .AddTask("Check oil", statusChange.PendingId)
-                    .AddTask("Check tire pressure", statusChange.PendingId)
-                    .AddTask("Replace Spark plugs", statusChange.PendingId)
-                        .AddNote("The plugs were fouled from the last test run.")
-                        .AddNote("Auto parts store has a set for $23.45 ou the door.")
-                        .AddNote("Check the price of new distributor and plug wires while at the auto parts store.")
-
-                    .AddSubTask("Test Drive", "Add water")
-                    .AddSubTask("Test Drive", "Check oil")
-                    .AddSubTask("Test Drive", "Check tire pressure")
-                    .AddSubTask("Test Drive", "Replace Spark plugs")
-                    .AddSubTask("Add water", "Fix radiator")
-
-                .AddList("ArchiveItems")
-                    .AddTask("Replace heads", statusChange.CompleteId)
-                
-                .GetFinalUser();
-        }*/
+        */
 
         public User MakeAlexFarmerProfile() { 
             return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345", userId: guidId[0]).GetFinalUser(); 
@@ -154,23 +127,42 @@ namespace Web.Api.Util {
         {
             return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", pass: "abc", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
                 .AddOrphanTask(taskname: "Cook dinner", statusId: statusChange.PendingId, priority: 15, taskId: new Guid("023af9db-2d82-4f2c-aa40-c393d38de31b"), taskItemStatusHistoryId: new Guid("80e93f32-a8c7-4da0-8d9b-f777ca6c093f"))
-                    .AddOrphanTask(taskname: "Make tacos", statusId: statusChange.PendingId, priority: 20, taskId: new Guid("2c8e1422-336f-4c2b-88e2-5f6f8cfb180a"), taskItemStatusHistoryId: new Guid("36832639-a393-4a00-ba93-19ed592c81d5"))
-                    .LinkOrphanTasks(parent: "Cook dinner", child: "Make tacos")
-                        .AddOrphanTask(taskname: "Buy ingredients", statusId: statusChange.CompleteId, priority: 23, taskId: new Guid("26e33b69-80de-431d-bb36-c83889d4c0f7"), taskItemStatusHistoryId: new Guid("5b030691-c1f4-4358-9499-e3240533a991"))
-                        .LinkOrphanTasks(parent: "Make tacos", child: "Buy ingredients")
-
+                .AddOrphanTask(taskname: "Make tacos", statusId: statusChange.PendingId, priority: 20, taskId: new Guid("2c8e1422-336f-4c2b-88e2-5f6f8cfb180a"), taskItemStatusHistoryId: new Guid("36832639-a393-4a00-ba93-19ed592c81d5"))
+                .AddOrphanTask(taskname: "Buy ingredients", statusId: statusChange.CompleteId, priority: 23, taskId: new Guid("26e33b69-80de-431d-bb36-c83889d4c0f7"), taskItemStatusHistoryId: new Guid("5b030691-c1f4-4358-9499-e3240533a991"))
                 .AddOrphanTask(taskname: "Get gas", statusId: statusChange.PendingId, priority: 25, taskId: new Guid("2528f71f-540d-4571-a47b-699182a15b34"), taskItemStatusHistoryId: new Guid("08103af9-ed2d-4761-8afc-97eaacdd13a9"))
-                    .AddOrphanTask(taskname: "Get money", statusId: statusChange.CompleteId, priority: 30, taskId: new Guid("3e8d4b54-8a52-48c9-83da-79abf1abcaf2"), taskItemStatusHistoryId: new Guid("cc6eb125-9e88-4c04-985e-d34727b743e3"))
-                        .AddNote(content: "$40", noteId: new Guid("e43f8acc-c7e3-4c71-8b7e-1e48b375c3a1"))
-                    .LinkOrphanTasks(parent: "Get gas", child: "Get money")
-                    
-                    .AddOrphanTask(taskname: "Get car keys", statusId: statusChange.PendingId, priority: 28, taskId: new Guid("5372c948-0953-4589-b856-117afe007bb6"), taskItemStatusHistoryId: new Guid("a706c4f7-8a61-4186-857d-f8825bbfce5b"))
-                    .LinkOrphanTasks(parent: "Get gas", child: "Get car keys")
+                .AddOrphanTask(taskname: "Get money", statusId: statusChange.CompleteId, priority: 30, taskId: new Guid("3e8d4b54-8a52-48c9-83da-79abf1abcaf2"), taskItemStatusHistoryId: new Guid("cc6eb125-9e88-4c04-985e-d34727b743e3"))
+                    .AddNote(content: "$40", noteId: new Guid("e43f8acc-c7e3-4c71-8b7e-1e48b375c3a1"))
+                .AddOrphanTask(taskname: "Get car keys", statusId: statusChange.PendingId, priority: 28, taskId: new Guid("5372c948-0953-4589-b856-117afe007bb6"), taskItemStatusHistoryId: new Guid("a706c4f7-8a61-4186-857d-f8825bbfce5b"))
+                
+                .LinkOrphanTasks(parent: "Cook dinner", child: "Make tacos")
+                .LinkOrphanTasks(parent: "Make tacos", child: "Buy ingredients")
+                .LinkOrphanTasks(parent: "Get gas", child: "Get money")
+                .LinkOrphanTasks(parent: "Get gas", child: "Get car keys")
 
                 .AddList(listname: "Exercise", listId: new Guid("c1a22ecb-424d-4429-a688-07cd8e816d8e"))
                     .AddTask(taskname: "Gym", statusId: statusChange.PendingId, priority: 40, taskId: new Guid("1a104a78-ceb3-4f1e-9fa0-af0eddfbe850"), taskItemStatusHistoryId: new Guid("5d7db210-cf97-4f35-a63e-89c976d29abf"))
                     .AddTask(taskname: "Running", statusId: statusChange.CompleteId, priority: 41, taskId: new Guid("589c54d2-4d30-42d7-9a8b-c935e82589e2"), taskItemStatusHistoryId: new Guid("b3ee215e-6a5d-45d7-8a20-e34508bd6b37"))
-               
+
+                .AddList(listname: "Mustang Project", listId: new Guid ("d6802914-94aa-4e92-ac51-e6a3be307c9b"))
+                    .AddTask(taskname: "Test Drive", statusId: statusChange.PendingId, priority: 40, taskId: new Guid("a0f9318d-8ae4-46f1-8f3b-aed8ae09665d"), taskItemStatusHistoryId: new Guid("c20048e5-7112-48e2-b64a-11ee7ad33bc9"))
+                        .AddNote(content: "Destination, the mall. Far enough to satisfy the test drive.", noteId: new Guid("5b5a87dc-bbb9-4b44-899f-482313834d04"))
+                    
+                    .AddTask(taskname: "Fix radiator", statusId: statusChange.PendingId, priority: 41, taskId: new Guid("51f23db4-e69c-4fcb-84ca-0e8b169db0dd"), taskItemStatusHistoryId: new Guid("90193b7f-2ca0-4faa-ae9a-a0fc7faae885"))
+                    .AddTask(taskname: "Add water", statusId: statusChange.PendingId, priority: 42, taskId: new Guid("f43cb68a-cc9b-42d9-8b3c-ca6cea270b54"), taskItemStatusHistoryId: new Guid("3dc115a6-1dea-4c86-aed2-7587b00a77d9"))
+                    .AddTask(taskname: "Check oil", statusId: statusChange.PendingId, priority: 43, taskId: new Guid("24b6895a-1a00-4858-b6d7-0b876c8bcf1c"), taskItemStatusHistoryId: new Guid("f45da603-da3f-4626-ab42-94963e9a1998"))
+                    .AddTask(taskname: "Check tire pressure", statusId: statusChange.PendingId, priority: 44, taskId: new Guid("2c95d5a2-938c-4f3a-aa25-70721acaf5b6"), taskItemStatusHistoryId: new Guid("e363ed27-9b6b-4922-8e77-5e96109e6022"))
+                        .AddStatus(statusChange.CompleteId, new Guid("7799ba7f-b21a-4853-b354-a1bf85aea3e1"))                    
+                    .AddTask(taskname: "Replace Spark plugs", statusId: statusChange.PendingId, priority: 45, taskId: new Guid("524f6219-9843-4752-b7d2-0370310272db"), taskItemStatusHistoryId: new Guid("48ed3625-c94a-42ac-a36e-b955445204a2"))
+                        .AddNote("The plugs were fouled from the last test run.", new Guid("c05b2426-a930-42dd-a406-e91a74bf628b"))
+                        .AddNote("Auto parts store has a set for $23.45 out the door.", new Guid("d1d73a46-ef17-420d-9343-d9dd42b69dfa"))
+                        .AddNote("Check the price of new distributor and plug wires while at the auto parts store.", new Guid("d55cb6b5-03de-4dc4-9e41-aae6aac1a223"))
+
+                    .LinkTasks("Test Drive", "Add water")
+                    .LinkTasks("Add water", "Check oil")
+                    .LinkTasks("Check oil", "Check tire pressure")
+                    .LinkTasks("Check tire pressure", "Replace Spark plugs")
+                    .LinkTasks("Replace Spark plugs", "Fix radiator")
+
                 .GetFinalUser();
         }
 
@@ -179,16 +171,19 @@ namespace Web.Api.Util {
             return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", pass: "secret", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"))
                 .AddList(listname: "Party planning", listId: new Guid("9c615bc5-79c1-4bc5-9697-c7b62333f15d"))
                     .AddTask(taskname: "Surprise Jessie!", statusId: statusChange.PendingId, priority: 50, taskId: new Guid("3de3ba44-d578-4f82-890d-205d2c04cdcf"), taskItemStatusHistoryId: new Guid("d9d14a0d-1ff8-4cea-99ca-0181e63d8c7c"))
-                        .AddTask(taskname: "Setup party", statusId: statusChange.CompleteId, priority: 55, taskId: new Guid("15cbf50a-3da9-4535-a506-130f422d37ba"), taskItemStatusHistoryId: new Guid("29da6f71-1d41-45a5-83d0-cd37a381dacf"))
-                        .LinkTasks(parent: "Surprise Jessie!", child: "Setup party")
-                            .AddTask(taskname: "Cater food", statusId: statusChange.PendingId, priority: 60, taskId: new Guid("8f344f5b-368f-492a-9e85-ea2772784f5e"), taskItemStatusHistoryId: new Guid("966f8d35-e85e-42c2-aa55-9b7f5b8291e0"))
-                            .LinkTasks(parent: "Setup party", child: "Cater food")
+                    .AddTask(taskname: "Setup party", statusId: statusChange.CompleteId, priority: 55, taskId: new Guid("15cbf50a-3da9-4535-a506-130f422d37ba"), taskItemStatusHistoryId: new Guid("29da6f71-1d41-45a5-83d0-cd37a381dacf"))
+                        .AddNote("Some note1", Guid.NewGuid())
+                        .AddNote("Some note2", Guid.NewGuid())
+                        .AddNote("Some note3", Guid.NewGuid())
 
-                            .AddTask(taskname: "Buy party decor", statusId: statusChange.CompleteId, priority: 60, taskId: new Guid("d6c1e8ad-cff0-493f-b9f8-57fabcfc1566"), taskItemStatusHistoryId: new Guid("908b838f-5a83-4fc9-8573-0188fda80b31"))
-                            .LinkTasks(parent: "Setup party", child: "Buy party decor")
-
-                            .AddTask(taskname: "Buy present", statusId: statusChange.CompleteId, priority: 62, taskId: new Guid("b1160ddc-4c8c-442c-afab-235e631054c9"), taskItemStatusHistoryId: new Guid("f2f00bfa-9c74-4032-bea7-8f43866d4035"))
-                            .LinkTasks(parent: "Setup party", child: "Buy present")
+                    .AddTask(taskname: "Cater food", statusId: statusChange.PendingId, priority: 60, taskId: new Guid("8f344f5b-368f-492a-9e85-ea2772784f5e"), taskItemStatusHistoryId: new Guid("966f8d35-e85e-42c2-aa55-9b7f5b8291e0"))
+                    .AddTask(taskname: "Buy party decor", statusId: statusChange.CompleteId, priority: 60, taskId: new Guid("d6c1e8ad-cff0-493f-b9f8-57fabcfc1566"), taskItemStatusHistoryId: new Guid("908b838f-5a83-4fc9-8573-0188fda80b31"))
+                    .AddTask(taskname: "Buy present", statusId: statusChange.CompleteId, priority: 62, taskId: new Guid("b1160ddc-4c8c-442c-afab-235e631054c9"), taskItemStatusHistoryId: new Guid("f2f00bfa-9c74-4032-bea7-8f43866d4035"))
+                    
+                    .LinkTasks(parent: "Surprise Jessie!", child: "Setup party")
+                    .LinkTasks(parent: "Setup party", child: "Cater food")
+                    .LinkTasks(parent: "Setup party", child: "Buy party decor")
+                    .LinkTasks(parent: "Setup party", child: "Buy present")
                 
                 .GetFinalUser();
         }
