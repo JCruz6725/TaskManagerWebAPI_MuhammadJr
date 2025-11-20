@@ -132,7 +132,6 @@ namespace Web.Api.Util {
                 .AddOrphanTask(taskname: "Get gas", statusId: statusChange.PendingId, priority: 25, taskId: new Guid("2528f71f-540d-4571-a47b-699182a15b34"), taskItemStatusHistoryId: new Guid("08103af9-ed2d-4761-8afc-97eaacdd13a9"))
                 .AddOrphanTask(taskname: "Get money", statusId: statusChange.CompleteId, priority: 30, taskId: new Guid("3e8d4b54-8a52-48c9-83da-79abf1abcaf2"), taskItemStatusHistoryId: new Guid("cc6eb125-9e88-4c04-985e-d34727b743e3"))
                     .AddNote(content: "$40", noteId: new Guid("e43f8acc-c7e3-4c71-8b7e-1e48b375c3a1"))
-                    
                 .AddOrphanTask(taskname: "Get car keys", statusId: statusChange.PendingId, priority: 28, taskId: new Guid("5372c948-0953-4589-b856-117afe007bb6"), taskItemStatusHistoryId: new Guid("a706c4f7-8a61-4186-857d-f8825bbfce5b"))
                 
                 .LinkOrphanTasks(parent: "Cook dinner", child: "Make tacos")
@@ -143,11 +142,8 @@ namespace Web.Api.Util {
                 .AddList(listname: "Exercise", listId: new Guid("c1a22ecb-424d-4429-a688-07cd8e816d8e"))
                     .AddTask(taskname: "Gym", statusId: statusChange.PendingId, priority: 40, taskId: new Guid("1a104a78-ceb3-4f1e-9fa0-af0eddfbe850"), taskItemStatusHistoryId: new Guid("5d7db210-cf97-4f35-a63e-89c976d29abf"))
                     .AddTask(taskname: "Running", statusId: statusChange.CompleteId, priority: 41, taskId: new Guid("589c54d2-4d30-42d7-9a8b-c935e82589e2"), taskItemStatusHistoryId: new Guid("b3ee215e-6a5d-45d7-8a20-e34508bd6b37"))
-               
 
-  
-
-                 .AddList(listname: "Mustang Project", listId: new Guid ("d6802914-94aa-4e92-ac51-e6a3be307c9b"))
+                .AddList(listname: "Mustang Project", listId: new Guid ("d6802914-94aa-4e92-ac51-e6a3be307c9b"))
                     .AddTask(taskname: "Test Drive", statusId: statusChange.PendingId, priority: 40, taskId: new Guid("a0f9318d-8ae4-46f1-8f3b-aed8ae09665d"), taskItemStatusHistoryId: new Guid("c20048e5-7112-48e2-b64a-11ee7ad33bc9"))
                         .AddNote(content: "Destination, the mall. Far enough to satisfy the test drive.", noteId: new Guid("5b5a87dc-bbb9-4b44-899f-482313834d04"))
                     
