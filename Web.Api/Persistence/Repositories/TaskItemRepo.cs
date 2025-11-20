@@ -55,5 +55,31 @@ namespace Web.Api.Persistence.Repositories
         {
              _context.Remove(taskItemNote);
         }
+
+        public async Task DeleteTask(TaskItem taskItem)
+        {
+            // searches for any task or subtask containing the same Taskitem.ID
+            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(AllSubTask);
+           
+            TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(taskWithinList);
+
+
+            TaskItem taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
+
+            foreach (TaskItemStatusHistory item in taskselection.TaskItemStatusHistories)
+            {
+                _context.Remove(item);
+            }
+
+            foreach (TaskItemNote item in taskselection.TaskItemNotes)
+            {
+                _context.Remove(item);
+            }
+
+            _context.Remove(taskselection);
+        }
     }
 }
+
