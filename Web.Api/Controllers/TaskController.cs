@@ -85,6 +85,8 @@ namespace Web.Api.Controllers
             //Request DTO
             //create a new instance of TaskItem 
             //calls the TaskItem prop and set the task created dto to its prop
+              
+
             TaskItem? taskCreation = new TaskItem()
             {
                 Title = taskCreatedDto.Title,
@@ -108,9 +110,37 @@ namespace Web.Api.Controllers
                 taskCreation.DueDate = taskCreatedDto.DueDate.Value; //enetered value
             }
 
-            await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
+            List<List>? userListCollection = await _unitOfWork.List.GetAllListAsync(userId);
+            if (taskCreatedDto.ListId != null && userListCollection.Count != 0) //user request to add task to list & has existing list(s)
+            {
+                List? listUserChose = userListCollection.FirstOrDefault(l => l.Id == taskCreatedDto.ListId);
+                if (listUserChose != null)
+                {
+                    listUserChose.TaskWithinLists.Add(
+                        new TaskWithinList()
+                        {
+                            CreatedUserId = userId,
+                            TaskItem = taskCreation,
+                            CreatedDate = DateTime.Now,
+                        }
+                    );
+                }
+                else
+                {
+                    //Return to user, list does not exist
+                    return NotFound($"{taskCreatedDto.ListId} list does not exist for user {userId}.");
+                }
+            }
+            else if (taskCreatedDto.ListId != null && userListCollection.Count == 0)
+            {
+                //Return to user, you have not created any lists
+                return BadRequest($"No lists exist under user {userId}");
+            }
+
+
+            await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation!);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
             await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
-            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId);
+            taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation!.Id, userId);
 
             //Response DTO
             //create a new instance of TaskDto

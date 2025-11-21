@@ -19,9 +19,9 @@ public partial class TaskItem
 
     public virtual User CreatedUser { get; set; } = null!;
 
-    public virtual ICollection<SubTask> SubTaskSubTaskItems { get; set; } = new List<SubTask>();
+    public virtual ICollection<SubTask> SubTaskSubTaskItems { get; set; } = new List<SubTask>(); //children tasks
 
-    public virtual ICollection<SubTask> SubTaskTaskItems { get; set; } = new List<SubTask>();
+    public virtual ICollection<SubTask> SubTaskTaskItems { get; set; } = new List<SubTask>(); //parent task
 
     public virtual ICollection<TaskItemNote> TaskItemNotes { get; set; } = new List<TaskItemNote>();
 

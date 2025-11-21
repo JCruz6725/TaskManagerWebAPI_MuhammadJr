@@ -115,9 +115,81 @@ namespace Web.Api.Controllers
 
 
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
-        public Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
+        public async Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
-            throw new NotImplementedException();
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+            List? destinationList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+            if (task != null && destinationList != null)
+            {
+                if (task.TaskWithinLists.Count == 0) //task not assigned to a list
+                {
+                    destinationList.TaskWithinLists.Add(
+                        new TaskWithinList()
+                        {
+                            TaskItem = task,
+                            CreatedUserId = userId,
+                            CreatedDate = task.CreatedDate,
+                        }
+                    );
+                }
+                else if (task.TaskWithinLists.First().TaskList == destinationList) //check if task is already in the list user wants to put it in 
+                {
+                    return BadRequest("Task already exist in the list");
+                }
+                else //task is currently in a different preexisting list
+                {
+                    //Remove connection to old list
+                    TaskWithinList oldTaskWithinList = task.TaskWithinLists.First(); 
+                    _unitOfWork.TaskItem.DeleteTaskWithinLists(oldTaskWithinList);  
+
+                    //Reassign connection to destinationList
+                    destinationList.TaskWithinLists.Add(
+                        new TaskWithinList(){
+                            TaskItem = task,
+                            CreatedUserId = userId,
+                            CreatedDate = task.CreatedDate,
+                        }
+                    );
+                }
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else if (destinationList == null)
+            {
+                return BadRequest($"Requested list does not exist for user {userId}");
+            }
+            else //task is null
+            {
+                return BadRequest($"Requested task does not exist for user {userId}");
+            }
+
+            ListDto destinationListDto = new ListDto()
+            {
+                Id = destinationList.Id,
+                Name = destinationList.Name,
+                TaskItems = destinationList.TaskWithinLists.Select(twl => new TaskDto
+                {
+                    Id = twl.TaskItem.Id,
+                    Title = twl.TaskItem.Title,
+                    DueDate = twl.TaskItem.DueDate,
+                    Priority = twl.TaskItem.Priority,
+                    CreatedDate = twl.TaskItem.CreatedDate,
+                    CreatedUserId = twl.TaskItem.CreatedUserId,
+                    CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
+                                .Select(s => new StatusDto
+                                {
+                                    Id = s.Status.Id,
+                                    Name = s.Status.Name,
+                                    Code = s.Status.Code
+                                }).FirstOrDefault(),
+                }).ToArray()
+            };
+            
+            return Ok(destinationListDto);
         }
        
         [HttpPut("{listId}/edit-list", Name = "Edit List")]
