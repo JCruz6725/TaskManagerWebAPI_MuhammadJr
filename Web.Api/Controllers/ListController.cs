@@ -85,12 +85,12 @@ namespace Web.Api.Controllers
 
             //Map List to ShortListDto
             List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
-            {
-                Id = sl.Id,
-                Name = sl.Name,
-                CreatedDate = sl.CreatedDate,
-                CreatedUserId = sl.CreatedUserId,
-            }).ToList();
+                {
+                    Id = sl.Id,
+                    Name = sl.Name,
+                    CreatedDate = sl.CreatedDate,
+                    CreatedUserId = sl.CreatedUserId,
+                }).ToList();
             return Ok(getListDetail);
         }
 
