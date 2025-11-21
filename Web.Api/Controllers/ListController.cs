@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
-using Web.Api.Persistence.Repositories;
 
 namespace Web.Api.Controllers
 {
@@ -16,6 +11,7 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
+
         public ListController(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -69,24 +65,29 @@ namespace Web.Api.Controllers
                 return NotFound(listId);
             }
 
-
+            //Map List to ListDto
             ListDto listDtos = new ListDto
             {
                 Id = list.Id,
                 Name = list.Name,
                 CreatedDate = list.CreatedDate,
                 CreatedUserId = list.CreatedUserId,
-
                 TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
                 {
                     Id = twl.TaskItem.Id,
                     Title = twl.TaskItem.Title,
                     DueDate = twl.TaskItem.DueDate,
                     Priority = twl.TaskItem.Priority,
+                    CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
+                        .Select(s => new StatusDto
+                        {
+                            Id = s.Status.Id,
+                            Name = s.Status.Name,
+                            Code = s.Status.Code
+                        }).First(),
                     CreatedDate = twl.TaskItem.CreatedDate,
                     CreatedUserId = twl.TaskItem.CreatedUserId,
-                }).ToArray()
-
+                }).ToArray(),
             };
             return Ok(listDtos);
         }
@@ -101,13 +102,14 @@ namespace Web.Api.Controllers
 
             List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
 
+            //Map List to ShortListDto
             List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
-            {
-                Id = sl.Id,
-                Name = sl.Name,
-                CreatedDate = sl.CreatedDate,
-                CreatedUserId = sl.CreatedUserId,
-            }).ToList();
+                {
+                    Id = sl.Id,
+                    Name = sl.Name,
+                    CreatedDate = sl.CreatedDate,
+                    CreatedUserId = sl.CreatedUserId,
+                }).ToList();
             return Ok(getListDetail);
         }
 
