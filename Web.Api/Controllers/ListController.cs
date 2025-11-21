@@ -65,7 +65,7 @@ namespace Web.Api.Controllers
                                     Id = s.Status.Id,
                                     Name = s.Status.Name,
                                     Code = s.Status.Code
-                                }).FirstOrDefault(),
+                                }).First(),
                     CreatedDate = twl.TaskItem.CreatedDate,
                     CreatedUserId = twl.TaskItem.CreatedUserId,
                 }).ToArray(),
