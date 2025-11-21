@@ -17,12 +17,10 @@ namespace Web.Api.Controllers
     public class ListController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;
-        private readonly StatusChange _statusChange;
 
-        public ListController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions)
+        public ListController(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _statusChange = statusChangeOptions.Value;
         }
 
         [HttpPost(Name = "CreateList")]
