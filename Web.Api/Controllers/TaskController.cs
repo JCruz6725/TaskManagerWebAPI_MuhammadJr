@@ -85,7 +85,6 @@ namespace Web.Api.Controllers
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
                     _logger.LogWarning($"UserId {userId} not found in database");
-                    //return NotFound();
                     return StatusCode(404);
                 }
 
@@ -262,18 +261,22 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
+                _logger.LogInformation("Initiating Delete Task By Id Method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
+                    _logger.LogWarning ($"User id {userId} not found in database");
                     return StatusCode(404);
                 }
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
                 if (taskItem is null)
                 {
+                    _logger.LogWarning($"Task item {taskId} not found for user {userId}");
                     return NotFound(taskId);
                 }
 
                 await _unitOfWork.TaskItem.DeleteTask(taskItem);
                 await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation($"Successfully deleted task item {taskId} for user {userId}");
 
                 TaskDto deleteTask = new TaskDto
                 {
@@ -301,7 +304,7 @@ namespace Web.Api.Controllers
                     CreatedDate = taskItem.CreatedDate,
                     CreatedUserId = taskItem.CreatedUserId,
                 };
-
+                _logger.LogInformation($"Returning the newly deleted task {taskId} for user {userId}");
                 return Ok(deleteTask);
             }
         }

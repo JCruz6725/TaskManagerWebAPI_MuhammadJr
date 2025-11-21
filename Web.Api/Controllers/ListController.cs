@@ -29,8 +29,10 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
+                _logger.LogInformation($"Initiating Create List method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
+                    _logger.LogWarning($"UserId {userId} not found in database");
                     return StatusCode(404);
                 }
 
@@ -44,6 +46,7 @@ namespace Web.Api.Controllers
 
                 await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
                 await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation($"List creation is successful for user {userId}");
 
                 ListDto listDtos = new ListDto     // should we use shortlistDto?
                 {
@@ -55,7 +58,7 @@ namespace Web.Api.Controllers
                     TaskItems = []
 
                 };
-
+                _logger.LogInformation($"Returning the newly created list for user {userId}");
                 return Ok(listDtos);
             }
         }
@@ -144,7 +147,11 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId)) { return StatusCode(404); }
+                _logger.LogInformation("Initiating Edit List Method");
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+                    _logger.LogInformation($"UserId {userId} not found in database");
+                    return StatusCode(404); 
+                }
 
                 List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
                 if (userList != null)
@@ -154,8 +161,10 @@ namespace Web.Api.Controllers
                 }
                 else
                 {
-                    return BadRequest("List does not exist");
+                    _logger.LogWarning($"List Id {listId} not found for user {userId}");
+                    return NotFound(listId);
                 }
+                _logger.LogInformation($"Edit list is successful for user {userId}");
 
                 EditListResDto editListResDto = new EditListResDto
                 {
@@ -163,7 +172,7 @@ namespace Web.Api.Controllers
                     Name = userList.Name,
                     CreatedUserId = userId,
                 };
-
+                _logger.LogInformation($"Returning the newly edited list for user {userId}");
                 return Ok(editListResDto);
             }
         }
