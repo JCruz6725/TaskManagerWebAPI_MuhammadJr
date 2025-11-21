@@ -60,7 +60,7 @@ namespace Web.Api.Controllers
                      Name = history.Status.Name,
                      Code = history.Status.Code,
                      CreatedDate = history.CreatedDate
-                 }).FirstOrDefault(),
+                 }).First(),
 
                 StatusHistories = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)
                 .Select(history => new StatusDto
