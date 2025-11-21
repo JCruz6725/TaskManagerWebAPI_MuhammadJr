@@ -32,5 +32,10 @@ namespace Web.Api.Persistence.Repositories
         {
             return await _context.Lists.Where(c => c.CreatedUserId == Id).ToListAsync();
         }
+        
+        public void DeleteList(List list)
+        {
+            _context.Lists.Remove(list);
+        }
     }
 }
