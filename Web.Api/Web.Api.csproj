@@ -17,5 +17,9 @@
     <PackageReference Include="NLog" Version="6.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Util\SubtaskHelper\" />
+  </ItemGroup>
 	
 </Project>

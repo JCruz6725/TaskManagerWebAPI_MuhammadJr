@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
@@ -8,6 +9,18 @@ using Web.Api.Persistence.Models;
 
 namespace Web.Api.Controllers
 {
+    public class Chain
+    {
+        public Chain()
+        {
+            // Constructor logic (if any)
+        }
+        public HashSet<(Guid Parent, Guid Child)> edges { get; set; }
+
+    }
+
+
+
     [ApiController]
     [Route("[controller]")]
     public class TaskController : ControllerBase
@@ -21,6 +34,48 @@ namespace Web.Api.Controllers
             _statusChange = statusChangeOptions.Value;
             _logger = logger;
         }
+
+
+
+
+
+
+
+        [HttpGet("Test")]
+        public async Task<ActionResult> Test()
+        {
+
+            Guid userid = Guid.Parse("8051a558-6f25-409b-9823-d5f5603ee625"); // Chuck
+
+            Guid itemId = Guid.Parse("24b6895a-1a00-4858-b6d7-0b876c8bcf1c"); // Root Task
+
+
+            var res  = await _unitOfWork.TaskItem.getallsubtaskedges(userid);    
+
+
+            HashSet<SubTask> edges = new (res);
+
+
+            //bool hasincomplete = HasIncompletedDescendants(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            return Ok();    
+        }
+
 
 
         [HttpGet("{taskId}", Name = "GetTaskById")]
@@ -302,25 +357,21 @@ namespace Web.Api.Controllers
         }
 
 
-        private bool HasIncompletedDescendants(TaskItem task)
+        private bool HasIncompletedDescendants(HashSet<SubTask> G, TaskItem task)
         {
             //If task has no subtasks end the check and return false
-            if (task.SubTaskTaskItems == null)
+            if(task.TaskItemStatusHistories.OrderByDescending(t => t.CreatedDate).First().StatusId == _statusChange.CompleteId)
             {
-                return false;
+                return true;
             }
 
             //Loop through every single subtask
-            foreach (var sub in task.SubTaskTaskItems)
+            foreach (var child in G.Where(pt => pt.TaskItem == task).Select(ct => ct.SubTaskItem))
             {
-                //Get the child task from the subtask
-                TaskItem child = sub.TaskItem;
 
-                //Get the latest status history of a subtask and sort by created date
-                TaskItemStatusHistory? latestStatus = child.TaskItemStatusHistories
-                                        .OrderByDescending(c => c.CreatedDate)
-                                        .FirstOrDefault();
-                //Check if the latest status is not complete (StatusId != CompleteId)
+
+
+
                 bool inCompletedChild =latestStatus!.StatusId != _statusChange.CompleteId;
 
                 //If task is incomplete return true
@@ -330,7 +381,7 @@ namespace Web.Api.Controllers
                 }
                 
                 //Recursiveley check for any SubTask that is incomplete
-                if (HasIncompletedDescendants(child))
+                if (HasIncompletedDescendants(G,  child))
                 {
                     return true;
                 }
@@ -352,6 +403,7 @@ namespace Web.Api.Controllers
             {
                 return NotFound(taskId);
             }
+
 
             // Prevent completing a task when any child SubTask is not complete.
             if (HasIncompletedDescendants(taskItem))

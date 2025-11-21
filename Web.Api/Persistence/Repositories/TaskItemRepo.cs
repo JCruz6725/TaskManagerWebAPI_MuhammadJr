@@ -1,6 +1,8 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using NLog.Filters;
 using System.Threading.Tasks;
 using Web.Api.Persistence.Models;
 
@@ -83,6 +85,25 @@ namespace Web.Api.Persistence.Repositories
 
             _context.Remove(taskselection);
         }
+
+
+
+
+
+        public async Task<IEnumerable<SubTask>> getallsubtaskedges(Guid userId)
+        {
+            return _context.SubTasks
+                .Include(s => s.SubTaskItem )
+                    .ThenInclude(sti => sti.TaskItemStatusHistories)
+                        .ThenInclude(h => h.Status)
+                .Include(s => s.TaskItem)
+                    .ThenInclude(ti => ti.TaskItemStatusHistories)
+                        .ThenInclude(h => h.Status)
+
+                .Where(st => st.CreatedUserId == userId).ToList();
+        }
+
     }
+    
 }
 
