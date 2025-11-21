@@ -35,7 +35,6 @@ namespace Web.Api
             {
                 IncludeScopes = true,
             });
-            builder.Logging.AddSimpleConsole(options => options.IncludeScopes = true);
 
             // Add Bind StatusChange settings from appsettings.json
             builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));

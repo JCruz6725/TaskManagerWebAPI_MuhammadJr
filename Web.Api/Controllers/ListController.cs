@@ -32,8 +32,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation($"Initiating Create List method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"User {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 List? createList = new List
@@ -72,8 +72,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Innitiating GetListById");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
@@ -115,8 +115,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Innitiating GetAllList");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
@@ -149,8 +149,8 @@ namespace Web.Api.Controllers
             {
                 _logger.LogInformation("Initiating Edit List Method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId)) {
-                    _logger.LogInformation($"UserId {userId} not found in database");
-                    return StatusCode(404); 
+                    _logger.LogInformation($"UserId {userId} not authorized");
+                    return StatusCode(403); 
                 }
 
                 List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);

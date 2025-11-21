@@ -16,7 +16,6 @@ namespace Web.Api.Controllers
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
         private readonly StatusChange _statusChange;
         private readonly ILogger<TaskController> _logger;
-        private readonly Guid transactionId = Guid.NewGuid();
         public TaskController(UnitOfWork unitOfWork, IOptions<StatusChange> statusChangeOptions, ILogger<TaskController> logger)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
@@ -32,8 +31,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating GetTaskById method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"User {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
@@ -78,14 +77,13 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {
-            //using IDisposable scope = _logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = /*HttpContext.TraceIdentifier*/transactionId, });
             using (_logger.BeginScope(new Dictionary<string, object>{["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
                 _logger.LogInformation("Initiating CreateTask method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 //calls the TaskItem prop and set the task created dto to its prop
@@ -127,7 +125,7 @@ namespace Web.Api.Controllers
                 //return the result of the tasks created
                 TaskDto creationResult = new TaskDto()
                 {
-                    Id = taskCreation!.Id,
+                    Id = taskCreation.Id,
                     Title = taskCreation.Title,
                     DueDate = taskCreation.DueDate,
                     Priority = taskCreation.Priority,
@@ -167,8 +165,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating CreateNote method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
@@ -220,8 +218,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating DeleteNote method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
@@ -264,8 +262,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating Delete Task By Id Method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning ($"User id {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning ($"User id {userId} not authorized");
+                    return StatusCode(403);
                 }
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
                 if (taskItem is null)
@@ -317,8 +315,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating StatusChangeComplete method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
@@ -389,8 +387,8 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("Initiating EditTask method");
                 if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not found in database");
-                    return StatusCode(404);
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
                 }
 
                 TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
