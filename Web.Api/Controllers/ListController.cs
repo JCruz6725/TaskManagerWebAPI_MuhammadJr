@@ -60,12 +60,12 @@ namespace Web.Api.Controllers
                     DueDate = twl.TaskItem.DueDate,
                     Priority = twl.TaskItem.Priority,
                     CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
-                                .Select(s => new StatusDto
-                                {
-                                    Id = s.Status.Id,
-                                    Name = s.Status.Name,
-                                    Code = s.Status.Code
-                                }).First(),
+                        .Select(s => new StatusDto
+                        {
+                            Id = s.Status.Id,
+                            Name = s.Status.Name,
+                            Code = s.Status.Code
+                        }).First(),
                     CreatedDate = twl.TaskItem.CreatedDate,
                     CreatedUserId = twl.TaskItem.CreatedUserId,
                 }).ToArray(),
