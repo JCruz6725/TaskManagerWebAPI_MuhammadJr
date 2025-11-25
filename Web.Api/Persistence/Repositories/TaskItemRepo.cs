@@ -16,7 +16,6 @@ namespace Web.Api.Persistence.Repositories
             _context = context;  
         }
 
-
         /// <summary>
         /// Get Task by Id that only pertains to specific user. If not found, returns null.
         /// </summary>
@@ -29,27 +28,21 @@ namespace Web.Api.Persistence.Repositories
                 .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
-
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
             await _context.AddAsync(taskItem);
 
         }
 
-
         public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
             await _context.AddAsync(taskItemItemNote);
-
         }
-
 
         public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
         {
             throw new NotImplementedException();
-
         }
-
 
         public void DeleteNote(TaskItemNote taskItemNote)
         {
