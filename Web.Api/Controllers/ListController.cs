@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,6 @@ using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
-using Web.Api.Persistence.Repositories;
 
 namespace Web.Api.Controllers
 {
@@ -175,6 +173,41 @@ namespace Web.Api.Controllers
                 _logger.LogInformation($"Returning the newly edited list for user {userId}");
                 return Ok(editListResDto);
             }
+        }
+ 
+
+        [HttpDelete("{listId}", Name = "DeleteList")]
+        public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid userId, Guid listId)
+        {
+            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            {
+                return StatusCode(403);
+            }
+
+            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId); 
+            if (list is null)
+            {
+                return NotFound(listId);
+            }
+            //checks if there is any items within the list being deleted. 
+            if (list.TaskWithinLists.Any())
+            {
+                return BadRequest();
+            }
+
+            _unitOfWork.List.DeleteList(list);
+            await _unitOfWork.SaveChangesAsync();
+
+            ListDto deletelist = new ListDto
+            {
+                Id = list.Id,
+                Name = list.Name,
+                CreatedDate = list.CreatedDate,
+                CreatedUserId = list.CreatedUserId,
+                TaskItems=[]
+            };
+
+            return Ok(deletelist);  // fix the returnvalue 
         }
     }
 }
