@@ -211,34 +211,42 @@ namespace Web.Api.Controllers
         [HttpDelete("{listId}", Name = "DeleteList")]
         public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid userId, Guid listId)
         {
-            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            try
             {
-                return StatusCode(403);
-            }
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                {
+                    return StatusCode(403);
+                }
 
-            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId); 
-            if (list is null)
-            {
-                return NotFound(listId);
-            }
-            //checks if there is any items within the list being deleted. 
-            if (list.TaskWithinLists.Any())
-            {
-                return BadRequest();
-            }
+                List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+                if (list is null)
+                {
+                    return NotFound(listId);
+                }
+                //checks if there is any items within the list being deleted. 
+                if (list.TaskWithinLists.Any())
+                {
+                    return BadRequest();
+                }
 
-            _unitOfWork.List.DeleteList(list);
-            await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.List.DeleteList(list);
+                await _unitOfWork.SaveChangesAsync();
 
-            ListDto deletelist = new ListDto
+                ListDto deletelist = new ListDto
+                {
+                    Id = list.Id,
+                    Name = list.Name,
+                    CreatedDate = list.CreatedDate,
+                    CreatedUserId = list.CreatedUserId,
+                    TaskItems = []
+                };
+                return Ok(deletelist);  // fix the returnvalue 
+            }
+            catch (Exception ex)
             {
-                Id = list.Id,
-                Name = list.Name,
-                CreatedDate = list.CreatedDate,
-                CreatedUserId = list.CreatedUserId,
-                TaskItems=[]
-            };
-            return Ok(deletelist);  // fix the returnvalue 
+                _logger.LogError($"Delete list process failed: {ex.Message}");
+                return StatusCode(500);
+            }
         }
     }
 }
