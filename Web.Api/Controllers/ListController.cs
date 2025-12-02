@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -172,9 +173,10 @@ namespace Web.Api.Controllers
                 using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
                     _logger.LogInformation("Initiating Edit List Method");
-                    if (!await _unitOfWork.User.IsUserInDbAsync(userId)) {
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
                         _logger.LogInformation($"UserId {userId} not authorized");
-                        return StatusCode(403); 
+                        return StatusCode(403);
                     }
 
                     List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
