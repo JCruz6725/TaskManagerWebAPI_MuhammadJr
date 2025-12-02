@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Web.Api.Dto.Request;
+using Web.Api.Dto.Response;
+using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Controllers
@@ -13,6 +16,9 @@ namespace Web.Api.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly Guid transactionId = Guid.NewGuid();
+
+
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {

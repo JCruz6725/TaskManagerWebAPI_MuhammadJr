@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -12,6 +13,7 @@ namespace Web.Api.Controllers
     {
         private readonly StatusChange statusChange;
         private readonly TaskManagerAppDBContext context;
+        private readonly ILogger<AdminController> logger;
         const int DEFAULT_PRIORITY = 5;
         private ILogger<AdminController> logger;
 
@@ -27,32 +29,64 @@ namespace Web.Api.Controllers
         [HttpPost("/AddStatus", Name = "AddStatus")]
         public async Task<ActionResult<string>> AddStatus()
         {
-            Status pendingStatus = new() { Id = statusChange.PendingId, Name = statusChange.Pending, Code = statusChange.Code1 };
-            Status completedStatus = new() { Id = statusChange.CompleteId, Name = statusChange.Complete, Code = statusChange.Code2 };
+            using (logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                Status pendingStatus = new() { Id = statusChange.PendingId, Name = statusChange.Pending, Code = statusChange.Code1 };
+                Status completedStatus = new() { Id = statusChange.CompleteId, Name = statusChange.Complete, Code = statusChange.Code2 };
 
-            context.Add(pendingStatus);
-            context.Add(completedStatus);
+                context.Add(pendingStatus);
+                context.Add(completedStatus);
 
-            await context.SaveChangesAsync();
-            logger.LogInformation("Pending and completed status saved to database");
-            return Ok("Status' Added");
+                await context.SaveChangesAsync();
+                logger.LogInformation("Pending and completed status saved to database");
+                return Ok("Status' Added");
+            }
         }
         
 
-        [HttpPost("/AddDummyData", Name = "AddDummyData")]
+        [HttpPost("/Refresh", Name = "Refresh")]
         public async Task<ActionResult<string>> AddDummyData() {
-            UserDirector userDirector = new UserDirector(statusChange);
-            context.AddRange([
-                userDirector.MakeAlexFarmerProfile(),
-                userDirector.MakeJessieHopkinsProfile(),
-                userDirector.MakeAprilRiceProfile(),
-                userDirector.MakeNikoLoganProfile(),
-                userDirector.MakeChuckFinleyProfile(),
-                userDirector.MakeIrenePetersonProfile(),
-            ]);
 
-            await context.SaveChangesAsync();
-            return Ok("Dummy Data Added");
+            using (logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                CancellationTokenSource source = new CancellationTokenSource();
+                CancellationToken token = source.Token;
+
+                context.Database.ExecuteSqlRaw("""
+                    delete from SubTasks
+                    delete from TaskItemStatusHistory
+                    delete from TaskWithinList
+                    delete from TaskItemNotes
+                    delete from Lists
+                    delete from TaskItems
+                    delete from Statuses
+                    delete from users
+                    """);
+                logger.LogInformation("Successfully removed all previous data in database");
+
+                Status pendingStatus = new() { Id = statusChange.PendingId, Name = statusChange.Pending, Code = statusChange.Code1 };
+                Status completedStatus = new() { Id = statusChange.CompleteId, Name = statusChange.Complete, Code = statusChange.Code2 };
+
+                context.Add(pendingStatus);
+                context.Add(completedStatus);
+                logger.LogInformation("Successfully added pending and completed status'");
+
+
+                UserDirector userDirector = new UserDirector(statusChange);
+                context.AddRange([
+                    userDirector.MakeAlexFarmerProfile(),
+                    userDirector.MakeJessieHopkinsProfile(),
+                    userDirector.MakeAprilRiceProfile(),
+                    userDirector.MakeNikoLoganProfile(),
+                    userDirector.MakeChuckFinleyProfile(),
+                    userDirector.MakeIrenePetersonProfile(),
+                ]);
+                logger.LogInformation("Successfully created all dummy data");
+
+                await context.SaveChangesAsync(token);
+                logger.LogInformation("Successfully saved all changes to database");
+                return Ok("Dummy Data Added");
+            }
         }
     }
 }

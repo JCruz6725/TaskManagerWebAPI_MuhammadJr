@@ -8,6 +8,7 @@
         public int Priority { get; set; }
         public List<NoteDto> Notes { get; set; } = [];
         public StatusDto? CurrentStatus { get; set; }
+        public List<StatusDto> StatusHistories { get; set; } = [];
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUserId { get; set; }
     }

@@ -16,7 +16,6 @@ namespace Web.Api.Persistence.Repositories
             _context = context;  
         }
 
-
         /// <summary>
         /// Get Task by Id that only pertains to specific user. If not found, returns null.
         /// </summary>
@@ -32,31 +31,50 @@ namespace Web.Api.Persistence.Repositories
                                                 .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
-
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
             await _context.AddAsync(taskItem);
 
         }
 
-
         public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
             await _context.AddAsync(taskItemItemNote);
-
         }
-
 
         public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
         {
             throw new NotImplementedException();
-
         }
-
 
         public void DeleteNote(TaskItemNote taskItemNote)
         {
              _context.Remove(taskItemNote);
+        }
+
+        public async Task DeleteTask(TaskItem taskItem)
+        {
+            // searches for any task or subtask containing the same Taskitem.ID
+            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(AllSubTask);
+           
+            TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(taskWithinList);
+
+
+            TaskItem taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
+
+            foreach (TaskItemStatusHistory item in taskselection.TaskItemStatusHistories)
+            {
+                _context.Remove(item);
+            }
+
+            foreach (TaskItemNote item in taskselection.TaskItemNotes)
+            {
+                _context.Remove(item);
+            }
+
+            _context.Remove(taskselection);
         }
 
         public void DeleteTask(TaskItem taskItem)
@@ -70,3 +88,4 @@ namespace Web.Api.Persistence.Repositories
         }
     }
 }
+

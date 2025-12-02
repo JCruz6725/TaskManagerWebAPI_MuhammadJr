@@ -32,7 +32,7 @@ namespace Web.Api.Persistence.Repositories
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
         }
 
-
+        //method to check if user exists in db by Id
         public async Task<bool> IsUserInDbAsync(Guid userId) => await _context.Users.AnyAsync(u => u.Id == userId);
     }
 }
