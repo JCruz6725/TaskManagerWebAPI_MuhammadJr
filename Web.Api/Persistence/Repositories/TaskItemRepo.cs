@@ -22,10 +22,13 @@ namespace Web.Api.Persistence.Repositories
         /// <param name="taskId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId, bool includeNotes, bool includeStatus, bool include)
         {
-            return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-                .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            TaskItem task;
+            if ()
+
+            //return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
+            //    .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)
