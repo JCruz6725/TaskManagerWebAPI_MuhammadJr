@@ -22,13 +22,32 @@ namespace Web.Api.Persistence.Repositories
         /// <param name="taskId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId, bool includeNotes, bool includeStatus, bool include)
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId, bool includeNotes, bool includeTaskinLists, bool includeStatusHist, bool includeParent, bool includeChildren)
         {
-            TaskItem task;
-            if ()
+            IQueryable<TaskItem> query = _context.TaskItems;
+            if (includeNotes)
+            {
+                query = query.Include(task => task.TaskItemNotes);
+            }
+            if(includeTaskinLists)
+            {
+                query = query.Include(task => task.TaskWithinLists);
+            }
+            if(includeStatusHist)
+            {
+                query = query.Include(task => task.TaskItemStatusHistories)
+                             .ThenInclude(stat => stat.Status);
+            }
+            if (includeParent)
+            {
+                query = query.Include(task => task.SubTaskTaskItems);
+            }
+            if (includeChildren)
+            {
+                query = query.Include(task => task.SubTaskSubTaskItems);
+            }
 
-            //return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-            //    .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await query.FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)
