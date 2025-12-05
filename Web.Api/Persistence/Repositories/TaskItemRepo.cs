@@ -23,19 +23,19 @@ namespace Web.Api.Persistence.Repositories
         /// <param name="userId"></param>
         /// <returns></returns>
 
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid userId, Guid taskId)
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems.FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
-        } 
+            return await _context.TaskItems.SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
 
         public async Task<TaskItem?> GetTaskNotesByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems.Include(task => task.TaskItemNotes).FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems.Include(task => task.TaskItemNotes).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task<TaskItem?> GetTaskTaskWithinListsByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems.Include(task => task.TaskWithinLists).FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems.Include(task => task.TaskWithinLists).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task<TaskItem?> GetTaskNotesAndStatusByIdAsync(Guid taskId, Guid userId)
@@ -43,7 +43,7 @@ namespace Web.Api.Persistence.Repositories
             return await _context.TaskItems.Include(task => task.TaskItemNotes)
                                            .Include(task => task.TaskItemStatusHistories)
                                                 .ThenInclude(stat => stat.Status)
-                                           .FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+                                           .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)
