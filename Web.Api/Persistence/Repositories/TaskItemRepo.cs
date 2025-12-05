@@ -22,32 +22,28 @@ namespace Web.Api.Persistence.Repositories
         /// <param name="taskId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId, bool includeNotes, bool includeTaskinLists, bool includeStatusHist, bool includeParent, bool includeChildren)
-        {
-            IQueryable<TaskItem> query = _context.TaskItems;
-            if (includeNotes)
-            {
-                query = query.Include(task => task.TaskItemNotes);
-            }
-            if(includeTaskinLists)
-            {
-                query = query.Include(task => task.TaskWithinLists);
-            }
-            if(includeStatusHist)
-            {
-                query = query.Include(task => task.TaskItemStatusHistories)
-                             .ThenInclude(stat => stat.Status);
-            }
-            if (includeParent)
-            {
-                query = query.Include(task => task.SubTaskTaskItems);
-            }
-            if (includeChildren)
-            {
-                query = query.Include(task => task.SubTaskSubTaskItems);
-            }
 
-            return await query.FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        public async Task<TaskItem?> GetTaskByIdAsync(Guid userId, Guid taskId)
+        {
+            return await _context.TaskItems.FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        } 
+
+        public async Task<TaskItem?> GetTaskNotesByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskItemNotes).FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskTaskWithinListsByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskWithinLists).FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskNotesAndStatusByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskItemNotes)
+                                           .Include(task => task.TaskItemStatusHistories)
+                                                .ThenInclude(stat => stat.Status)
+                                           .FirstOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)

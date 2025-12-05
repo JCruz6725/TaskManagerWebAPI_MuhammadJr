@@ -354,12 +354,12 @@ namespace Web.Api.Controllers
                         CreatedUser = n.CreatedUserId
                     }).ToList(),
 
-                CurrentStatus = new StatusDto
-                {
-                    Id = _statusChange.CompleteId,
-                    Name = _statusChange.Complete,
-                    Code = _statusChange.Code2
-                },
+                    CurrentStatus = new StatusDto
+                    {
+                        Id = _statusChange.CompleteId,
+                        Name = _statusChange.Complete,
+                        Code = _statusChange.Code2
+                    },
 
                     CreatedDate = taskItem.CreatedDate,
                     CreatedUserId = taskItem.CreatedUserId,
