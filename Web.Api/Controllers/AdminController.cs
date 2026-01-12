@@ -38,7 +38,7 @@ namespace Web.Api.Controllers
 
                 await context.SaveChangesAsync();
                 logger.LogInformation("Pending and completed status saved to database");
-                return Ok("Status' Added");
+                return Ok(new {res = "Status' Added"});
             }
         }
         
@@ -84,7 +84,7 @@ namespace Web.Api.Controllers
 
                 await context.SaveChangesAsync(token);
                 logger.LogInformation("Successfully saved all changes to database");
-                return Ok("Dummy Data Added");
+                return Ok(new {res = "Dummy Data Refeshed" });
             }
         }
     }
