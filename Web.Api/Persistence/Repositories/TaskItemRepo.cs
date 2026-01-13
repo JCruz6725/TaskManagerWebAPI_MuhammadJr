@@ -41,6 +41,7 @@ namespace Web.Api.Persistence.Repositories
         public async Task<TaskItem?> GetTaskNotesAndStatusByIdAsync(Guid taskId, Guid userId)
         {
             return await _context.TaskItems.Include(task => task.TaskItemNotes)
+                                           .Include(task => task.SubTaskSubTaskItems)
                                            .Include(task => task.TaskItemStatusHistories)
                                                 .ThenInclude(stat => stat.Status)
                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);

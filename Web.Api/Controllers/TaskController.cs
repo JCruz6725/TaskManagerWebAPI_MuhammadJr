@@ -50,6 +50,7 @@ namespace Web.Api.Controllers
                     Priority = taskItem.Priority,
                     CreatedDate = taskItem.CreatedDate,
                     CreatedUserId = taskItem.CreatedUserId,
+                    ParentId = taskItem.SubTaskSubTaskItems.SingleOrDefault()?.TaskItemId,
                     Notes = taskItem.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                         (note => new NoteDto                                         //create new instance of NoteDto
                         {

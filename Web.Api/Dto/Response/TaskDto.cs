@@ -11,5 +11,6 @@
         public List<StatusDto> StatusHistories { get; set; } = [];
         public DateTime CreatedDate { get; set; }
         public Guid CreatedUserId { get; set; }
+        public Guid? ParentId { get; set; }
     }
 }
