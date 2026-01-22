@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence.Repositories
@@ -14,22 +15,30 @@ namespace Web.Api.Persistence.Repositories
         }
 
 
-        public List CreateList(List list)
+        public async Task CreateList(List list)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(list);
         }
 
 
         public async Task<List?> GetListByIdAsync(Guid listId, Guid userId)
         {
             return await _context.Lists.Include(twl => twl.TaskWithinLists)
-                .ThenInclude(ti => ti.TaskItem)
-                .SingleOrDefaultAsync(i => i.Id == listId && i.CreatedUserId == userId);
+               .ThenInclude(ti => ti.TaskItem)
+               .ThenInclude(tish => tish.TaskItemStatusHistories)
+               .ThenInclude(st => st.Status)
+               .SingleOrDefaultAsync(i => i.Id == listId && i.CreatedUserId == userId);
         }
+
 
         public async Task<List<List>> GetAllListAsync(Guid Id)
         {
             return await _context.Lists.Where(c => c.CreatedUserId == Id).ToListAsync();
+        }
+        
+        public void DeleteList(List list)
+        {
+            _context.Lists.Remove(list);
         }
     }
 }

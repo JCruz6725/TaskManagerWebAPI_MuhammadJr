@@ -22,20 +22,13 @@ namespace Web.Api.Persistence.Repositories
         /// <returns></returns>
         public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems 
-               .Include(item => item.TaskItemNotes)
-               .Include(item => item.TaskItemStatusHistories)
-                   .ThenInclude(stat => stat.Status)
-               .Include(t => t.SubTaskSubTaskItems)
-                   .ThenInclude(st => st.TaskItem)
-                    .Include(t => t.SubTaskTaskItems)
-                         .ThenInclude(st => st.SubTaskItem)
-                             .ThenInclude(si => si.TaskItemStatusHistories)
-                                 .ThenInclude(h => h.Status)
-                 .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems
+                .Include(item => item.TaskItemNotes)
+                .Include(item => item.SubTaskSubTaskItems)
+                .Include(history => history.TaskItemStatusHistories)
+                    .ThenInclude(stat => stat.Status)
+                .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
-
-        
 
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
@@ -46,17 +39,41 @@ namespace Web.Api.Persistence.Repositories
         public async Task CreateNoteAsync(TaskItemNote taskItemItemNote)
         {
             await _context.AddAsync(taskItemItemNote);
-
         }
 
         public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
         {
             throw new NotImplementedException();
-
         }
+
         public void DeleteNote(TaskItemNote taskItemNote)
         {
              _context.Remove(taskItemNote);
+        }
+
+        public async Task DeleteTask(TaskItem taskItem)
+        {
+            // searches for any task or subtask containing the same Taskitem.ID
+            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(AllSubTask);
+           
+            TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
+            _context.RemoveRange(taskWithinList);
+
+
+            TaskItem taskselection = _context.TaskItems.Single(t => t.Id == taskItem.Id);
+
+            foreach (TaskItemStatusHistory item in taskselection.TaskItemStatusHistories)
+            {
+                _context.Remove(item);
+            }
+
+            foreach (TaskItemNote item in taskselection.TaskItemNotes)
+            {
+                _context.Remove(item);
+            }
+
+            _context.Remove(taskselection);
         }
     }
 }
