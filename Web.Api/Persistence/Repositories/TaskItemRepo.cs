@@ -9,8 +9,6 @@ namespace Web.Api.Persistence.Repositories
     public class TaskItemRepo
     {
         private readonly TaskManagerAppDBContext _context;
-
-
         public TaskItemRepo(TaskManagerAppDBContext context)
         { 
             _context = context;  
@@ -79,4 +77,3 @@ namespace Web.Api.Persistence.Repositories
         }
     }
 }
-
