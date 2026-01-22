@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
@@ -87,56 +88,84 @@ namespace Web.Api.Controllers
                     return StatusCode(403);
                 }
 
-            if (taskCreatedDto.ParentTaskId.HasValue)
-            {
-                TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreatedDto.ParentTaskId.Value, userId);
-                if (parentTask is null)
+                if (taskCreatedDto.ParentTaskId.HasValue)
                 {
-                    return NotFound(taskCreatedDto.ParentTaskId);
+                    TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreatedDto.ParentTaskId.Value, userId);
+                    if (parentTask is null)
+                    {
+                        _logger.LogWarning($"Parent task {taskCreatedDto.ParentTaskId} not authorized");
+                        return NotFound(taskCreatedDto.ParentTaskId);
+                    }
                 }
-            }
 
-            //calls the TaskItem prop and set the task created dto to its prop
-            //Request DTO
-            //create a new instance of TaskItem 
-            //calls the TaskItem prop and set the task created dto to its prop
-            TaskItem? taskCreation = new TaskItem()
-            {
-                Title = taskCreatedDto.Title,
-                Priority = taskCreatedDto.Priority,
+                if (taskCreatedDto.ListId.HasValue)
+                { 
+                    List? list = await _unitOfWork.List.GetListByIdAsync(taskCreatedDto.ListId.Value, userId);
+                    if (list is null)
+                    {
+                        _logger.LogWarning($"List {taskCreatedDto.ListId} not authorized");
+                        return NotFound(taskCreatedDto.ListId);
+                    }
+                }
 
-                CreatedDate = DateTime.Now,
-                CreatedUserId = userId,
-                TaskItemStatusHistories = [
-                    new TaskItemStatusHistory() {
-                        StatusId = _statusChange.PendingId,
+                //calls the TaskItem prop and set the task created dto to its prop
+                //Request DTO
+                //create a new instance of TaskItem 
+                //calls the TaskItem prop and set the task created dto to its prop
+                TaskItem? taskCreation = new TaskItem()
+                {
+                    Title = taskCreatedDto.Title,
+                    Priority = taskCreatedDto.Priority,
+
+                    CreatedDate = DateTime.Now,
+                    CreatedUserId = userId,
+                    TaskItemStatusHistories = [
+                        new TaskItemStatusHistory() {
+                            StatusId = _statusChange.PendingId,
+                            CreatedDate = DateTime.Now,
+                            CreatedUserId = userId
+                        }
+                    ]
+
+                };
+
+                if (taskCreatedDto.DueDate == null)
+                {
+                    taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
+                }
+                {
+                    taskCreation.DueDate = taskCreatedDto.DueDate!.Value; //enetered value
+                }
+
+                //SubTask creation if ParentId is provided
+                if (taskCreatedDto.ParentTaskId.HasValue)
+                {
+                    SubTask subTask = new()
+                    {
+                        TaskItemId = taskCreatedDto.ParentTaskId.Value,
+                        SubTaskItemId = taskCreation.Id,
                         CreatedDate = DateTime.Now,
                         CreatedUserId = userId
-                    }
-                ]
+                    };
+                    taskCreation.SubTaskSubTaskItems.Add(subTask);
+                }
 
-            };
-
-            if (taskCreatedDto.DueDate == null)
-            {
-                taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
-            }
-            {
-                taskCreation.DueDate = taskCreatedDto.DueDate!.Value; //enetered value
-            }
-
-            //SubTask creation if ParentId is provided
-            if (taskCreatedDto.ParentTaskId.HasValue)
-            {
-                SubTask subTask = new()
+                //Add task to list if listId provided
+                if (taskCreatedDto.ListId.HasValue)
                 {
-                    TaskItemId = taskCreatedDto.ParentTaskId.Value,
-                    SubTaskItemId = taskCreation.Id,
-                    CreatedDate = DateTime.Now,
-                    CreatedUserId = userId
-                };
-                taskCreation.SubTaskSubTaskItems.Add(subTask);
-            }
+                    List? list = await _unitOfWork.List.GetListByIdAsync(taskCreatedDto.ListId.Value, userId);
+                    if (list != null)
+                    {
+                        list.TaskWithinLists.Add(
+                            new TaskWithinList()
+                            {
+                                CreatedDate = DateTime.Now,
+                                CreatedUserId = userId,
+                                TaskItem = taskCreation
+                            }
+                        );
+                    }
+                }
 
                 await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
                 await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
@@ -155,8 +184,6 @@ namespace Web.Api.Controllers
                     DueDate = taskCreation.DueDate,
                     Priority = taskCreation.Priority,
                     ParentTaskId = taskCreation.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
-                    
-                
 
                     Notes = taskCreation.TaskItemNotes.Select
                         (note => new NoteDto
