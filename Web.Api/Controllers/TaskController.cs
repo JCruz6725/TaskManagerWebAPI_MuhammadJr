@@ -76,6 +76,32 @@ namespace Web.Api.Controllers
             }
         }
 
+        [HttpGet(Name = "GetAllTask")]
+        public async Task<ActionResult<List<ShortListDto>>> GetAllTask([FromHeader] Guid userId)
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                _logger.LogInformation("Innitiating GetAllTask");
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                {
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
+                }
+
+                List<TaskItem> allTasks = await _unitOfWork.TaskItem.GetAllTaskAsync(userId);
+
+                List<TaskDto> result = allTasks.Select(task => new TaskDto
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                }).ToList();
+
+                _logger.LogInformation($"GetAllTask method successful for UserId {userId}");
+                _logger.LogInformation("Returning get all tasks result");
+                return Ok(result);
+            }
+        }
+
         [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<TaskDto>> CreateTask([FromHeader] Guid userId, TaskCreateDto taskCreatedDto)
         {

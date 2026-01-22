@@ -30,6 +30,11 @@ namespace Web.Api.Persistence.Repositories
                 .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
+        public async Task<List<TaskItem>> GetAllTaskAsync(Guid userId)
+        {
+            return await _context.TaskItems.Where(item => item.CreatedUserId == userId).ToListAsync();
+        }
+
         public async Task CreateTaskAsync(TaskItem taskItem)
         {
             await _context.AddAsync(taskItem);
