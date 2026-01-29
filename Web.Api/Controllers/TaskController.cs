@@ -161,38 +161,12 @@ namespace Web.Api.Controllers
                             {
                                 CreatedDate = DateTime.Now,
                                 CreatedUserId = userId,
-                                TaskItem = taskCreation
+                                TaskItem = taskCreation,
+                                TaskListId = list.Id
                             }
                         );
                     }
                 }
-
-            List<List>? userListCollection = await _unitOfWork.List.GetAllListAsync(userId);
-            if (taskCreatedDto.ListId != null && userListCollection.Count != 0) //user request to add task to list & has existing list(s)
-            {
-                List? listUserChose = userListCollection.FirstOrDefault(l => l.Id == taskCreatedDto.ListId);
-                if (listUserChose != null)
-                {
-                    listUserChose.TaskWithinLists.Add(
-                        new TaskWithinList()
-                        {
-                            CreatedUserId = userId,
-                            TaskItem = taskCreation,
-                            CreatedDate = DateTime.Now,
-                        }
-                    );
-                }
-                else
-                {
-                    //Return to user, list does not exist
-                    return NotFound($"{taskCreatedDto.ListId} list does not exist for user {userId}.");
-                }
-            }
-            else if (taskCreatedDto.ListId != null && userListCollection.Count == 0)
-            {
-                //Return to user, you have not created any lists
-                return BadRequest($"No lists exist under user {userId}");
-            }
 
                 await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
                 await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method

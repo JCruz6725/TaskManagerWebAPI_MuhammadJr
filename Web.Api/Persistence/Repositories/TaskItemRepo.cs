@@ -27,6 +27,7 @@ namespace Web.Api.Persistence.Repositories
                 .Include(item => item.SubTaskSubTaskItems)
                 .Include(history => history.TaskItemStatusHistories)
                     .ThenInclude(stat => stat.Status)
+                 .Include(e => e.TaskWithinLists)
                 .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 

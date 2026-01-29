@@ -157,12 +157,13 @@ namespace Web.Api.Controllers
                         }
                     );
                 }
-                else if (task.TaskWithinLists.First().TaskList == destinationList) //check if task is already in the list user wants to put it in 
+                else if (task.TaskWithinLists.Single().TaskList == destinationList) //check if task is already in the list user wants to put it in 
                 {
                     return BadRequest("Task already exist in the list");
                 }
                 else //task is currently in a different preexisting list
                 {
+                    
                     //Remove connection to old list
                     TaskWithinList oldTaskWithinList = task.TaskWithinLists.First(); 
                     _unitOfWork.TaskItem.DeleteTaskWithinLists(oldTaskWithinList);  
