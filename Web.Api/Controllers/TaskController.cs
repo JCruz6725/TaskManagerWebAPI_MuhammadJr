@@ -60,7 +60,7 @@ namespace Web.Api.Controllers
                             Note = note.Note,
                             CreatedDate = note.CreatedDate,
                             CreatedUser = note.CreatedUserId,
-                        }).ToList(),                                                 //add notes to the list
+                        }).OrderByDescending(x => x.CreatedDate).ToList(),                                                 //add notes to the list
 
                     CurrentStatus = taskItem.TaskItemStatusHistories.OrderByDescending(rank => rank.CreatedDate)   //within the TaskDto create a new list of CurrentStatus that grabs task histories and set their properites
                      .Select(history => new StatusDto                                     //create new instance of StatusDto
