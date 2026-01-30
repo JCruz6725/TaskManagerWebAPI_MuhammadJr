@@ -133,6 +133,7 @@ namespace Web.Api.Controllers
                 {
                     taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
                 }
+                else
                 {
                     taskCreation.DueDate = taskCreatedDto.DueDate!.Value; //enetered value
                 }
