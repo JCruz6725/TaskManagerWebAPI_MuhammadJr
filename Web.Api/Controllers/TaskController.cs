@@ -139,6 +139,7 @@ namespace Web.Api.Controllers
                 {
                     taskCreation.DueDate = new DateTime(1900, 1, 1);   //Default if null
                 }
+                else
                 {
                     taskCreation.DueDate = taskCreatedDto.DueDate!.Value; //enetered value
                 }
@@ -167,7 +168,8 @@ namespace Web.Api.Controllers
                             {
                                 CreatedDate = DateTime.Now,
                                 CreatedUserId = userId,
-                                TaskItem = taskCreation
+                                TaskItem = taskCreation,
+                                TaskListId = list.Id
                             }
                         );
                     }

@@ -27,6 +27,7 @@ namespace Web.Api.Persistence.Repositories
                 .Include(item => item.SubTaskSubTaskItems)
                 .Include(history => history.TaskItemStatusHistories)
                     .ThenInclude(stat => stat.Status)
+                 .Include(e => e.TaskWithinLists)
                 .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
@@ -50,7 +51,6 @@ namespace Web.Api.Persistence.Repositories
         {
              _context.Remove(taskItemNote);
         }
-
         public async Task DeleteTask(TaskItem taskItem)
         {
             // searches for any task or subtask containing the same Taskitem.ID
@@ -74,6 +74,11 @@ namespace Web.Api.Persistence.Repositories
             }
 
             _context.Remove(taskselection);
+        }
+
+        public void DeleteTaskWithinLists(TaskWithinList taskWithinLists)
+        {
+            _context.Remove(taskWithinLists);
         }
     }
 }
