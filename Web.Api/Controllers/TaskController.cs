@@ -108,6 +108,12 @@ namespace Web.Api.Controllers
                     }
                 }
 
+                if (taskCreatedDto.Priority < 0)
+                {
+                    _logger.LogWarning($"Priority cannot be less than zero. Requested priority is: {taskCreatedDto.Priority}");
+                    return BadRequest(taskCreatedDto.Priority);
+                }
+
                 //calls the TaskItem prop and set the task created dto to its prop
                 //Request DTO
                 //create a new instance of TaskItem 
@@ -523,7 +529,7 @@ namespace Web.Api.Controllers
 
                 if (updateTaskDto.Title != null &&
                     updateTaskDto.DueDate.HasValue &&
-                    updateTaskDto.Priority != 0)
+                    updateTaskDto.Priority >= 0)
                 {
                     taskItem.Title = updateTaskDto.Title;
                     taskItem.DueDate = updateTaskDto.DueDate.Value;
