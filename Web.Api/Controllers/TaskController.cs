@@ -518,7 +518,7 @@ namespace Web.Api.Controllers
                 //subtask creation if ParentId is provided
                 if (updateTaskDto.ParentTaskId.HasValue) {
                     SubTask temp = taskItem.SubTaskSubTaskItems.First();
-                    _unitOfWork.TaskItem.DeleteSubTask(temp);
+                    await _unitOfWork.TaskItem.DeleteSubTask(temp);
 
                     SubTask? subTask = new()
                     {
