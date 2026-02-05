@@ -517,13 +517,14 @@ namespace Web.Api.Controllers
 
                 //subtask creation if ParentId is provided
                 if (updateTaskDto.ParentTaskId.HasValue) {
+                    //remove old parent task relationship if there exists one
                     SubTask? temp = taskItem.SubTaskSubTaskItems.FirstOrDefault();
                     if (temp != null)
                     {
                         await _unitOfWork.TaskItem.DeleteSubTask(temp);
                     }
                     
-
+                    //create relationship with provided parent task
                     SubTask? subTask = new()
                     {
                         TaskItemId = updateTaskDto.ParentTaskId.Value,
