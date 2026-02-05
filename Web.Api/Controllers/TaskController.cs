@@ -51,7 +51,7 @@ namespace Web.Api.Controllers
                     Priority = taskItem.Priority,
                     CreatedDate = taskItem.CreatedDate,
                     CreatedUserId = taskItem.CreatedUserId,
-                    ParentId = taskItem.SubTaskSubTaskItems.SingleOrDefault()?.TaskItemId,
+                    ParentTaskId = taskItem.SubTaskSubTaskItems.SingleOrDefault()?.TaskItemId,
                     Notes = taskItem.TaskItemNotes.Select                            //within the TaskDto create a new List of Notes that grabs TaskItemNotes and set their properties
                         (note => new NoteDto                                         //create new instance of NoteDto
                         {
@@ -516,8 +516,10 @@ namespace Web.Api.Controllers
                 }
 
                 //subtask creation if ParentId is provided
-                if (updateTaskDto.ParentTaskId.HasValue)
-                {
+                if (updateTaskDto.ParentTaskId.HasValue) {
+                    SubTask temp = taskItem.SubTaskSubTaskItems.First();
+                    _unitOfWork.TaskItem.DeleteSubTask(temp);
+
                     SubTask? subTask = new()
                     {
                         TaskItemId = updateTaskDto.ParentTaskId.Value,
@@ -526,14 +528,14 @@ namespace Web.Api.Controllers
                         CreatedUserId = userId
                     };
                     taskItem.SubTaskSubTaskItems.Add(subTask);
+                    await _unitOfWork.SaveChangesAsync();
                 }
-                await _unitOfWork.SaveChangesAsync();
+                
 
                 if (updateTaskDto.Title != null && updateTaskDto.Priority >= 0)
                 {
                     taskItem.Title = updateTaskDto.Title;
                     taskItem.Priority = updateTaskDto.Priority;
-                    //taskItem.DueDate = updateTaskDto.DueDate.Value;
                     if (updateTaskDto.DueDate != null)
                     {
                         taskItem.DueDate = updateTaskDto.DueDate.Value;
