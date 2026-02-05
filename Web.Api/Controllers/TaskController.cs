@@ -498,56 +498,62 @@ namespace Web.Api.Controllers
                     return StatusCode(403);
                 }
 
-            TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
-            if (taskItem is null)
-            {
-            _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
-            return NotFound(taskId);
-            }
-
-            //check if parent task exists
-            if (updateTaskDto.ParentTaskId.HasValue)
-            {
-                TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId.Value, userId);
-                if (parentTask is null)
+                TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                if (taskItem is null)
                 {
-                    return NotFound(updateTaskDto.ParentTaskId);
+                    _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
+                    return NotFound(taskId);
                 }
-            }
 
-            //subtask creation if ParentId is provided
-            if (updateTaskDto.ParentTaskId.HasValue)
-            {
-                SubTask? subTask = new()
+                //check if parent task exists
+                if (updateTaskDto.ParentTaskId.HasValue)
                 {
-                    TaskItemId = updateTaskDto.ParentTaskId.Value,
-                    SubTaskItemId = taskItem.Id,
-                    CreatedDate = DateTime.Now,
-                    CreatedUserId = userId
-                };
-                taskItem.SubTaskSubTaskItems.Add(subTask);
-            }
-            await _unitOfWork.SaveChangesAsync();
+                    TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId.Value, userId);
+                    if (parentTask is null)
+                    {
+                        return NotFound(updateTaskDto.ParentTaskId);
+                    }
+                }
 
-                if (updateTaskDto.Title != null &&
-                    updateTaskDto.DueDate.HasValue &&
-                    updateTaskDto.Priority >= 0)
+                //subtask creation if ParentId is provided
+                if (updateTaskDto.ParentTaskId.HasValue)
+                {
+                    SubTask? subTask = new()
+                    {
+                        TaskItemId = updateTaskDto.ParentTaskId.Value,
+                        SubTaskItemId = taskItem.Id,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId
+                    };
+                    taskItem.SubTaskSubTaskItems.Add(subTask);
+                }
+                await _unitOfWork.SaveChangesAsync();
+
+                if (updateTaskDto.Title != null && updateTaskDto.Priority >= 0)
                 {
                     taskItem.Title = updateTaskDto.Title;
-                    taskItem.DueDate = updateTaskDto.DueDate.Value;
                     taskItem.Priority = updateTaskDto.Priority;
+                    //taskItem.DueDate = updateTaskDto.DueDate.Value;
+                    if (updateTaskDto.DueDate != null)
+                    {
+                        taskItem.DueDate = updateTaskDto.DueDate.Value;
+                    }
+                    else
+                    {
+                        taskItem.DueDate = null;
+                    }
                 }
                 await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation($"Task Edit is Successfull for userId {userId}");
 
-            //Response DTO
-            TaskDto editTaskResult = new TaskDto
-            {
-                Id = taskItem.Id,
-                Title = taskItem.Title,
-                DueDate = taskItem.DueDate,
-                Priority = taskItem.Priority,
-                ParentTaskId = taskItem.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
+                //Response DTO
+                TaskDto editTaskResult = new TaskDto
+                {
+                    Id = taskItem.Id,
+                    Title = taskItem.Title,
+                    DueDate = taskItem.DueDate,
+                    Priority = taskItem.Priority,
+                    ParentTaskId = taskItem.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
 
                     Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                     {
