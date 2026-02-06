@@ -25,6 +25,7 @@ namespace Web.Api.Persistence.Repositories
             return await _context.TaskItems
                 .Include(item => item.TaskItemNotes)
                 .Include(item => item.SubTaskSubTaskItems)
+                .Include(item => item.SubTaskTaskItems)
                 .Include(history => history.TaskItemStatusHistories)
                     .ThenInclude(stat => stat.Status)
                  .Include(e => e.TaskWithinLists)
@@ -74,6 +75,11 @@ namespace Web.Api.Persistence.Repositories
             }
 
             _context.Remove(taskselection);
+        }
+
+        public async Task DeleteSubTask(SubTask subTaskItem)
+        {
+            _context.Remove(subTaskItem);
         }
 
         public void DeleteTaskWithinLists(TaskWithinList taskWithinLists)
