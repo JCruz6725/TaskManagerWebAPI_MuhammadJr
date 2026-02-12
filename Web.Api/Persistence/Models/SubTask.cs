@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Web.Api.Persistence.Models;
+namespace Web.Api;
 
 public partial class SubTask
 {

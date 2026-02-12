@@ -43,6 +43,14 @@ namespace Web.Api.Controllers
                     LastName = registerUserDto.LastName,
                     Email = registerUserDto.Email,
                     Password = registerUserDto.Password,
+                    PhoneNumber = registerUserDto.PhoneNumber,
+                    Address = registerUserDto.Address,
+                    Zipcode = registerUserDto.Zipcode,
+                    City = registerUserDto.City,
+                    Country = registerUserDto.Country,
+                    State = registerUserDto.State,
+                    DateOfBirth = registerUserDto.DateOfBirth,
+                    Ipaddress = registerUserDto.Ipaddress,
                     CreatedDate = DateTime.Now,
                 };
                 _logger.LogInformation("New user successfully created");

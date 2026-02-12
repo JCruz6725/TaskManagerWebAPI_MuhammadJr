@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Persistence.Models;
 
 namespace Web.Api.Persistence;
 
@@ -155,6 +154,15 @@ public partial class TaskManagerAppDBContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Address)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.City)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Country)
+                .HasMaxLength(64)
+                .IsUnicode(false);
             entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
             entity.Property(e => e.Email)
                 .HasMaxLength(128)
@@ -162,10 +170,20 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.Property(e => e.FirstName)
                 .HasMaxLength(64)
                 .IsUnicode(false);
+            entity.Property(e => e.Ipaddress)
+                .HasMaxLength(64)
+                .IsUnicode(false)
+                .HasColumnName("IPAddress");
             entity.Property(e => e.LastName)
                 .HasMaxLength(64)
                 .IsUnicode(false);
             entity.Property(e => e.Password)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.State)
                 .HasMaxLength(64)
                 .IsUnicode(false);
         });
