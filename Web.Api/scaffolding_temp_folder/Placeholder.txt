@@ -1,0 +1,7 @@
+dotnet ef dbcontext scaffold <connection> <provider>
+
+
+# Puts scafolled item in model dir:
+
+dotnet ef dbcontext scaffold "Server=(localdb)\MSSQLLocalDB;Database=TaskManagerApp" Microsoft.EntityFrameworkCore.SqlServer --no-build --output-dir  ".\Persistence\Models\"
+

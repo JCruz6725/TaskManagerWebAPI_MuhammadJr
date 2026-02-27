@@ -42,7 +42,6 @@ namespace Web.Api.Controllers
                     FirstName = registerUserDto.FirstName,
                     LastName = registerUserDto.LastName,
                     Email = registerUserDto.Email,
-                    Password = registerUserDto.Password,
                     CreatedDate = DateTime.Now,
                 };
                 _logger.LogInformation("New user successfully created");
@@ -62,7 +61,7 @@ namespace Web.Api.Controllers
             {
                 _logger.LogInformation("Initiating Login method");
                 User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-                if (userLogin is null || userLogin.Password != userLoginDto.Password)
+                if (userLogin is null)
                 {
                     _logger.LogWarning($"Invalid user login: {userLoginDto.Email} or Password: {userLoginDto.Password}");
                     return BadRequest("Invalid email or password.");

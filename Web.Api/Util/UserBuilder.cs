@@ -26,7 +26,6 @@ namespace Web.Api.Util
             Email = email,
             FirstName = first,
             LastName = last,
-            Password = pass,
         };
 
         private List? currentList = null;

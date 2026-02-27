@@ -15,9 +15,15 @@ public partial class User
 
     public string Email { get; set; } = null!;
 
-    public string Password { get; set; } = null!;
+    public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+
+    public virtual ICollection<DeviceDatum> DeviceData { get; set; } = new List<DeviceDatum>();
 
     public virtual ICollection<List> Lists { get; set; } = new List<List>();
+
+    public virtual ICollection<Password> Passwords { get; set; } = new List<Password>();
+
+    public virtual ICollection<Profile> Profiles { get; set; } = new List<Profile>();
 
     public virtual ICollection<SubTask> SubTasks { get; set; } = new List<SubTask>();
 
