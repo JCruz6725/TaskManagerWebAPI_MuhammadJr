@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Models;
 using Web.Api.Persistence.Repositories;
+using ModelLibrary;
 
 namespace Web.Api.Controllers
 {

@@ -1,4 +1,4 @@
-﻿using Web.Api.Persistence.Models;
+﻿using ModelLibrary;
 
 namespace Web.Api.Util
 {
