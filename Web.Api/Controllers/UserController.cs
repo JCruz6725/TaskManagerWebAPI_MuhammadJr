@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -33,6 +34,21 @@ namespace Web.Api.Controllers
                     _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
                     return BadRequest("Email already in use.");
                 }
+
+                _logger.LogInformation("Checking that password policy passes");
+                if (registerUserDto.Password.Length < 8)
+                {
+                    _logger.LogWarning($"Password: {registerUserDto.Password} does not meet minimum length requirement of 8 characters.");
+                    return BadRequest("Password length policy failed");
+                }
+                Regex regex = new Regex(@"[^a-zA-Z0-9\s]");
+                if (!regex.IsMatch(registerUserDto.Password)) //if there are no special chars
+                {
+                    _logger.LogWarning($"Password: {registerUserDto.Password} does not contain at least one special character");
+                    return BadRequest("Password special character policy failed");
+                }
+
+
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
                 //RequestDTO
                 //create a new instance of User thats not existing
