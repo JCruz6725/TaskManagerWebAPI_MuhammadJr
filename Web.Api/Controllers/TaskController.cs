@@ -483,7 +483,70 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
         public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader] Guid userId, Guid taskId)
         {
-            throw new NotImplementedException();
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                _logger.LogInformation("Initiating StatusChangePending method");
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                {
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
+                }
+
+                TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                if (taskItem is null)
+                {
+                    _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
+                    return NotFound(taskId);
+                }
+
+       
+                //add new status history for Complete
+                //Reuest DTO
+                TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
+                {
+                    TaskItemId = taskItem.Id,
+                    StatusId = _statusChange.PendingId,
+                    CreatedDate = DateTime.Now,
+                    CreatedUserId = userId,
+                };
+
+
+                taskItem.TaskItemStatusHistories.Add(newTaskStatus);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation($"Status Change to Pending is Successfull for userId {userId}");
+
+                //Response DTO
+                TaskDto statusResult = new TaskDto
+                {
+                    Id = taskItem.Id,
+                    Title = taskItem.Title,
+                    DueDate = taskItem.DueDate,
+                    Priority = taskItem.Priority,
+                    ParentTaskId = taskItem.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
+
+                    Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
+                    {
+                        Id = n.Id,
+                        TaskItemId = n.TaskItemId,
+                        Note = n.Note,
+                        CreatedDate = n.CreatedDate,
+                        CreatedUser = n.CreatedUserId
+                    }).ToList(),
+
+                    CurrentStatus = new StatusDto
+                    {
+                        Id = _statusChange.PendingId,
+                        Name = _statusChange.Pending,
+                        Code = _statusChange.Code1
+                    },
+
+                    CreatedDate = taskItem.CreatedDate,
+                    CreatedUserId = taskItem.CreatedUserId,
+                };
+                _logger.LogInformation($"Status changed to Pending result for TaskId {taskItem.Id} and UserId {userId}");
+                _logger.LogInformation("Returning the status changed to pending result");
+                return CreatedAtAction(nameof(StatusChangePending), new { taskId = newTaskStatus.Id }, statusResult);
+            }
         }
 
         [HttpPut("{taskId}", Name = "EditTask")]
