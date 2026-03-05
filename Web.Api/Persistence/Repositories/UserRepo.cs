@@ -32,9 +32,9 @@ namespace Web.Api.Persistence.Repositories
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
         }
 
-        public async Task<Password?> GetPasswordByIdAsync(Guid userId)
+        public async Task<Password> GetPasswordByIdAsync(Guid userId)
         {
-            return await _context.Passwords./*SingleAsync(ui => ui.Id == userId);//*/SingleOrDefaultAsync(ui => ui.CreatedUserId == userId);
+            return await _context.Passwords.SingleAsync(ui => ui.CreatedUserId == userId);
         }
 
         //method to check if user exists in db by Id
