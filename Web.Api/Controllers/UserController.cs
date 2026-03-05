@@ -69,10 +69,10 @@ namespace Web.Api.Controllers
                     return BadRequest("Invalid email.");
                 }
 
-                Password userPsw = await _unitOfWork.User.GetPasswordByIdAsync(userLogin.Id);
+                Password databasePsw = await _unitOfWork.User.GetPasswordByIdAsync(userLogin.Id);
                 PasswordHasher hash = new PasswordHasher();
-                byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, userPsw.Salt);
-                if (hashedPsw.SequenceEqual(userPsw.PasswordHash))
+                byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, databasePsw.Salt);
+                if (hashedPsw.SequenceEqual(databasePsw.PasswordHash))
                 {
                     _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                     _logger.LogInformation($"Returning user login id {userLogin.Id}");
