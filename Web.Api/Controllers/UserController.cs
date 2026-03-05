@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
 using Web.Api.Persistence.Repositories;
+using Web.Api.Util;
 
 namespace Web.Api.Controllers
 {
@@ -63,12 +65,25 @@ namespace Web.Api.Controllers
                 User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
                 if (userLogin is null)
                 {
-                    _logger.LogWarning($"Invalid user login: {userLoginDto.Email} or Password: {userLoginDto.Password}");
-                    return BadRequest("Invalid email or password.");
+                    _logger.LogWarning($"Invalid user email: {userLoginDto.Email}");
+                    return BadRequest("Invalid email.");
                 }
-                _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
-                _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
+
+                Password? userPsw = await _unitOfWork.User.GetPasswordByIdAsync(userLogin.Id);
+                PasswordHasher hash = new PasswordHasher();
+                byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, userPsw.Salt);
+                if (hashedPsw.SequenceEqual(userPsw.PasswordHash))
+                {
+                    _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
+                    _logger.LogInformation($"Returning user login id {userLogin.Id}");
+                    return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
+                }
+                else
+                {
+                    _logger.LogInformation($"Invalid password for user with email: {userLoginDto.Email}");
+                    return BadRequest("Invalid password");
+                }
+
             }
         }
     }
