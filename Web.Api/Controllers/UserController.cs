@@ -80,7 +80,7 @@ namespace Web.Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInformation($"Invalid password for user with email: {userLoginDto.Email}");
+                    _logger.LogWarning($"Invalid password for user with email: {userLoginDto.Email}");
                     return BadRequest("Invalid password");
                 }
 
