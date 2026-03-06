@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
 namespace Web.Api.Util {
     public class UserDirector(StatusChange statusChange) {

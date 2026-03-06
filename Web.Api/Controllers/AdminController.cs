@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Models;
 using Web.Api.Util;
+using ModelLibrary;
 
 namespace Web.Api.Controllers
 {
