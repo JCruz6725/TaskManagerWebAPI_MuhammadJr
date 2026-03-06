@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Repositories;
 using ModelLibrary;
+using Web.Api.Util;
 
 namespace Web.Api.Controllers
 {
@@ -34,7 +36,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Email already in use.");
                 }
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
-                //RequestDTO
+                
                 //create a new instance of User thats not existing
                 //call the User props and set the registerDto to its assign props 
                 User newUser = new User
@@ -45,8 +47,22 @@ namespace Web.Api.Controllers
                     CreatedDate = DateTime.Now,
                 };
                 _logger.LogInformation("New user successfully created");
-
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+
+                //generate hashed password
+                PasswordHasher hasher = new PasswordHasher();
+                string generatedSalt = hasher.GenerateSalt();
+                byte[] hashedPsw = hasher.GenerateHash(registerUserDto.Password, generatedSalt);
+                Password newPsw = new Password
+                {
+                    PasswordHash = hashedPsw,
+                    Salt = generatedSalt,
+                    CreatedDate = DateTime.Now,
+                    CreatedUser = newUser
+                };
+                _logger.LogInformation("Created password");
+                await _unitOfWork.User.CreatePasswordAsync(newPsw);
+
                 await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
                 _logger.LogInformation($"Returning newly created user with id {newUser.Id}");
                 return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
@@ -63,12 +79,25 @@ namespace Web.Api.Controllers
                 User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
                 if (userLogin is null)
                 {
-                    _logger.LogWarning($"Invalid user login: {userLoginDto.Email} or Password: {userLoginDto.Password}");
-                    return BadRequest("Invalid email or password.");
+                    _logger.LogWarning($"Invalid user email: {userLoginDto.Email}");
+                    return BadRequest("Invalid email.");
                 }
-                _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
-                _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
+
+                Password databasePsw = await _unitOfWork.User.GetPasswordByIdAsync(userLogin.Id);
+                PasswordHasher hash = new PasswordHasher();
+                byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, databasePsw.Salt);
+                if (hashedPsw.SequenceEqual(databasePsw.PasswordHash))
+                {
+                    _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
+                    _logger.LogInformation($"Returning user login id {userLogin.Id}");
+                    return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
+                }
+                else
+                {
+                    _logger.LogWarning($"Invalid password for user with email: {userLoginDto.Email}");
+                    return BadRequest("Invalid password");
+                }
+
             }
         }
     }

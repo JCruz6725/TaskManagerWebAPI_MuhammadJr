@@ -17,7 +17,11 @@ namespace Web.Api.Persistence.Repositories
         public async Task CreateUserAsync(User user)                  //user method is created 
         {                       
            await _context.AddAsync(user);                           //users are added to the db, this method will be used to always add a new user 
+        }
 
+        public async Task CreatePasswordAsync(Password password)
+        {
+            await _context.AddAsync(password);
         }
                                                          //method to to register user by email 
                                                          //uses LINQ to Email from Users
@@ -30,6 +34,11 @@ namespace Web.Api.Persistence.Repositories
         public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
+        }
+
+        public async Task<Password> GetPasswordByIdAsync(Guid userId)
+        {
+            return await _context.Passwords.SingleAsync(ui => ui.CreatedUserId == userId);
         }
 
         //method to check if user exists in db by Id
