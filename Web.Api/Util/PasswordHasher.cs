@@ -17,7 +17,15 @@ namespace Web.Api.Util
 
         public string GenerateSalt()
         {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+            Random rand = new Random();
+            char[] salt = new char[25];
+
+            //Generate random ASCII character for each index of salt
+            for (int i = 0; i < salt.Length; i++)
+            {
+                salt[i] = (char)rand.Next(32, 126);
+            }
+            return new string(salt);
         }
     }
 }
