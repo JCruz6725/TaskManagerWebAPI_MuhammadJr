@@ -14,5 +14,10 @@ namespace Web.Api.Util
                 return hash;
             }
         }
+
+        public string GenerateSalt()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+        }
     }
 }

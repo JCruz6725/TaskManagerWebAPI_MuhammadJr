@@ -36,7 +36,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Email already in use.");
                 }
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
-                //RequestDTO
+                
                 //create a new instance of User thats not existing
                 //call the User props and set the registerDto to its assign props 
                 User newUser = new User
@@ -47,8 +47,22 @@ namespace Web.Api.Controllers
                     CreatedDate = DateTime.Now,
                 };
                 _logger.LogInformation("New user successfully created");
-
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+
+                //generate hashed password
+                PasswordHasher hasher = new PasswordHasher();
+                string generatedSalt = hasher.GenerateSalt();
+                byte[] hashedPsw = hasher.GenerateHash(registerUserDto.Password, generatedSalt);
+                Password newPsw = new Password
+                {
+                    PasswordHash = hashedPsw,
+                    Salt = generatedSalt,
+                    CreatedDate = DateTime.Now,
+                    CreatedUser = newUser
+                };
+                _logger.LogInformation("Created password");
+                await _unitOfWork.User.CreatePasswordAsync(newPsw);
+
                 await _unitOfWork.SaveChangesAsync();                          //UofW calls the SaveChanges method
                 _logger.LogInformation($"Returning newly created user with id {newUser.Id}");
                 return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
