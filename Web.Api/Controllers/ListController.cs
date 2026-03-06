@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
 namespace Web.Api.Controllers
 {
