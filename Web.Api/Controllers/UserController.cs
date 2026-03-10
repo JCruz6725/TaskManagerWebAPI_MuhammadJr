@@ -112,14 +112,5 @@ namespace Web.Api.Controllers
             }
         }
 
-        [HttpPost("{password}/reset", Name = "ResetPassword")]
-        public async Task<ActionResult<Guid>> Reset()
-        {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
-            {
-
-                return Unauthorized();
-            }
-        }
     }
 }
