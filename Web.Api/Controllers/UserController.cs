@@ -42,7 +42,7 @@ namespace Web.Api.Controllers
                 VerifyPasswordPolicy verify = new VerifyPasswordPolicy();
                 if (!verify.Verify(registerUserDto.Password)) 
                 { 
-                    return BadRequest($"Password \"{registerUserDto.Password}\" does not comply with Password Policy."); 
+                    return BadRequest($"Password \"{registerUserDto.Password}\" does not comply with password policy, please try again."); 
                 }
                 _logger.LogInformation("Password Policy Passed");
 
