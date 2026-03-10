@@ -39,18 +39,12 @@ namespace Web.Api.Controllers
                 }
 
                 _logger.LogInformation("Checking that password policy passes");
-                if (registerUserDto.Password.Length < 8)
-                {
-                    _logger.LogWarning($"Password: {registerUserDto.Password} does not meet minimum length requirement of 8 characters.");
-                    return BadRequest("Password length policy failed");
+                VerifyPasswordPolicy verify = new VerifyPasswordPolicy();
+                if (!verify.Verify(registerUserDto.Password)) 
+                { 
+                    return BadRequest($"Password \"{registerUserDto.Password}\" does not comply with Password Policy."); 
                 }
-                Regex regex = new Regex(@"[^a-zA-Z0-9\s]");
-                if (!regex.IsMatch(registerUserDto.Password)) //if there are no special chars
-                {
-                    _logger.LogWarning($"Password: {registerUserDto.Password} does not contain at least one special character");
-                    return BadRequest("Password special character policy failed");
-                }
-
+                _logger.LogInformation("Password Policy Passed");
 
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
                 
