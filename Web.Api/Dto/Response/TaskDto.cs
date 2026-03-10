@@ -1,5 +1,4 @@
-﻿using Web.Api.Persistence.Models;
-
+﻿
 namespace Web.Api.Dto.Response
 {
     public class TaskDto

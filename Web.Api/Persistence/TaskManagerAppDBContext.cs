@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
 namespace Web.Api.Persistence;
 
@@ -77,7 +77,7 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.Property(e => e.BrowserType)
                 .HasMaxLength(64)
                 .IsUnicode(false);
-            entity.Property(e => e.IpAdress)
+            entity.Property(e => e.IpAddress)
                 .HasMaxLength(64)
                 .IsUnicode(false);
 
