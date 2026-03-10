@@ -35,7 +35,7 @@ namespace Web.Api.Controllers
                 if (user is not null)
                 {
                     _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
-                    return BadRequest("Email already in use.");
+                    return BadRequest("Email already in use, please use a different email.");
                 }
 
                 _logger.LogInformation("Checking that password policy passes");
