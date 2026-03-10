@@ -42,7 +42,7 @@ namespace Web.Api.Controllers
                 VerifyPasswordPolicy verify = new VerifyPasswordPolicy();
                 if (!verify.Verify(registerUserDto.Password)) 
                 { 
-                    return BadRequest($"Password \"{registerUserDto.Password}\" does not comply with password policy, please try again."); 
+                    return Unauthorized($"Password \"{registerUserDto.Password}\" does not comply with password policy, please try again."); 
                 }
                 _logger.LogInformation("Password Policy Passed");
 
@@ -106,9 +106,19 @@ namespace Web.Api.Controllers
                 else
                 {
                     _logger.LogWarning($"Invalid password for user with email: {userLoginDto.Email}");
-                    return BadRequest("Invalid password");
+                    return Unauthorized("Invalid password");
                 }
 
+            }
+        }
+
+        [HttpPost("{password}/reset", Name = "ResetPassword")]
+        public async Task<ActionResult<Guid>> Reset()
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+
+                return Unauthorized();
             }
         }
     }
