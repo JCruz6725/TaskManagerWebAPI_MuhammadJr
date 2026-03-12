@@ -38,12 +38,8 @@ namespace Web.Api.Persistence.Repositories
 
         public async Task<List<Password>> GetPasswordsByIdAsync(Guid userId)
         {
-            return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
-        }
 
-        public async Task CreatePasswordByIdAsync(Password password)
-        {
-            await _context.AddAsync(password);
+            return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
         }
 
         //method to check if user exists in db by Id
