@@ -478,7 +478,15 @@ namespace Web.Api.Controllers
                 return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = newTaskStatus.Id }, statusResult);
             }
         }
+        //private bool HasStatusOfPending (TaskItem task) 
+        //{
+        //    if(task.TaskItemStatusHistories == task.TaskItemStatusHistories)
+        //    {
+        //        return true;
+        //    }
+        //    return false; 
 
+        //}
 
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
         public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader] Guid userId, Guid taskId)
@@ -498,11 +506,18 @@ namespace Web.Api.Controllers
                     _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
                     return NotFound(taskId);
                 }
+                var latestStatus = taskItem.TaskItemStatusHistories
+                    .OrderByDescending(s => s.CreatedDate)
+                    .FirstOrDefault();
 
-       
-                //add new status history for Complete
-                //Reuest DTO
-                TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
+                if (latestStatus != null && latestStatus.StatusId != _statusChange.CompleteId)
+                {
+                    return StatusCode(403);
+                }
+        
+                    //add new status history for Complete
+                    //Reuest DTO
+                    TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
                 {
                     TaskItemId = taskItem.Id,
                     StatusId = _statusChange.PendingId,
