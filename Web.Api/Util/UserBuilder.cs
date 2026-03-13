@@ -18,7 +18,7 @@ namespace Web.Api.Util
     /// <param name="last"></param>
     /// <param name="pass"></param>
     /// <param name="userId"></param>
-    public class UserBuilder(string email, string first, string last, string pass, Guid userId) { 
+    public class UserBuilder(string email, string first, string last, Guid userId) { 
         
         private User user = new User(){
             Id = userId,
@@ -28,6 +28,69 @@ namespace Web.Api.Util
             LastName = last,
         };
 
+        public UserBuilder AddPassword(Guid passwordId, string password, string salt)
+        {
+            PasswordHasher hasher = new PasswordHasher();
+            byte[] hashedPsw = hasher.GenerateHash(password, salt);
+            Password pass = new()
+            {
+                Id = passwordId,
+                PasswordHash = hashedPsw,
+                Salt = salt,
+                CreatedDate = DateTime.Now,
+            };
+
+            user.Passwords.Add(pass);
+            return this;
+        }
+
+        public UserBuilder AddAddress(Guid addressId, string address1, string city, string state, string zipcode)
+        {
+            Address address = new Address()
+            {
+                Id = addressId,
+                Address1 = address1,
+                City = city,
+                State = state,
+                Zipcode = zipcode
+            };
+
+            user.Addresses.Add(address);
+            return this;
+        }
+
+        public UserBuilder AddProfile(Guid profileId, DateOnly DOB, string phoneNumber, string gender, string education, string employer, string job, Guid purposeId, Guid licenseId)
+        {
+            Profile profile = new Profile()
+            {
+                Id = profileId,
+                DateOfBirth = DOB,
+                PhoneNumber = phoneNumber,
+                Gender = gender,
+                Education = education,
+                Employer = employer,
+                JobTitle = job,
+                PurposeId = purposeId,
+                LicenseId = licenseId
+            };
+
+            user.Profiles.Add(profile);
+            return this;
+        }
+
+        /*
+        public UserBuilder AddDeviceData(Guid deviceid, string ipAddress, string browserType, DateTime accessTime)
+        {
+            DeviceDatum device = new DeviceDatum()
+            {
+                Id= deviceid,
+                IpAddress = ipAddress,
+                BrowserType = browserType,
+                AccessTime = accessTime
+            }
+        }
+        */
+        
         private List? currentList = null;
         private List<TaskItem> taskItems = [];
         private TaskItem? currentTaskItem = null;

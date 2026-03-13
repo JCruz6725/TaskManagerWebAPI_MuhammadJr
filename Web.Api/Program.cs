@@ -37,7 +37,8 @@ namespace Web.Api
 
             // Add Bind StatusChange settings from appsettings.json
             builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));
-
+            builder.Services.Configure<PurposeType>(builder.Configuration.GetSection("PurposeTypeSetting"));
+            builder.Services.Configure<LicenseType>(builder.Configuration.GetSection("LicenseTypeSetting"));
 
             builder.Services.AddCors( options => { 
                 options.AddDefaultPolicy( builder => {

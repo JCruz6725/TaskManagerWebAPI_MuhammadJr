@@ -2,8 +2,12 @@
 using ModelLibrary;
 
 namespace Web.Api.Util {
-    public class UserDirector(StatusChange statusChange) {
-
+    public class UserDirector(StatusChange statusChange, PurposeType purposeType, LicenseType licenseType) {
+        /*
+         When creating a new dummy user, you MUST add '.AddPassword', '.AddAddress', '.AddProfile', and '.AddDeviceData' 
+        as these are required to have one and only one for each user.
+         */
+        /*
         private readonly Guid[] guidId = { new Guid("315a341a-caa0-4137-b903-1065a97df647"),
                                            new Guid("214a5c33-0694-4755-b69c-8d515dbe2091"),
                                            new Guid("fc210992-9d5e-4cf8-9af1-b15f42c61780"),
@@ -17,7 +21,7 @@ namespace Web.Api.Util {
                                            new Guid("03c3664a-a4fc-4d5a-8c23-bd00384f6c7b"),
 
                                           };
-
+        */
         /*
         public User MakeAlexFarmerProfile() {
              return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345", userId: guidId[0])
@@ -80,12 +84,21 @@ namespace Web.Api.Util {
         */
 
         public User MakeAlexFarmerProfile() { 
-            return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", pass: "12345", userId: guidId[0]).GetFinalUser(); 
+            return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", userId: new Guid("315a341a-caa0-4137-b903-1065a97df647"))
+                .AddPassword(passwordId: new Guid("3ac086e3-ef8f-4d81-a288-25e639055983"), password: "12345", salt: "pihB2lFgBmZFHLGa2lwcrt1Ie")
+                .AddAddress(addressId: new Guid("409bdf27-ef73-4c4b-8de9-0064ebfb8895"), address1: "1719 Oliver Street", city: "Frisco", state: "Texas", zipcode: "75034")
+                .AddProfile(profileId: new Guid("244efc48-6d96-4ee4-856e-ebd8ecd197a0"), DOB: new DateOnly(1998, 5, 17), phoneNumber: "3948573048", gender: "Male", education: "Highschool", employer: "None", job: "None", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
+                
+                .GetFinalUser(); 
         }
 
         public User MakeJessieHopkinsProfile()
         {
-            return new UserBuilder(email: "JHopkins@email.com", first: "Jessie", last: "Hopkins", pass: "password", userId: new Guid("b631308c-a4d6-4bbd-a935-3b6a10d2d52d"))
+            return new UserBuilder(email: "JHopkins@email.com", first: "Jessie", last: "Hopkins", userId: new Guid("b631308c-a4d6-4bbd-a935-3b6a10d2d52d"))
+                .AddPassword(passwordId: new Guid("4c7523db-e19a-44d8-9bdb-c25f93765015"), password: "password", salt: "B8Gc/af3w2EgunorV/xrM4DT/")
+                .AddAddress(addressId: new Guid("8e1518b2-669f-42b6-9bb1-4fb4aa71d7bd"), address1: "3852 Reppert Coal Road", city: "Warren", state: "Michigan", zipcode: "48930")
+                .AddProfile(profileId: new Guid("5860e641-ebfd-45d1-a604-2f67a14fee6c"), DOB: new DateOnly(2000, 4, 22), phoneNumber: "3950384956", gender: "Female", education: "Highschool", employer: "Olive Garden", job: "Server", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
+
                 .AddOrphanTask(taskname: "Play sports", statusId: statusChange.PendingId, priority: 1, taskId: new Guid("6f5db359-e994-4f0b-8c79-0287da440a24"), taskItemStatusHistoryId: new Guid("c799916f-45b3-45b7-ba96-f24d042120fd"))
                     .AddNote(content: "Play sports for 1 hour", noteId: new Guid("c0be5fb0-cecf-48f7-82ce-89d9bb9a1356"))
                     
@@ -97,7 +110,11 @@ namespace Web.Api.Util {
 
         public User MakeAprilRiceProfile()
         {
-            return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", pass: "ARice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"))
+            return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"))
+                .AddPassword(passwordId: new Guid("0380994b-f544-4bdd-8936-42882758daef"), password: "ARice", salt: "qozIN7zNBIRWviKTOPqaQtZsB")
+                .AddAddress(addressId: new Guid("a4428665-17c2-4e07-9a0c-9d2095c0222a"), address1: "3466 Ella Street", city: "San Francisco", state: "California", zipcode: "94103")
+                .AddProfile(profileId: new Guid("227813e2-11e5-4613-92d3-8a58b6951aa5"), DOB: new DateOnly(2001, 11, 19), phoneNumber: "2960174063", gender: "Male", education: "Associates", employer: "BakerRipley", job: "Accountant", purposeId: purposeType.WorkId, licenseId: licenseType.PaidId)
+                
                 .AddList(listname: "Shopping", listId: new Guid("1e4220df-eb3f-488a-9bb0-7e4ad078081e"))
 
                 .AddList(listname: "School project", listId: new Guid("6c7dd6b3-0ee4-476d-885f-6a281c19a8bd"))
@@ -110,7 +127,11 @@ namespace Web.Api.Util {
 
         public User MakeNikoLoganProfile()
         {
-            return new UserBuilder(email: "Nlogan@email.com", first: "Niko", last: "Logan", pass: "abc", userId: new Guid("87c42ac5-cda9-4672-9fb9-3bd7c8d93363"))
+            return new UserBuilder(email: "Nlogan@email.com", first: "Niko", last: "Logan", userId: new Guid("87c42ac5-cda9-4672-9fb9-3bd7c8d93363"))
+                .AddPassword(passwordId: new Guid("95e4fd93-dcdc-4670-8b98-c483dcb37a6c"), password: "abc", salt: "ZcikRtHvoa/CbMfZ2ofQGmV6Q")
+                .AddAddress(addressId: new Guid("7c76902e-a5af-4421-862f-efd61a2cdfeb"), address1: "4835 Eagle Lane", city: "Fergus Falls", state: "Minnesota", zipcode: "56023")
+                .AddProfile(profileId: new Guid("a2fda3e1-3e8d-4ebb-be8f-72ccaec98dc1"), DOB: new DateOnly(1998, 12, 22), phoneNumber: "9275013965", gender: "Male", education: "Bachelors", employer: "Amazon", job: "HR specialist", purposeId: purposeType.WorkId, licenseId: licenseType.PaidId)
+
                 .AddList(listname: "Bucket list", listId: new Guid("da604851-6dc0-40f3-bfc4-524cdf574f46"))
 
                 .AddOrphanTask(taskname: "Turn in homework", statusId: statusChange.PendingId, priority: 8, taskId: new Guid("6fbf7ace-0be3-4065-90c8-0dcb1eed94d5"), taskItemStatusHistoryId: new Guid("f03ee943-5882-440c-8783-97d93c20f871"))
@@ -125,7 +146,11 @@ namespace Web.Api.Util {
 
         public User MakeChuckFinleyProfile()
         {
-            return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", pass: "abc", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
+            return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
+                .AddPassword(passwordId: new Guid("6f7a9baa-160e-493f-a265-d6ffdf489f59"), password: "abc", salt: "5P1TS8FU7M9ujq+3hCbyPzFBP")
+                .AddAddress(addressId: new Guid("555d55b2-777a-4dff-8d58-092ef4dc2168"), address1: "4806 Briarwood Drive", city: "Pennsville", state: "New Jersey", zipcode: "80870")
+                .AddProfile(profileId: new Guid("162aa853-9999-4b37-bfcf-6e96c21e2820"), DOB: new DateOnly(1978, 2, 15), phoneNumber: "9237539184", gender: "Male", education: "Bachelors", employer: "Bank of America", job: "Financial Analysts", purposeId: purposeType.PersonalId, licenseId: licenseType.FreeId)
+
                 .AddOrphanTask(taskname: "Cook dinner", statusId: statusChange.PendingId, priority: 15, taskId: new Guid("023af9db-2d82-4f2c-aa40-c393d38de31b"), taskItemStatusHistoryId: new Guid("80e93f32-a8c7-4da0-8d9b-f777ca6c093f"))
                 .AddOrphanTask(taskname: "Make tacos", statusId: statusChange.PendingId, priority: 20, taskId: new Guid("2c8e1422-336f-4c2b-88e2-5f6f8cfb180a"), taskItemStatusHistoryId: new Guid("36832639-a393-4a00-ba93-19ed592c81d5"))
                 .AddOrphanTask(taskname: "Buy ingredients", statusId: statusChange.CompleteId, priority: 23, taskId: new Guid("26e33b69-80de-431d-bb36-c83889d4c0f7"), taskItemStatusHistoryId: new Guid("5b030691-c1f4-4358-9499-e3240533a991"))
@@ -168,7 +193,11 @@ namespace Web.Api.Util {
 
         public User MakeIrenePetersonProfile()
         {
-            return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", pass: "secret", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"))
+            return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"))
+                .AddPassword(passwordId: new Guid("fc75be3c-427b-4310-b8aa-159f8d5dbf7f"), password: "secret", salt: "EMORxJzildiU6wUrC+CTozUOB")
+                .AddAddress(addressId: new Guid("9d86828c-79b3-4e83-9016-873509d3bc78"), address1: "3751 Southern Street", city: "Brentwood", state: "New York", zipcode: "11717")
+                .AddProfile(profileId: new Guid("2cfb69fa-ae5c-404d-b1aa-144a64ee7d89"), DOB: new DateOnly(2010, 8, 13), phoneNumber: "5129428563", gender: "Female", education: "Highschool", employer: "None", job: "None", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
+
                 .AddList(listname: "Party planning", listId: new Guid("9c615bc5-79c1-4bc5-9697-c7b62333f15d"))
                     .AddTask(taskname: "Surprise Jessie!", statusId: statusChange.PendingId, priority: 50, taskId: new Guid("3de3ba44-d578-4f82-890d-205d2c04cdcf"), taskItemStatusHistoryId: new Guid("d9d14a0d-1ff8-4cea-99ca-0181e63d8c7c"))
                     .AddTask(taskname: "Setup party", statusId: statusChange.CompleteId, priority: 55, taskId: new Guid("15cbf50a-3da9-4535-a506-130f422d37ba"), taskItemStatusHistoryId: new Guid("29da6f71-1d41-45a5-83d0-cd37a381dacf"))

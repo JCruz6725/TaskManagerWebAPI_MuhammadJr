@@ -12,14 +12,18 @@ namespace Web.Api.Controllers
     public class AdminController : ControllerBase
     {
         private readonly StatusChange statusChange;
+        private readonly PurposeType purposeType;
+        private readonly LicenseType licenseType;
         private readonly TaskManagerAppDBContext context;
         private readonly ILogger<AdminController> logger;
         const int DEFAULT_PRIORITY = 5;
 
 
-        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
+        public AdminController(IOptions<StatusChange> statusChangeOptions, IOptions<PurposeType> purposeTypeOptions, IOptions<LicenseType> licenseTypeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
         {
             statusChange = statusChangeOptions.Value;
+            purposeType = purposeTypeOptions.Value;
+            licenseType = licenseTypeOptions.Value;
             this.context = context;
             this.logger = logger;
         }
@@ -69,6 +73,9 @@ namespace Web.Api.Controllers
                 context.Add(pendingStatus);
                 context.Add(completedStatus);
                 logger.LogInformation("Successfully added pending and completed status'");
+
+                PurposeType education = new() { Id = , PurposeTitle = "Education" };
+                LicenseType free = new() { Id = , LicenseTitle = "free" };
 
 
                 UserDirector userDirector = new UserDirector(statusChange);
