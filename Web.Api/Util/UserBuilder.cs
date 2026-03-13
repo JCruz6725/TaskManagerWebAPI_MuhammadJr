@@ -78,18 +78,21 @@ namespace Web.Api.Util
             return this;
         }
 
-        /*
-        public UserBuilder AddDeviceData(Guid deviceid, string ipAddress, string browserType, DateTime accessTime)
+        
+        public UserBuilder AddDeviceData(Guid deviceid, string ipAddress, string browserType)
         {
             DeviceDatum device = new DeviceDatum()
             {
-                Id= deviceid,
+                Id = deviceid,
                 IpAddress = ipAddress,
                 BrowserType = browserType,
-                AccessTime = accessTime
-            }
+                AccessTime = DateTime.Now
+            };
+
+            user.DeviceData.Add(device);
+            return this;
         }
-        */
+        
         
         private List? currentList = null;
         private List<TaskItem> taskItems = [];

@@ -3,6 +3,7 @@ using NLog.Extensions.Logging;
 using NLog.Web;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
+using Web.Api.scaffolding_temp_folder;
 
 namespace Web.Api
 {
