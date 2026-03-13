@@ -1,6 +1,6 @@
 ﻿namespace Web.Api
 {
-    public class PurposeType
+    public class PurposeTypeOptions
     {
         public Guid EducationId { get; set; }
         public string Education { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace Web.Api
 {
-    public class LicenseType
+    public class LicenseTypeOptions
     {
         public Guid FreeId { get; set; }
         public string Free {  get; set; }

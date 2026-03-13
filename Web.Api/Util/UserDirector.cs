@@ -2,7 +2,7 @@
 using ModelLibrary;
 
 namespace Web.Api.Util {
-    public class UserDirector(StatusChange statusChange, PurposeType purposeType, LicenseType licenseType) {
+    public class UserDirector(StatusChange statusChange, PurposeTypeOptions purposeType, LicenseTypeOptions licenseType) {
         /*
          When creating a new dummy user, you MUST add '.AddPassword', '.AddAddress', '.AddProfile', and '.AddDeviceData' 
         as these are required to have one and only one for each user.

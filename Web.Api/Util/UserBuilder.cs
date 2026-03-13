@@ -37,7 +37,7 @@ namespace Web.Api.Util
                 Id = passwordId,
                 PasswordHash = hashedPsw,
                 Salt = salt,
-                CreatedDate = DateTime.Now,
+                CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0),
             };
 
             user.Passwords.Add(pass);
