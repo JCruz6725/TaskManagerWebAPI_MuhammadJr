@@ -11,8 +11,8 @@ namespace Web.Api.Persistence.Repositories
     {
         private readonly TaskManagerAppDBContext _context;
         public TaskItemRepo(TaskManagerAppDBContext context)
-        { 
-            _context = context;  
+        {
+            _context = context;
         }
 
         /// <summary>
@@ -44,21 +44,21 @@ namespace Web.Api.Persistence.Repositories
             await _context.AddAsync(taskItemItemNote);
         }
 
-        public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
+        public IEnumerable<TaskItemNote> GetAllNotes(Guid taskId)
         {
             throw new NotImplementedException();
         }
 
         public void DeleteNote(TaskItemNote taskItemNote)
         {
-             _context.Remove(taskItemNote);
+            _context.Remove(taskItemNote);
         }
         public async Task DeleteTask(TaskItem taskItem)
         {
             // searches for any task or subtask containing the same Taskitem.ID
-            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            SubTask[] AllSubTask = await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
             _context.RemoveRange(AllSubTask);
-           
+
             TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
             _context.RemoveRange(taskWithinList);
 
@@ -89,3 +89,4 @@ namespace Web.Api.Persistence.Repositories
         }
     }
 }
+
