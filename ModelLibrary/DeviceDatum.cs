@@ -14,9 +14,7 @@ namespace ModelLibrary
 
         public string BrowserType { get; set; } = null!;
 
-        public int AccessTime { get; set; }
-
-        public int AccessCount { get; set; }
+        public DateTime AccessTime { get; set; }
 
         public Guid CreatedUserId { get; set; }
 
