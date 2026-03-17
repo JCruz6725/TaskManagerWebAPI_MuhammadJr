@@ -77,7 +77,7 @@ public partial class TaskManagerAppDBContext : DbContext
             entity.Property(e => e.BrowserType)
                 .HasMaxLength(64)
                 .IsUnicode(false);
-            entity.Property(e => e.IpAdress)
+            entity.Property(e => e.IpAddress)
                 .HasMaxLength(64)
                 .IsUnicode(false);
 

@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Swagger;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Models;
@@ -66,10 +69,84 @@ namespace Web.Api.Controllers
                     _logger.LogWarning($"Invalid user login: {userLoginDto.Email} or Password: {userLoginDto.Password}");
                     return BadRequest("Invalid email or password.");
                 }
+
+
                 _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                 _logger.LogInformation($"Returning user login id {userLogin.Id}");
                 return Ok(userLogin.Id);                                     // return the registered GUID Id of that user
             }
         }
+
+        [HttpPost("device", Name = "Device")]
+        public async Task<ActionResult<Guid>> Device(Guid userId)
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+
+            {
+                _logger.LogInformation("Initiating Login Succesful");
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                {
+                    _logger.LogWarning($"UserId {userId} not authorized");
+                    return StatusCode(403);
+
+                }
+                 var rawIp = Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                 ?? HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                var ip = "unknown";
+                    if(!string.IsNullOrEmpty(rawIp))
+                {
+                    if (rawIp.Contains("::1"))
+                        ip = "127.0.0.1";
+                    else if (rawIp.Contains("127.0.0.1"))
+                        ip = "127.0.0.1";
+                }
+
+                var secchua = Request.Headers["sec-ch-ua"].ToString();
+
+                var browser = "unknown";
+
+                if (!string.IsNullOrEmpty(secchua))
+                {
+                    if (secchua.Contains("Microsoft Edge"))
+                        browser = "Microsoft Edge ";
+                    else if (secchua.Contains("Google Chrome"))
+                        browser = "Google Chrome";
+                   
+                }
+                else
+                {
+                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+                    
+                    if (userAgent.Contains("Firefox"))
+                        browser = "Firefox";
+                    
+                }
+
+                var device = new DeviceDatum
+                    {
+                        Id = Guid.NewGuid(),
+                        IpAddress = ip,
+                        BrowserType = browser,
+                        AccessTime = DateTime.UtcNow,
+                        CreatedUserId = userId
+
+                    }; 
+                await _unitOfWork.User.CreateAsync(device);
+
+                return Ok(new
+                {
+                    IpAddress = ip, 
+                    BrowserType =browser, 
+                    AccessTime = DateTime.UtcNow, 
+                    
+                }); 
+
+            }
+        }
     }
 }
+
+        
+    
+
