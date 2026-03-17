@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
 namespace Web.Api.Persistence.Repositories
 {

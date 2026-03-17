@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
 namespace Web.Api.Persistence.Repositories
 {
@@ -15,9 +15,13 @@ namespace Web.Api.Persistence.Repositories
 
 
         public async Task CreateUserAsync(User user)                  //user method is created 
-        {
-            await _context.AddAsync(user);                           //users are added to the db, this method will be used to always add a new user 
+        {                       
+           await _context.AddAsync(user);                           //users are added to the db, this method will be used to always add a new user 
+        }
 
+        public async Task CreatePasswordAsync(Password password)
+        {
+            await _context.AddAsync(password);
         }
         //method to to register user by email 
         //uses LINQ to Email from Users
@@ -31,6 +35,13 @@ namespace Web.Api.Persistence.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
         }
+
+        public async Task<List<Password>> GetPasswordsByIdAsync(Guid userId)
+        {
+
+            return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
+        }
+
         public async Task<DeviceDatum> CreateAsync(DeviceDatum device)
         {
             await _context.DeviceData.AddAsync(device);

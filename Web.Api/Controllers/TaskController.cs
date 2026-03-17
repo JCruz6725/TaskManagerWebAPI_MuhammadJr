@@ -5,7 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 //using Microsoft.Extensions.Logging;
 
 namespace Web.Api.Controllers
