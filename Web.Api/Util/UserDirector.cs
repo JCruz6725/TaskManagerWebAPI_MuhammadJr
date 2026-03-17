@@ -10,8 +10,10 @@ namespace Web.Api.Util {
 
         public User MakeAlexFarmerProfile() { 
             return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", userId: new Guid("315a341a-caa0-4137-b903-1065a97df647"))
-                .AddPassword(passwordId: new Guid("3ac086e3-ef8f-4d81-a288-25e639055983"), password: "12345", salt: "pihB2lFgBmZFHLGa2lwcrt1Ie")
+                .AddPassword(passwordId: new Guid("3ac086e3-ef8f-4d81-a288-25e639055983"), password: "oldPass", salt: "pihB2lFgBmZFHLGa2lwcrt1Ie")
+                .AddPassword(passwordId: new Guid("89299519-fd59-4e66-bde1-f0ef1becb93f"), password: "12345", salt: "ot3l46t1jAd3mVn7r/+gUmjqD")
                 .AddAddress(addressId: new Guid("409bdf27-ef73-4c4b-8de9-0064ebfb8895"), address1: "1719 Oliver Street", city: "Frisco", state: "Texas", zipcode: "75034")
+                .AddAddress(addressId: new Guid("69e017fa-d139-4f68-aa56-5a91394f8ee4"), address1: "9362 Potato Drive", city: "Tampa", state: "Florida", zipcode: "92947")
                 .AddProfile(profileId: new Guid("244efc48-6d96-4ee4-856e-ebd8ecd197a0"), DOB: new DateOnly(1998, 5, 17), phoneNumber: "3948573048", gender: "Male", education: "Highschool", employer: "None", job: "None", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
                 .AddDeviceData(deviceid: new Guid("b82b806a-dc59-4cf2-8fb3-3579a6d81d21"), ipAddress: "68.159.178.121", browserType: "Google Chrome")
 
@@ -38,7 +40,9 @@ namespace Web.Api.Util {
         public User MakeAprilRiceProfile()
         {
             return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"))
-                .AddPassword(passwordId: new Guid("0380994b-f544-4bdd-8936-42882758daef"), password: "ARice", salt: "qozIN7zNBIRWviKTOPqaQtZsB")
+                .AddPassword(passwordId: new Guid("0380994b-f544-4bdd-8936-42882758daef"), password: "aRice", salt: "qozIN7zNBIRWviKTOPqaQtZsB")
+                .AddPassword(passwordId: new Guid("4489af92-2d78-44f8-8b26-599659e3e512"), password: "blah", salt: "B7lP5EH+g25Cb66G5sBBYot6o")
+                .AddPassword(passwordId: new Guid("611cc697-e480-4b14-b3c3-a2f2a3d69473"), password: "ARice", salt: "O8DzlCjr25KJ5D40ZvLtfosMZ")
                 .AddAddress(addressId: new Guid("a4428665-17c2-4e07-9a0c-9d2095c0222a"), address1: "3466 Ella Street", city: "San Francisco", state: "California", zipcode: "94103")
                 .AddProfile(profileId: new Guid("227813e2-11e5-4613-92d3-8a58b6951aa5"), DOB: new DateOnly(2001, 11, 19), phoneNumber: "2960174063", gender: "Male", education: "Associates", employer: "BakerRipley", job: "Accountant", purposeId: purposeType.WorkId, licenseId: licenseType.PaidId)
                 .AddDeviceData(deviceid: new Guid("db84d3f5-4c59-461a-9f17-35bb1d43b6a3"), ipAddress: "121.120.255.232", browserType: "Internet Explorer")
@@ -60,6 +64,7 @@ namespace Web.Api.Util {
                 .AddAddress(addressId: new Guid("7c76902e-a5af-4421-862f-efd61a2cdfeb"), address1: "4835 Eagle Lane", city: "Fergus Falls", state: "Minnesota", zipcode: "56023")
                 .AddProfile(profileId: new Guid("a2fda3e1-3e8d-4ebb-be8f-72ccaec98dc1"), DOB: new DateOnly(1998, 12, 22), phoneNumber: "9275013965", gender: "Male", education: "Bachelors", employer: "Amazon", job: "HR specialist", purposeId: purposeType.WorkId, licenseId: licenseType.PaidId)
                 .AddDeviceData(deviceid: new Guid("75369bf5-fe66-4fce-8c1d-7596ad1eb966"), ipAddress: "62.90.171.57", browserType: "Mozilla Firefox")
+                .AddDeviceData(deviceid: new Guid("10c85849-8d26-4be8-8a2f-25e4c98714bc"), ipAddress: "63.98.925.79", browserType: "Mozilla Firefox")
 
                 .AddList(listname: "Bucket list", listId: new Guid("da604851-6dc0-40f3-bfc4-524cdf574f46"))
 
@@ -78,6 +83,7 @@ namespace Web.Api.Util {
             return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
                 .AddPassword(passwordId: new Guid("6f7a9baa-160e-493f-a265-d6ffdf489f59"), password: "abc", salt: "5P1TS8FU7M9ujq+3hCbyPzFBP")
                 .AddAddress(addressId: new Guid("555d55b2-777a-4dff-8d58-092ef4dc2168"), address1: "4806 Briarwood Drive", city: "Pennsville", state: "New Jersey", zipcode: "80870")
+                .AddAddress(addressId: new Guid("3d9240a2-55a0-41b9-9730-73b41a67441e"), address1: "9156 Hilltop Street", city: "Chicopee", state: "Massachusetts", zipcode: "93567")
                 .AddProfile(profileId: new Guid("162aa853-9999-4b37-bfcf-6e96c21e2820"), DOB: new DateOnly(1978, 2, 15), phoneNumber: "9237539184", gender: "Male", education: "Bachelors", employer: "Bank of America", job: "Financial Analysts", purposeId: purposeType.PersonalId, licenseId: licenseType.FreeId)
                 .AddDeviceData(deviceid: new Guid("c296bd80-9fb8-4917-84ca-ccf015ee0ef5"), ipAddress: "7.180.251.175", browserType: "Apple Safari")
 

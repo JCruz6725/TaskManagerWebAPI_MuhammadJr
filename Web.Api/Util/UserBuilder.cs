@@ -1,4 +1,5 @@
-﻿using ModelLibrary;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using ModelLibrary;
 
 namespace Web.Api.Util
 {
@@ -327,7 +328,27 @@ namespace Web.Api.Util
         /// </summary>
         /// <returns>The <see cref="User"/> object representing the final user.</returns>
         public User GetFinalUser() { 
-            return user;    
+            if (user.Passwords.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 password");
+            }
+            else if (user.Addresses.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 address");
+
+            }
+            else if (user.Profiles.Count != 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have 1 and only 1 profile");
+            }
+            else if (user.DeviceData.Count != 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 device data");
+            }
+            else
+            {
+                return user;
+            }
         }
     }
 }
