@@ -5,7 +5,7 @@ namespace Web.Api.Util {
     public class UserDirector(StatusChange statusChange, PurposeTypeOptions purposeType, LicenseTypeOptions licenseType) {
         /*
          When creating a new dummy user, you MUST add '.AddPassword', '.AddAddress', '.AddProfile', and '.AddDeviceData' 
-        as these are required to have one and only one for each user.
+        as these are required to have at least one and 'AddProfile' is required to have one and only one.
          */
 
         public User MakeAlexFarmerProfile() { 
