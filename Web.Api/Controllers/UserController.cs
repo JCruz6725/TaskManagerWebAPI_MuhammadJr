@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Repositories;
@@ -34,8 +35,17 @@ namespace Web.Api.Controllers
                 if (user is not null)
                 {
                     _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
-                    return BadRequest("Email already in use.");
+                    return BadRequest("Email already in use, please use a different email.");
                 }
+
+                _logger.LogInformation("Checking that password policy passes");
+                VerifyPasswordPolicy verify = new VerifyPasswordPolicy();
+                if (!verify.Verify(registerUserDto.Password)) 
+                { 
+                    return Unauthorized($"Password \"{registerUserDto.Password}\" does not comply with password policy, please try again."); 
+                }
+                _logger.LogInformation("Password Policy Passed");
+
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
                 
                 //create a new instance of User thats not existing
