@@ -50,6 +50,14 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("New user successfully created");
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
 
+                //checking if password policy passes
+                VerifyPasswordPolicy passpPolicy = new VerifyPasswordPolicy();
+                if (!passpPolicy.Verify(registerUserDto.Password))
+                {
+                    _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
+
                 //generate hashed password
                 PasswordHasher hasher = new PasswordHasher();
                 string generatedSalt = hasher.GenerateSalt();
@@ -102,7 +110,7 @@ namespace Web.Api.Controllers
                 //checking if password creation date is > 60 days ago
                 _logger.LogInformation($"Checking password expiration");
                 if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60)) {
-                    _logger.LogInformation("Password creation date has exceeded 60 days");
+                    _logger.LogWarning("Password creation date has exceeded 60 days");
                     return Unauthorized("Password has expired, please reset the password.");
                 }
 
@@ -117,6 +125,7 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
+                //checkin user exists
                 _logger.LogInformation("Checking login info");
                 User? user = await _unitOfWork.User.GetUserByEmailAsync(resetPswDto.email);
                 if (user is null)
@@ -125,6 +134,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Invalid email. Try again.");
                 }
 
+                //checking password exists
                 _logger.LogInformation("Checking password");
                 Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(user.Id)).FirstOrDefault();
                 if (databasePsw is null)
@@ -133,7 +143,7 @@ namespace Web.Api.Controllers
                     return BadRequest("No password exists for user.");
                 }
 
-                //checking password
+                //athenticating password
                 PasswordHasher hash = new PasswordHasher();
                 byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt);
                 if (!hashedOldPsw.SequenceEqual(databasePsw.PasswordHash))
@@ -143,6 +153,15 @@ namespace Web.Api.Controllers
                 }
 
                 //Email and password correct so we will create new password
+                //check password policy passes for new password
+                _logger.LogInformation("Verifying password policy passes");
+                VerifyPasswordPolicy passwordPolicy = new VerifyPasswordPolicy();
+                if (!passwordPolicy.Verify(resetPswDto.newPassword))
+                {
+                    _logger.LogWarning($"Password '{resetPswDto.newPassword}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
+
                 _logger.LogInformation("Hashing new password");
                 string generatedSalt = hash.GenerateSalt();
                 byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt);
