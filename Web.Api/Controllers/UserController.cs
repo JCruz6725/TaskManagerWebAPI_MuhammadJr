@@ -132,8 +132,8 @@ namespace Web.Api.Controllers
                 //hashing
                 PasswordHasher hash = new PasswordHasher();
                 string generatedSalt = hash.GenerateSalt();
-                byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt);
-                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt);
+                byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt); //uses salt stored in db
+                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt); //uses newly created salt
 
                 //authenticating password
                 if (!hashedOldPsw.SequenceEqual(databasePsw.PasswordHash))
@@ -149,10 +149,11 @@ namespace Web.Api.Controllers
                 List<Password> passwordHistory = await _unitOfWork.User.GetPasswordsByIdAsync(user.Id);
                 if (passwordHistory.Count >= 3) //if user has at least 3 old passwords
                 {
+                    byte[] currHashedPass;
                     for (int i = 0; i < 3; i++) 
                     {
-                        byte[] currHashPass = hash.GenerateHash(resetPswDto.newPassword, passwordHistory[i].Salt); //generate hash with the curr password's salt that we are comparing
-                        if (passwordHistory[i].PasswordHash.SequenceEqual(currHashPass))
+                        currHashedPass = hash.GenerateHash(resetPswDto.newPassword, passwordHistory[i].Salt); //generate hash using curr password's salt that we are comparing
+                        if (passwordHistory[i].PasswordHash.SequenceEqual(currHashedPass))
                         {
                             _logger.LogWarning($"Password \"{resetPswDto.newPassword}\" has been used before in one of the previous 3 passwords.");
                             return BadRequest($"Password has been used before. Please create a new password");
