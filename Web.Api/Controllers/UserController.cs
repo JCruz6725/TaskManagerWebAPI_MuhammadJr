@@ -38,11 +38,12 @@ namespace Web.Api.Controllers
                     return BadRequest("Email already in use, please use a different email.");
                 }
 
-                _logger.LogInformation("Checking that password policy passes");
-                VerifyPasswordPolicy verify = new VerifyPasswordPolicy();
-                if (!verify.Verify(registerUserDto.Password)) 
-                { 
-                    return Unauthorized($"Password \"{registerUserDto.Password}\" does not comply with password policy, please try again."); 
+                //checking if password policy passes
+                VerifyPasswordPolicy passpPolicy = new VerifyPasswordPolicy();
+                if (!passpPolicy.Verify(registerUserDto.Password))
+                {
+                    _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
                 }
                 _logger.LogInformation("Password Policy Passed");
 
@@ -60,13 +61,6 @@ namespace Web.Api.Controllers
                 _logger.LogInformation("New user successfully created");
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
 
-                //checking if password policy passes
-                VerifyPasswordPolicy passpPolicy = new VerifyPasswordPolicy();
-                if (!passpPolicy.Verify(registerUserDto.Password))
-                {
-                    _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
-                    return BadRequest("Password policy failed. Please create a password that complies");
-                }
 
                 //generate hashed password
                 PasswordHasher hasher = new PasswordHasher();
@@ -135,7 +129,7 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
-                //checkin user exists
+                //checking user exists
                 _logger.LogInformation("Checking login info");
                 User? user = await _unitOfWork.User.GetUserByEmailAsync(resetPswDto.email);
                 if (user is null)
