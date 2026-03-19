@@ -1,14 +1,8 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Mvc;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Repositories;
 using ModelLibrary;
 using Web.Api.Util;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Web.Api.Controllers
 {
@@ -117,6 +111,7 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
+                //checking user exists
                 _logger.LogInformation("Checking login info");
                 User? user = await _unitOfWork.User.GetUserByEmailAsync(resetPswDto.email);
                 if (user is null)
@@ -125,6 +120,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Invalid email. Try again.");
                 }
 
+                //checking password exists
                 _logger.LogInformation("Checking password");
                 Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(user.Id)).FirstOrDefault();
                 if (databasePsw is null)
@@ -133,9 +129,13 @@ namespace Web.Api.Controllers
                     return BadRequest("No password exists for user.");
                 }
 
-                //checking password
+                //hashing
                 PasswordHasher hash = new PasswordHasher();
+                string generatedSalt = hash.GenerateSalt();
                 byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt);
+                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt);
+
+                //authenticating password
                 if (!hashedOldPsw.SequenceEqual(databasePsw.PasswordHash))
                 {
                     _logger.LogWarning($"Invalid password for user with email: {resetPswDto.email}");
@@ -143,9 +143,24 @@ namespace Web.Api.Controllers
                 }
 
                 //Email and password correct so we will create new password
-                _logger.LogInformation("Hashing new password");
-                string generatedSalt = hash.GenerateSalt();
-                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt);
+
+                //checking that 3 previous passwords aren't being used
+                _logger.LogInformation("Checking that new password is not a duplicate of last 3 password resets");
+                List<Password> passwordHistory = await _unitOfWork.User.GetPasswordsByIdAsync(user.Id);
+                if (passwordHistory.Count >= 3) //if user has at least 3 old passwords
+                {
+                    for (int i = 0; i < 3; i++) 
+                    {
+                        byte[] currHashPass = hash.GenerateHash(resetPswDto.newPassword, passwordHistory[i].Salt); //generate hash with the curr password's salt that we are comparing
+                        if (passwordHistory[i].PasswordHash.SequenceEqual(currHashPass))
+                        {
+                            _logger.LogWarning($"Password \"{resetPswDto.newPassword}\" has been used before in one of the previous 3 passwords.");
+                            return BadRequest($"Password has been used before. Please create a new password");
+                        }
+                    }
+                }
+
+                _logger.LogInformation("Adding new password");
                 Password newPsw = new Password
                 {
                     PasswordHash = hashedNewPassword,
