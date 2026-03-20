@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Web.Api.Persistence;
-using Web.Api.Util;
 using ModelLibrary;
+using Web.Api.Persistence;
+using Web.Api.scaffolding_temp_folder;
+using Web.Api.Util;
 
 namespace Web.Api.Controllers
 {
@@ -12,14 +13,18 @@ namespace Web.Api.Controllers
     public class AdminController : ControllerBase
     {
         private readonly StatusChange statusChange;
+        private readonly PurposeTypeOptions purposeTypeOptions;
+        private readonly LicenseTypeOptions licenseTypeOptions;
         private readonly TaskManagerAppDBContext context;
         private readonly ILogger<AdminController> logger;
         const int DEFAULT_PRIORITY = 5;
 
 
-        public AdminController(IOptions<StatusChange> statusChangeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
+        public AdminController(IOptions<StatusChange> statusChangeOptions, IOptions<PurposeTypeOptions> purposeTypeOptions, IOptions<LicenseTypeOptions> licenseTypeOptions, TaskManagerAppDBContext context, ILogger<AdminController> logger)
         {
             statusChange = statusChangeOptions.Value;
+            this.purposeTypeOptions = purposeTypeOptions.Value;
+            this.licenseTypeOptions = licenseTypeOptions.Value;
             this.context = context;
             this.logger = logger;
         }
@@ -59,6 +64,12 @@ namespace Web.Api.Controllers
                     delete from Lists
                     delete from TaskItems
                     delete from Statuses
+                    delete from DeviceData
+                    delete from Address
+                    delete from Password
+                    delete from Profile
+                    delete from PurposeTypes
+                    delete from LicenseTypes
                     delete from users
                     """);
                 logger.LogInformation("Successfully removed all previous data in database");
@@ -70,8 +81,24 @@ namespace Web.Api.Controllers
                 context.Add(completedStatus);
                 logger.LogInformation("Successfully added pending and completed status'");
 
+                PurposeType educationPurpose = new() { Id = purposeTypeOptions.EducationId, PurposeTitle = purposeTypeOptions.Education };
+                PurposeType workPurpose = new() {  Id = purposeTypeOptions.WorkId, PurposeTitle = purposeTypeOptions.Work };
+                PurposeType personalPurpose = new() { Id = purposeTypeOptions.PersonalId, PurposeTitle= purposeTypeOptions.Personal };
 
-                UserDirector userDirector = new UserDirector(statusChange);
+                context.Add(educationPurpose);
+                context.Add(workPurpose);
+                context.Add(personalPurpose);
+                logger.LogInformation("Successfully added education, work, and personal purpose types");
+
+                LicenseType freeLicense = new() { Id = licenseTypeOptions.FreeId, LicenseTitle = licenseTypeOptions.Free };
+                LicenseType paidLicense = new() { Id = licenseTypeOptions.PaidId, LicenseTitle = licenseTypeOptions.Paid };
+
+                context.Add(freeLicense);
+                context.Add(paidLicense);
+                logger.LogInformation("Successfully added free and paid licensing types");
+
+
+                UserDirector userDirector = new UserDirector(statusChange, purposeTypeOptions, licenseTypeOptions);
                 context.AddRange([
                     userDirector.MakeAlexFarmerProfile(),
                     userDirector.MakeJessieHopkinsProfile(),
