@@ -1,4 +1,5 @@
-﻿using ModelLibrary;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using ModelLibrary;
 
 namespace Web.Api.Util
 {
@@ -18,7 +19,7 @@ namespace Web.Api.Util
     /// <param name="last"></param>
     /// <param name="pass"></param>
     /// <param name="userId"></param>
-    public class UserBuilder(string email, string first, string last, string pass, Guid userId) { 
+    public class UserBuilder(string email, string first, string last, Guid userId) { 
         
         private User user = new User(){
             Id = userId,
@@ -28,6 +29,72 @@ namespace Web.Api.Util
             LastName = last,
         };
 
+        public UserBuilder AddPassword(Guid passwordId, string password, string salt)
+        {
+            PasswordHasher hasher = new PasswordHasher();
+            byte[] hashedPsw = hasher.GenerateHash(password, salt);
+            Password pass = new()
+            {
+                Id = passwordId,
+                PasswordHash = hashedPsw,
+                Salt = salt,
+                CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0),
+            };
+
+            user.Passwords.Add(pass);
+            return this;
+        }
+
+        public UserBuilder AddAddress(Guid addressId, string address1, string city, string state, string zipcode)
+        {
+            Address address = new Address()
+            {
+                Id = addressId,
+                Address1 = address1,
+                City = city,
+                State = state,
+                Zipcode = zipcode
+            };
+
+            user.Addresses.Add(address);
+            return this;
+        }
+
+        public UserBuilder AddProfile(Guid profileId, DateOnly DOB, string phoneNumber, string gender, string education, string employer, string job, Guid purposeId, Guid licenseId)
+        {
+            Profile profile = new Profile()
+            {
+                Id = profileId,
+                DateOfBirth = DOB,
+                PhoneNumber = phoneNumber,
+                Gender = gender,
+                Education = education,
+                Employer = employer,
+                JobTitle = job,
+                PurposeId = purposeId,
+                LicenseId = licenseId
+            };
+
+            user.Profiles.Add(profile);
+            return this;
+        }
+
+        
+        public UserBuilder AddDeviceData(Guid deviceid, string ipAddress, string browserType)
+        {
+            DeviceDatum device = new DeviceDatum()
+            {
+                Id = deviceid,
+                IpAddress = ipAddress,
+                BrowserType = browserType,
+                AccessTime = DateTime.Now
+            };
+
+            user.DeviceData.Add(device);
+            return this;
+        }
+        
+        
         private List? currentList = null;
         private List<TaskItem> taskItems = [];
         private TaskItem? currentTaskItem = null;
@@ -261,7 +328,27 @@ namespace Web.Api.Util
         /// </summary>
         /// <returns>The <see cref="User"/> object representing the final user.</returns>
         public User GetFinalUser() { 
-            return user;    
+            if (user.Passwords.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 password");
+            }
+            else if (user.Addresses.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 address");
+
+            }
+            else if (user.Profiles.Count != 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have 1 and only 1 profile");
+            }
+            else if (user.DeviceData.Count != 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 device data");
+            }
+            else
+            {
+                return user;
+            }
         }
     }
 }
