@@ -341,7 +341,7 @@ namespace Web.Api.Util
             {
                 throw new Exception($"User {user.FirstName} {user.LastName} must have 1 and only 1 profile");
             }
-            else if (user.DeviceData.Count != 1)
+            else if (user.DeviceData.Count < 1)
             {
                 throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 device data");
             }
