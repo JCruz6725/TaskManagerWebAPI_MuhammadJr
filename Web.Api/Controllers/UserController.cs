@@ -88,7 +88,7 @@ namespace Web.Api.Controllers
             {
                 if (newExtraInfoDto == null) 
                     return BadRequest("Invalid Payload ");
-                var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+                User? user = await _unitOfWork.User.GetUserByIdAsync(userId);
 
                 if (user == null)
                     return NotFound("User Not Found");
@@ -140,7 +140,7 @@ namespace Web.Api.Controllers
                 }
 
                 Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(userLogin.Id)).FirstOrDefault();
-                if(databasePsw is null)
+                if (databasePsw is null)
                 {
                     _logger.LogWarning($"No password exists for user: {userLogin.Id} with the email: {userLoginDto.Email}");
                     return BadRequest("No password exists for user.");
@@ -156,14 +156,25 @@ namespace Web.Api.Controllers
 
                 //checking if password creation date is > 60 days ago
                 _logger.LogInformation($"Checking password expiration");
-                if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60)) {
+                if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60))
+                {
                     _logger.LogInformation("Password creation date has exceeded 60 days");
                     return Unauthorized("Password has expired, please reset the password.");
                 }
 
+                _logger.LogInformation("Checking if existing user has a profile");
+                bool hasExtraInfo = await _unitOfWork.User.HasExtraInfoAsync(userLogin.Id);
+                bool requiresExtraInfo = !hasExtraInfo;
+           
                 _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                 _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                return Ok(userLogin.Id); // return the registered GUID Id of that user
+                //return Ok(userLogin.Id); // return the registered GUID Id of that user
+
+                return Ok(new
+                {
+                    UserId = userLogin.Id,
+                    RequiresExtraInfo = requiresExtraInfo
+                });
             }
         }
 
