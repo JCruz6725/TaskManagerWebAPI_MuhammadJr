@@ -55,6 +55,7 @@ namespace Web.Api.Controllers
             {
                 CancellationTokenSource source = new CancellationTokenSource();
                 CancellationToken token = source.Token;
+                DateTimeFaker dateTimeFaker = new DateTimeFaker();
 
                 context.Database.ExecuteSqlRaw("""
                     delete from SubTasks
@@ -98,7 +99,7 @@ namespace Web.Api.Controllers
                 logger.LogInformation("Successfully added free and paid licensing types");
 
 
-                UserDirector userDirector = new UserDirector(statusChange, purposeTypeOptions, licenseTypeOptions);
+                UserDirector userDirector = new UserDirector(statusChange, purposeTypeOptions, licenseTypeOptions, dateTimeFaker);
                 context.AddRange([
                     userDirector.MakeAlexFarmerProfile(),
                     userDirector.MakeJessieHopkinsProfile(),
