@@ -478,15 +478,6 @@ namespace Web.Api.Controllers
                 return CreatedAtAction(nameof(StatusChangeComplete), new { taskId = newTaskStatus.Id }, statusResult);
             }
         }
-        //private bool HasStatusOfPending (TaskItem task) 
-        //{
-        //    if(task.TaskItemStatusHistories == task.TaskItemStatusHistories)
-        //    {
-        //        return true;
-        //    }
-        //    return false; 
-
-        //}
 
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
         public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader] Guid userId, Guid taskId)

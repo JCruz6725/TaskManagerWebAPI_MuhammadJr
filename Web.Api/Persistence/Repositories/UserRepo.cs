@@ -42,8 +42,20 @@ namespace Web.Api.Persistence.Repositories
 
             return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
         }
+        public async Task CreateAddressAsync(Address address)
+        {
+            await _context.AddAsync(address);
+        }
 
+        public async Task CreateProfileAsync(Profile profile)
+        {
+            await _context.AddAsync(profile);
+        }
         //method to check if user exists in db by Id
         public async Task<bool> IsUserInDbAsync(Guid userId) => await _context.Users.AnyAsync(u => u.Id == userId);
     }
+
+  
+
+    // address and profie 
 }

@@ -2,13 +2,15 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Options;
+using ModelLibrary;
+using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Repositories;
-using ModelLibrary;
+using Web.Api.scaffolding_temp_folder;
 using Web.Api.Util;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Web.Api.Controllers
 {
@@ -17,11 +19,18 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
+        private readonly PurposeTypeOptions purposeTypeOptions;
+        private readonly LicenseTypeOptions licenseTypeOptions;
         private readonly ILogger<UserController> _logger;
-        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger)                    //constructor for the UofW that acceses the private field
+
+        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger,
+            IOptions<LicenseTypeOptions> licenseOptions,
+            IOptions<PurposeTypeOptions> purposeOptions)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            purposeTypeOptions = purposeOptions.Value;
+            licenseTypeOptions = licenseOptions.Value;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
@@ -37,7 +46,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Email already in use.");
                 }
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
-                
+
                 //create a new instance of User thats not existing
                 //call the User props and set the registerDto to its assign props 
                 User newUser = new User
@@ -47,6 +56,7 @@ namespace Web.Api.Controllers
                     Email = registerUserDto.Email,
                     CreatedDate = DateTime.Now,
                 };
+
                 _logger.LogInformation("New user successfully created");
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
 
@@ -71,7 +81,52 @@ namespace Web.Api.Controllers
         }
 
 
-        [HttpPost("login", Name = "Login")]
+        [HttpPost( "ExtraInfo/{userId}")]
+        public async Task<ActionResult<Guid>> ExtraInfo(Guid userId , [FromBody] NewExtraInfoDto newExtraInfoDto)     //resgister User method user creation
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                if (newExtraInfoDto == null) 
+                    return BadRequest("Invalid Payload ");
+                var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+
+                if (user == null)
+                    return NotFound("User Not Found");
+
+                
+
+                Address address = new Address
+                {
+                    Address1 = newExtraInfoDto.Address1,
+                    City = newExtraInfoDto.City,
+                    State = newExtraInfoDto.State,
+                    Zipcode = newExtraInfoDto.ZipCode,
+                    CreatedUserId = user.Id
+                };
+                Profile newProfile = new Profile
+                {
+                    DateOfBirth = newExtraInfoDto.DateOfBirth,
+                    PhoneNumber = newExtraInfoDto.PhoneNumber,
+                    Gender = newExtraInfoDto.Gender,
+                    Education = newExtraInfoDto.Education,
+                    Employer =  newExtraInfoDto.Employer,
+                    JobTitle = newExtraInfoDto.JobTitle,
+                    CreatedUserId = user.Id,
+
+                    LicenseId = licenseTypeOptions.FreeId,
+                    PurposeId = purposeTypeOptions.EducationId,
+                };
+
+                await _unitOfWork.User.CreateProfileAsync(newProfile);
+                await _unitOfWork.User.CreateAddressAsync(address);                
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(userId);                         
+            }
+        }
+
+
+ [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
