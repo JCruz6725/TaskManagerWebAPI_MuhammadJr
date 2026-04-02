@@ -19,11 +19,13 @@ namespace Web.Api.Util
     /// <param name="last"></param>
     /// <param name="pass"></param>
     /// <param name="userId"></param>
-    public class UserBuilder(string email, string first, string last, Guid userId) { 
-        
-        private User user = new User(){
+    public class UserBuilder(string email, string first, string last, Guid userId, DateTimeFaker _dateTimeFaker) {
+
+        private readonly DateTimeFaker dateTimeFaker = _dateTimeFaker;
+
+        private User user = new User() {
             Id = userId,
-            CreatedDate = DateTime.Now,
+            CreatedDate = DateTime.Now.AddDays(-1),
             Email = email,
             FirstName = first,
             LastName = last,
@@ -38,7 +40,7 @@ namespace Web.Api.Util
                 Id = passwordId,
                 PasswordHash = hashedPsw,
                 Salt = salt,
-                CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0),
+                CreatedDate = dateTimeFaker.GetDateAndAdvance()
             };
 
             user.Passwords.Add(pass);
@@ -87,7 +89,7 @@ namespace Web.Api.Util
                 Id = deviceid,
                 IpAddress = ipAddress,
                 BrowserType = browserType,
-                AccessTime = DateTime.Now
+                AccessTime = dateTimeFaker.GetDateAndAdvance()
             };
 
             user.DeviceData.Add(device);
@@ -109,7 +111,7 @@ namespace Web.Api.Util
         public UserBuilder AddList(string listname, Guid listId) {
             List list = new() {
                 Id = listId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Name = listname,
 
@@ -141,7 +143,7 @@ namespace Web.Api.Util
 
             TaskItem taskItem = new() {
                 Id = taskId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Title = taskname,
                 Priority = priority,
@@ -149,7 +151,7 @@ namespace Web.Api.Util
                     new TaskItemStatusHistory(){
                         Id = taskItemStatusHistoryId,
                         StatusId = statusId,
-                        CreatedDate = DateTime.Now,
+                        CreatedDate = dateTimeFaker.GetDateAndAdvance(), 
                         CreatedUser = user,
                     }
                 ]
@@ -157,7 +159,7 @@ namespace Web.Api.Util
 
             currentList.TaskWithinLists.Add(
                 new TaskWithinList() { 
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     CreatedUser= user,
                     TaskItem = taskItem
                 }
@@ -173,7 +175,7 @@ namespace Web.Api.Util
         public UserBuilder AddOrphanTask(string taskname, Guid statusId, int priority, Guid taskId, Guid taskItemStatusHistoryId) {
             TaskItem taskItem = new() {
                 Id = taskId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Title = taskname,
                 Priority = priority,
@@ -181,7 +183,7 @@ namespace Web.Api.Util
                     new TaskItemStatusHistory(){
                         Id= taskItemStatusHistoryId,
                         StatusId = statusId,
-                        CreatedDate = DateTime.Now,
+                        CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                         CreatedUser = user,
                     }
                 ]
@@ -214,7 +216,7 @@ namespace Web.Api.Util
                 new TaskItemNote() { 
                     Id= noteId,
                     CreatedUser = user,
-                    CreatedDate= DateTime.Now,
+                    CreatedDate= dateTimeFaker.GetDateAndAdvance(),
                     Note = content
                 }
             );
@@ -241,7 +243,7 @@ namespace Web.Api.Util
                 new TaskItemStatusHistory() { 
                     Id = taskItemStatusHistoryId,
                     CreatedUser = user,
-                    CreatedDate= DateTime.Now,
+                    CreatedDate= dateTimeFaker.GetDateAndAdvance(),
                     StatusId = statusId
                 }
             );
@@ -265,7 +267,7 @@ namespace Web.Api.Util
                 new SubTask() { 
                     Id= subTaskId,
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = user.Lists.Single(l => l.Name == listnameP).TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
                     SubTaskItem = user.Lists.Single(l => l.Name == listnameC).TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
                 }
@@ -295,7 +297,7 @@ namespace Web.Api.Util
             user.SubTasks.Add(
                 new SubTask() { 
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
                     SubTaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
                 }
@@ -315,7 +317,7 @@ namespace Web.Api.Util
             user.SubTasks.Add(
                 new SubTask() { 
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = taskItems.Single(ti => ti.Title == parent ),
                     SubTaskItem = taskItems.Single(ti => ti.Title == child ),
                 }
@@ -341,7 +343,7 @@ namespace Web.Api.Util
             {
                 throw new Exception($"User {user.FirstName} {user.LastName} must have 1 and only 1 profile");
             }
-            else if (user.DeviceData.Count != 1)
+            else if (user.DeviceData.Count < 1)
             {
                 throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 device data");
             }
