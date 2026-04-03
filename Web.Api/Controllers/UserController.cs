@@ -86,20 +86,28 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
-                if (newExtraInfoDto == null) 
+                _logger.LogInformation("Intiating ExtraInfo Method");
+
+                if (newExtraInfoDto == null)
+                {
+                    _logger.LogWarning("ExtraInfo payload is null");
                     return BadRequest("Invalid Payload ");
+                }
+                _logger.LogInformation($"Fetching users with Id{userId}");
                 User? user = await _unitOfWork.User.GetUserByIdAsync(userId);
-
                 if (user == null)
-                    return NotFound("User Not Found");
-
+                {
+                    _logger.LogWarning($"User not found with id {userId}");
+                     return NotFound("User Not Found");
+                 }
+                _logger.LogInformation($"Resolving license type for :{newExtraInfoDto.LicenseTitle}");
                 Guid licenseId = newExtraInfoDto.LicenseTitle.ToLower() switch
                 {
                     "paid" => licenseTypeOptions.PaidId,
                     "free" => licenseTypeOptions.FreeId
                 };
-                
-               
+
+                _logger.LogInformation($"Resolving purpose type for:{newExtraInfoDto.PurposeTitle}");  
                 Guid purposeId = newExtraInfoDto.PurposeTitle.ToLower() switch
                 {
                     "work" => purposeTypeOptions.WorkId,
@@ -107,6 +115,7 @@ namespace Web.Api.Controllers
                     "personal" => purposeTypeOptions.PersonalId
                 };
 
+                _logger.LogInformation($"Creating address for user {userId}");
                 Address address = new Address
                 {
                     Address1 = newExtraInfoDto.Address1,
@@ -115,6 +124,7 @@ namespace Web.Api.Controllers
                     Zipcode = newExtraInfoDto.ZipCode,
                     CreatedUserId = user.Id
                 };
+                _logger.LogInformation($"Creating profile for user {userId}");
                 Profile newProfile = new Profile
                 {
                     DateOfBirth = newExtraInfoDto.DateOfBirth,
@@ -124,14 +134,16 @@ namespace Web.Api.Controllers
                     Employer =  newExtraInfoDto.Employer,
                     JobTitle = newExtraInfoDto.JobTitle,
                     CreatedUserId = user.Id,
-
                     LicenseId = licenseId,
                     PurposeId = purposeId
                 };
-
+               
                 await _unitOfWork.User.CreateProfileAsync(newProfile);
-                await _unitOfWork.User.CreateAddressAsync(address);                
+                _logger.LogInformation($"Profile succesfully create for user {userId}");
+                await _unitOfWork.User.CreateAddressAsync(address);
+                _logger.LogInformation($"Address succesfully created for user{userId}");
                 await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation($"ExtraInfo saved succesfully, returning the userId {userId}");
 
                 return Ok(userId);                         
             }
