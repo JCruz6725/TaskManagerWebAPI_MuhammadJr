@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using ModelLibrary;
 
-namespace Web.Api.Persistence;
+namespace Web.Api.scaffolding_temp_folder;
 
 public partial class TaskManagerAppDBContext : DbContext
 {
@@ -74,6 +74,7 @@ public partial class TaskManagerAppDBContext : DbContext
         modelBuilder.Entity<DeviceDatum>(entity =>
         {
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.AccessTime).HasColumnType("datetime");
             entity.Property(e => e.BrowserType)
                 .HasMaxLength(64)
                 .IsUnicode(false);
