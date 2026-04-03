@@ -81,8 +81,8 @@ namespace Web.Api.Controllers
         }
 
 
-        [HttpPost( "ExtraInfo/{userId}")]
-        public async Task<ActionResult<Guid>> ExtraInfo(Guid userId , [FromBody] NewExtraInfoDto newExtraInfoDto)     //resgister User method user creation
+        [HttpPost( "ExtraInfo")]
+        public async Task<ActionResult<Guid>> ExtraInfo([FromHeader]Guid userId , [FromBody] NewExtraInfoDto newExtraInfoDto)     //resgister User method user creation
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
@@ -93,7 +93,19 @@ namespace Web.Api.Controllers
                 if (user == null)
                     return NotFound("User Not Found");
 
+                Guid licenseId = newExtraInfoDto.LicenseTitle.ToLower() switch
+                {
+                    "paid" => licenseTypeOptions.PaidId,
+                    "free" => licenseTypeOptions.FreeId
+                };
                 
+               
+                Guid purposeId = newExtraInfoDto.PurposeTitle.ToLower() switch
+                {
+                    "work" => purposeTypeOptions.WorkId,
+                    "education" => purposeTypeOptions.EducationId,
+                    "personal" => purposeTypeOptions.PersonalId
+                };
 
                 Address address = new Address
                 {
@@ -113,8 +125,8 @@ namespace Web.Api.Controllers
                     JobTitle = newExtraInfoDto.JobTitle,
                     CreatedUserId = user.Id,
 
-                    LicenseId = licenseTypeOptions.FreeId,
-                    PurposeId = purposeTypeOptions.EducationId,
+                    LicenseId = licenseId,
+                    PurposeId = purposeId
                 };
 
                 await _unitOfWork.User.CreateProfileAsync(newProfile);
