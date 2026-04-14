@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ModelLibrary;
 using System.Threading.Tasks;
-using Web.Api.Persistence.Models;
+using Web.Api.scaffolding_temp_folder;
 
 namespace Web.Api.Persistence.Repositories
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
 
-namespace Web.Api.Persistence;
+namespace Web.Api.scaffolding_temp_folder;
 
 public partial class TaskManagerAppDBContext : DbContext
 {
@@ -16,7 +16,19 @@ public partial class TaskManagerAppDBContext : DbContext
     {
     }
 
+    public virtual DbSet<Address> Addresses { get; set; }
+
+    public virtual DbSet<DeviceDatum> DeviceData { get; set; }
+
+    public virtual DbSet<LicenseType> LicenseTypes { get; set; }
+
     public virtual DbSet<List> Lists { get; set; }
+
+    public virtual DbSet<Password> Passwords { get; set; }
+
+    public virtual DbSet<Profile> Profiles { get; set; }
+
+    public virtual DbSet<PurposeType> PurposeTypes { get; set; }
 
     public virtual DbSet<Status> Statuses { get; set; }
 
@@ -34,6 +46,56 @@ public partial class TaskManagerAppDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Address>(entity =>
+        {
+            entity.ToTable("Address");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Address1)
+                .HasMaxLength(64)
+                .IsUnicode(false)
+                .HasColumnName("Address");
+            entity.Property(e => e.City)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.State)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Zipcode)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CreatedUser).WithMany(p => p.Addresses)
+                .HasForeignKey(d => d.CreatedUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Address_Users");
+        });
+
+        modelBuilder.Entity<DeviceDatum>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.AccessTime).HasColumnType("datetime");
+            entity.Property(e => e.BrowserType)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CreatedUser).WithMany(p => p.DeviceData)
+                .HasForeignKey(d => d.CreatedUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_DeviceData_Users");
+        });
+
+        modelBuilder.Entity<LicenseType>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.LicenseTitle)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<List>(entity =>
         {
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
@@ -46,6 +108,68 @@ public partial class TaskManagerAppDBContext : DbContext
                 .HasForeignKey(d => d.CreatedUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Lists_Users");
+        });
+
+        modelBuilder.Entity<Password>(entity =>
+        {
+            entity.ToTable("Password");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.PasswordHash).HasMaxLength(64);
+            entity.Property(e => e.Salt)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CreatedUser).WithMany(p => p.Passwords)
+                .HasForeignKey(d => d.CreatedUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Password_Users");
+        });
+
+        modelBuilder.Entity<Profile>(entity =>
+        {
+            entity.ToTable("Profile");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Education)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Employer)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Gender)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.JobTitle)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CreatedUser).WithMany(p => p.Profiles)
+                .HasForeignKey(d => d.CreatedUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Profile_Users");
+
+            entity.HasOne(d => d.License).WithMany(p => p.Profiles)
+                .HasForeignKey(d => d.LicenseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Profile_LicenseTypes");
+
+            entity.HasOne(d => d.Purpose).WithMany(p => p.Profiles)
+                .HasForeignKey(d => d.PurposeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Profile_PurposeTypes");
+        });
+
+        modelBuilder.Entity<PurposeType>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.PurposeTitle)
+                .HasMaxLength(64)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Status>(entity =>
@@ -163,9 +287,6 @@ public partial class TaskManagerAppDBContext : DbContext
                 .HasMaxLength(64)
                 .IsUnicode(false);
             entity.Property(e => e.LastName)
-                .HasMaxLength(64)
-                .IsUnicode(false);
-            entity.Property(e => e.Password)
                 .HasMaxLength(64)
                 .IsUnicode(false);
         });

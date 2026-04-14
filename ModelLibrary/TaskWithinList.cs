@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Web.Api.Persistence.Models;
+namespace ModelLibrary;
 
-public partial class SubTask
+public partial class TaskWithinList
 {
-    public Guid Id { get; set; }
+    public Guid TaskListId { get; set; }
 
     public Guid TaskItemId { get; set; }
-
-    public Guid SubTaskItemId { get; set; }
 
     public DateTime CreatedDate { get; set; }
 
@@ -17,7 +15,7 @@ public partial class SubTask
 
     public virtual User CreatedUser { get; set; } = null!;
 
-    public virtual TaskItem SubTaskItem { get; set; } = null!;
-
     public virtual TaskItem TaskItem { get; set; } = null!;
+
+    public virtual List TaskList { get; set; } = null!;
 }

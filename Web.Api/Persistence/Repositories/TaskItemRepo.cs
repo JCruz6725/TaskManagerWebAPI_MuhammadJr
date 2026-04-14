@@ -1,19 +1,18 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ModelLibrary;
 using System.Threading.Tasks;
-using Web.Api.Persistence.Models;
+using Web.Api.scaffolding_temp_folder;
 
 namespace Web.Api.Persistence.Repositories
 {
     public class TaskItemRepo
     {
         private readonly TaskManagerAppDBContext _context;
-
-
         public TaskItemRepo(TaskManagerAppDBContext context)
-        { 
-            _context = context;  
+        {
+            _context = context;
         }
 
         /// <summary>
@@ -24,8 +23,14 @@ namespace Web.Api.Persistence.Repositories
         /// <returns></returns>
         public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems.Include(item => item.TaskItemNotes).Include(history => history.TaskItemStatusHistories)
-                .ThenInclude(stat => stat.Status).SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems
+                .Include(item => item.TaskItemNotes)
+                .Include(item => item.SubTaskSubTaskItems)
+                .Include(item => item.SubTaskTaskItems)
+                .Include(history => history.TaskItemStatusHistories)
+                    .ThenInclude(stat => stat.Status)
+                 .Include(e => e.TaskWithinLists)
+                .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)
@@ -39,22 +44,21 @@ namespace Web.Api.Persistence.Repositories
             await _context.AddAsync(taskItemItemNote);
         }
 
-        public IEnumerable<TaskItemNote>  GetAllNotes(Guid taskId)
+        public IEnumerable<TaskItemNote> GetAllNotes(Guid taskId)
         {
             throw new NotImplementedException();
         }
 
         public void DeleteNote(TaskItemNote taskItemNote)
         {
-             _context.Remove(taskItemNote);
+            _context.Remove(taskItemNote);
         }
-
         public async Task DeleteTask(TaskItem taskItem)
         {
             // searches for any task or subtask containing the same Taskitem.ID
-            SubTask[]  AllSubTask =  await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
+            SubTask[] AllSubTask = await _context.SubTasks.Where(st => st.TaskItemId == taskItem.Id || st.SubTaskItemId == taskItem.Id).ToArrayAsync();
             _context.RemoveRange(AllSubTask);
-           
+
             TaskWithinList[] taskWithinList = await _context.TaskWithinLists.Where(twl => twl.TaskItemId == taskItem.Id).ToArrayAsync();
             _context.RemoveRange(taskWithinList);
 
@@ -72,6 +76,16 @@ namespace Web.Api.Persistence.Repositories
             }
 
             _context.Remove(taskselection);
+        }
+
+        public async Task DeleteSubTask(SubTask subTaskItem)
+        {
+            _context.Remove(subTaskItem);
+        }
+
+        public void DeleteTaskWithinLists(TaskWithinList taskWithinLists)
+        {
+            _context.Remove(taskWithinLists);
         }
     }
 }

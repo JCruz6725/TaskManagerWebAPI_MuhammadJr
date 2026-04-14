@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Web.Api.Persistence.Models;
+using ModelLibrary;
+using Web.Api.scaffolding_temp_folder;
 
 namespace Web.Api.Persistence.Repositories
 {
@@ -17,7 +18,11 @@ namespace Web.Api.Persistence.Repositories
         public async Task CreateUserAsync(User user)                  //user method is created 
         {                       
            await _context.AddAsync(user);                           //users are added to the db, this method will be used to always add a new user 
+        }
 
+        public async Task CreatePasswordAsync(Password password)
+        {
+            await _context.AddAsync(password);
         }
                                                          //method to to register user by email 
                                                          //uses LINQ to Email from Users
@@ -30,6 +35,12 @@ namespace Web.Api.Persistence.Repositories
         public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.Users.FirstOrDefaultAsync(ui => ui.Id == userId);
+        }
+
+        public async Task<List<Password>> GetPasswordsByIdAsync(Guid userId)
+        {
+
+            return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
         }
 
         //method to check if user exists in db by Id
