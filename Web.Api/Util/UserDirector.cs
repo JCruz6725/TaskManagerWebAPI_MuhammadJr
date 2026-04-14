@@ -2,14 +2,14 @@
 using ModelLibrary;
 
 namespace Web.Api.Util {
-    public class UserDirector(StatusChange statusChange, PurposeTypeOptions purposeType, LicenseTypeOptions licenseType) {
+    public class UserDirector(StatusChange statusChange, PurposeTypeOptions purposeType, LicenseTypeOptions licenseType, DateTimeFaker dateTimeFaker) {
         /*
          When creating a new dummy user, you MUST add '.AddPassword', '.AddAddress', '.AddProfile', and '.AddDeviceData' 
         as these are required to have at least one and 'AddProfile' is required to have one and only one.
          */
 
         public User MakeAlexFarmerProfile() { 
-            return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", userId: new Guid("315a341a-caa0-4137-b903-1065a97df647"))
+            return new UserBuilder(email: "AFarmer@email.com", first: "Alex", last: "Farmer", userId: new Guid("315a341a-caa0-4137-b903-1065a97df647"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("3ac086e3-ef8f-4d81-a288-25e639055983"), password: "oldPass", salt: "pihB2lFgBmZFHLGa2lwcrt1Ie")
                 .AddPassword(passwordId: new Guid("89299519-fd59-4e66-bde1-f0ef1becb93f"), password: "12345", salt: "ot3l46t1jAd3mVn7r/+gUmjqD")
                 .AddAddress(addressId: new Guid("409bdf27-ef73-4c4b-8de9-0064ebfb8895"), address1: "1719 Oliver Street", city: "Frisco", state: "Texas", zipcode: "75034")
@@ -22,7 +22,7 @@ namespace Web.Api.Util {
 
         public User MakeJessieHopkinsProfile()
         {
-            return new UserBuilder(email: "JHopkins@email.com", first: "Jessie", last: "Hopkins", userId: new Guid("b631308c-a4d6-4bbd-a935-3b6a10d2d52d"))
+            return new UserBuilder(email: "JHopkins@email.com", first: "Jessie", last: "Hopkins", userId: new Guid("b631308c-a4d6-4bbd-a935-3b6a10d2d52d"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("4c7523db-e19a-44d8-9bdb-c25f93765015"), password: "password", salt: "B8Gc/af3w2EgunorV/xrM4DT/")
                 .AddAddress(addressId: new Guid("8e1518b2-669f-42b6-9bb1-4fb4aa71d7bd"), address1: "3852 Reppert Coal Road", city: "Warren", state: "Michigan", zipcode: "48930")
                 .AddProfile(profileId: new Guid("5860e641-ebfd-45d1-a604-2f67a14fee6c"), DOB: new DateOnly(2000, 4, 22), phoneNumber: "3950384956", gender: "Female", education: "Highschool", employer: "Olive Garden", job: "Server", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
@@ -39,7 +39,7 @@ namespace Web.Api.Util {
 
         public User MakeAprilRiceProfile()
         {
-            return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"))
+            return new UserBuilder(email: "ARice@email.com", first: "April", last: "Rice", userId: new Guid("2157303f-4e90-4e43-82b0-ae93c44d85ed"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("0380994b-f544-4bdd-8936-42882758daef"), password: "aRice", salt: "qozIN7zNBIRWviKTOPqaQtZsB")
                 .AddPassword(passwordId: new Guid("4489af92-2d78-44f8-8b26-599659e3e512"), password: "blah", salt: "B7lP5EH+g25Cb66G5sBBYot6o")
                 .AddPassword(passwordId: new Guid("611cc697-e480-4b14-b3c3-a2f2a3d69473"), password: "ARice", salt: "O8DzlCjr25KJ5D40ZvLtfosMZ")
@@ -59,7 +59,7 @@ namespace Web.Api.Util {
 
         public User MakeNikoLoganProfile()
         {
-            return new UserBuilder(email: "Nlogan@email.com", first: "Niko", last: "Logan", userId: new Guid("87c42ac5-cda9-4672-9fb9-3bd7c8d93363"))
+            return new UserBuilder(email: "Nlogan@email.com", first: "Niko", last: "Logan", userId: new Guid("87c42ac5-cda9-4672-9fb9-3bd7c8d93363"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("95e4fd93-dcdc-4670-8b98-c483dcb37a6c"), password: "abc", salt: "ZcikRtHvoa/CbMfZ2ofQGmV6Q")
                 .AddAddress(addressId: new Guid("7c76902e-a5af-4421-862f-efd61a2cdfeb"), address1: "4835 Eagle Lane", city: "Fergus Falls", state: "Minnesota", zipcode: "56023")
                 .AddProfile(profileId: new Guid("a2fda3e1-3e8d-4ebb-be8f-72ccaec98dc1"), DOB: new DateOnly(1998, 12, 22), phoneNumber: "9275013965", gender: "Male", education: "Bachelors", employer: "Amazon", job: "HR specialist", purposeId: purposeType.WorkId, licenseId: licenseType.PaidId)
@@ -80,7 +80,7 @@ namespace Web.Api.Util {
 
         public User MakeChuckFinleyProfile()
         {
-            return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"))
+            return new UserBuilder(email: "chuck.finley@email.com", first: "Chuck", last: "Finley", userId: new Guid("8051a558-6f25-409b-9823-d5f5603ee625"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("6f7a9baa-160e-493f-a265-d6ffdf489f59"), password: "abc", salt: "5P1TS8FU7M9ujq+3hCbyPzFBP")
                 .AddAddress(addressId: new Guid("555d55b2-777a-4dff-8d58-092ef4dc2168"), address1: "4806 Briarwood Drive", city: "Pennsville", state: "New Jersey", zipcode: "80870")
                 .AddAddress(addressId: new Guid("3d9240a2-55a0-41b9-9730-73b41a67441e"), address1: "9156 Hilltop Street", city: "Chicopee", state: "Massachusetts", zipcode: "93567")
@@ -129,7 +129,7 @@ namespace Web.Api.Util {
 
         public User MakeIrenePetersonProfile()
         {
-            return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"))
+            return new UserBuilder(email: "irene.peterson@email.com", first: "Irene", last: "Peterson", userId: new Guid("acba2ef3-bc1a-4484-8314-55ec5d951a4a"), dateTimeFaker)
                 .AddPassword(passwordId: new Guid("fc75be3c-427b-4310-b8aa-159f8d5dbf7f"), password: "secret", salt: "EMORxJzildiU6wUrC+CTozUOB")
                 .AddAddress(addressId: new Guid("9d86828c-79b3-4e83-9016-873509d3bc78"), address1: "3751 Southern Street", city: "Brentwood", state: "New York", zipcode: "11717")
                 .AddProfile(profileId: new Guid("2cfb69fa-ae5c-404d-b1aa-144a64ee7d89"), DOB: new DateOnly(2010, 8, 13), phoneNumber: "5129428563", gender: "Female", education: "Highschool", employer: "None", job: "None", purposeId: purposeType.EducationId, licenseId: licenseType.FreeId)
