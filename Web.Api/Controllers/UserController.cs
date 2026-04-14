@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using ModelLibrary;
@@ -28,8 +30,18 @@ namespace Web.Api.Controllers
                 if (user is not null)
                 {
                     _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
-                    return BadRequest("Email already in use.");
+                    return BadRequest("Email already in use, please use a different email.");
                 }
+
+                //checking if password policy passes
+                VerifyPasswordPolicy passpPolicy = new VerifyPasswordPolicy();
+                if (!passpPolicy.Verify(registerUserDto.Password))
+                {
+                    _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
+                _logger.LogInformation("Password Policy Passed");
+
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
                 
                 //create a new instance of User thats not existing
@@ -43,6 +55,7 @@ namespace Web.Api.Controllers
                 };
                 _logger.LogInformation("New user successfully created");
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+
 
                 //generate hashed password
                 PasswordHasher hasher = new PasswordHasher();
@@ -96,7 +109,7 @@ namespace Web.Api.Controllers
                 //checking if password creation date is > 60 days ago
                 _logger.LogInformation($"Checking password expiration");
                 if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60)) {
-                    _logger.LogInformation("Password creation date has exceeded 60 days");
+                    _logger.LogWarning("Password creation date has exceeded 60 days");
                     return Unauthorized("Password has expired, please reset the password.");
                 }
 
@@ -129,7 +142,6 @@ namespace Web.Api.Controllers
                     return BadRequest("No password exists for user.");
                 }
 
-                //hashing
                 PasswordHasher hash = new PasswordHasher();
                 string generatedSalt = hash.GenerateSalt();
                 byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt); //uses salt stored in db
@@ -143,6 +155,14 @@ namespace Web.Api.Controllers
                 }
 
                 //Email and password correct so we will create new password
+                //check password policy passes for new password
+                _logger.LogInformation("Verifying password policy passes");
+                VerifyPasswordPolicy passwordPolicy = new VerifyPasswordPolicy();
+                if (!passwordPolicy.Verify(resetPswDto.newPassword))
+                {
+                    _logger.LogWarning($"Password '{resetPswDto.newPassword}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
 
                 //checking that 3 previous passwords aren't being used
                 _logger.LogInformation("Checking that new password is not a duplicate of last 3 password resets");
