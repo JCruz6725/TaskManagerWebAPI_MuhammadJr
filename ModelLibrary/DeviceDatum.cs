@@ -13,14 +13,6 @@ public partial class DeviceDatum
 
     public DateTime AccessTime { get; set; }
 
-        public int AccessCount { get; set; }
-
-        public int AccessCount { get; set; }
-
-        public int AccessCount { get; set; }
-
-        public int AccessCount { get; set; }
-
     public Guid CreatedUserId { get; set; }
 
     public virtual User CreatedUser { get; set; } = null!;
