@@ -71,7 +71,7 @@ namespace Web.Api.Controllers
                     return Ok(newUser.Id);                                    //a new Id Guid is return once user is registered
                 }
             }
-            catch (Excpetion ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"Register user process has failed: {ex.Message}");
                 return StatusCode(500);
@@ -82,41 +82,50 @@ namespace Web.Api.Controllers
         [HttpPost("login", Name = "Login")]
         public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            try
             {
-                _logger.LogInformation("Initiating Login method");
-                User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
-                if (userLogin is null)
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    _logger.LogWarning($"Invalid user email: {userLoginDto.Email}");
-                    return BadRequest("Invalid email, try again.");
-                }
+                    _logger.LogInformation("Initiating Login method");
+                    User? userLogin = await _unitOfWork.User.GetUserByEmailAsync(userLoginDto.Email);   //get user from UofW and user email from UserRepo
+                    if (userLogin is null)
+                    {
+                        _logger.LogWarning($"Invalid user email: {userLoginDto.Email}");
+                        return BadRequest("Invalid email, try again.");
+                    }
 
-                Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(userLogin.Id)).FirstOrDefault();
-                if(databasePsw is null)
-                {
-                    _logger.LogWarning($"No password exists for user: {userLogin.Id} with the email: {userLoginDto.Email}");
-                    return BadRequest("No password exists for user.");
-                }
+                    Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(userLogin.Id)).FirstOrDefault();
+                    if (databasePsw is null)
+                    {
+                        _logger.LogWarning($"No password exists for user: {userLogin.Id} with the email: {userLoginDto.Email}");
+                        return BadRequest("No password exists for user.");
+                    }
 
-                PasswordHasher hash = new PasswordHasher();
-                byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, databasePsw.Salt);
-                if (!hashedPsw.SequenceEqual(databasePsw.PasswordHash))
-                {
-                    _logger.LogWarning($"Invalid password for user with email: {userLoginDto.Email}");
-                    return Unauthorized("Invalid password, try again");
-                }
+                    PasswordHasher hash = new PasswordHasher();
+                    byte[] hashedPsw = hash.GenerateHash(userLoginDto.Password, databasePsw.Salt);
+                    if (!hashedPsw.SequenceEqual(databasePsw.PasswordHash))
+                    {
+                        _logger.LogWarning($"Invalid password for user with email: {userLoginDto.Email}");
+                        return Unauthorized("Invalid password, try again");
+                    }
 
-                //checking if password creation date is > 60 days ago
-                _logger.LogInformation($"Checking password expiration");
-                if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60)) {
-                    _logger.LogInformation("Password creation date has exceeded 60 days");
-                    return Unauthorized("Password has expired, please reset the password.");
-                }
+                    //checking if password creation date is > 60 days ago
+                    _logger.LogInformation($"Checking password expiration");
+                    if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60))
+                    {
+                        _logger.LogInformation("Password creation date has exceeded 60 days");
+                        return Unauthorized("Password has expired, please reset the password.");
+                    }
 
-                _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
-                _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                return Ok(userLogin.Id); // return the registered GUID Id of that user
+                    _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
+                    _logger.LogInformation($"Returning user login id {userLogin.Id}");
+                    return Ok(userLogin.Id); // return the registered GUID Id of that user
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"User log in process has failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
 

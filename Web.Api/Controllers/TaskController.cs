@@ -77,7 +77,7 @@ namespace Web.Api.Controllers
                     return Ok(taskDetail);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError($"Get task by id process failed: {ex.Message}");
                 return StatusCode(500);
@@ -89,7 +89,7 @@ namespace Web.Api.Controllers
         {
             try
             {
-                using (_logger.BeginScope(new Dictionary<string, object>{["TransactionId"] = HttpContext.TraceIdentifier, }))
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
                     _logger.LogInformation("Initiating CreateTask method");
                     if (!await _unitOfWork.User.IsUserInDbAsync(userId))
@@ -109,7 +109,7 @@ namespace Web.Api.Controllers
                     }
 
                     if (taskCreatedDto.ListId.HasValue)
-                    { 
+                    {
                         List? list = await _unitOfWork.List.GetListByIdAsync(taskCreatedDto.ListId.Value, userId);
                         if (list is null)
                         {
@@ -427,14 +427,14 @@ namespace Web.Api.Controllers
                                         .OrderByDescending(c => c.CreatedDate)
                                         .FirstOrDefault();
                 //Check if the latest status is not complete (StatusId != CompleteId)
-                bool inCompletedChild =latestStatus!.StatusId != _statusChange.CompleteId;
+                bool inCompletedChild = latestStatus!.StatusId != _statusChange.CompleteId;
 
                 //If task is incomplete return true
                 if (inCompletedChild)
                 {
                     return true;
                 }
-                
+
                 //Recursiveley check for any SubTask that is incomplete
                 if (HasIncompletedDescendants(child))
                 {
@@ -539,76 +539,84 @@ namespace Web.Api.Controllers
         [HttpPost("{taskId}/status-change/pending", Name = "StatusChangePending")]
         public async Task<ActionResult<TaskDto>> StatusChangePending([FromHeader] Guid userId, Guid taskId)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            try
             {
-                _logger.LogInformation("Initiating StatusChangePending method");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    _logger.LogWarning($"UserId {userId} not authorized");
-                    return StatusCode(403);
-                }
+                    _logger.LogInformation("Initiating StatusChangePending method");
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        _logger.LogWarning($"UserId {userId} not authorized");
+                        return StatusCode(403);
+                    }
 
-                TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
-                if (taskItem is null)
-                {
-                    _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
-                    return NotFound(taskId);
-                }
-                var latestStatus = taskItem.TaskItemStatusHistories
-                    .OrderByDescending(s => s.CreatedDate)
-                    .FirstOrDefault();
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    if (taskItem is null)
+                    {
+                        _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
+                        return NotFound(taskId);
+                    }
+                    var latestStatus = taskItem.TaskItemStatusHistories
+                        .OrderByDescending(s => s.CreatedDate)
+                        .FirstOrDefault();
 
-                if (latestStatus != null && latestStatus.StatusId != _statusChange.CompleteId)
-                {
-                    return StatusCode(403);
-                }
-        
+                    if (latestStatus != null && latestStatus.StatusId != _statusChange.CompleteId)
+                    {
+                        return StatusCode(403);
+                    }
+
                     //add new status history for Complete
                     //Reuest DTO
                     TaskItemStatusHistory newTaskStatus = new TaskItemStatusHistory
-                {
-                    TaskItemId = taskItem.Id,
-                    StatusId = _statusChange.PendingId,
-                    CreatedDate = DateTime.Now,
-                    CreatedUserId = userId,
-                };
-
-
-                taskItem.TaskItemStatusHistories.Add(newTaskStatus);
-                await _unitOfWork.SaveChangesAsync();
-                _logger.LogInformation($"Status Change to Pending is Successfull for userId {userId}");
-
-                //Response DTO
-                TaskDto statusResult = new TaskDto
-                {
-                    Id = taskItem.Id,
-                    Title = taskItem.Title,
-                    DueDate = taskItem.DueDate,
-                    Priority = taskItem.Priority,
-                    ParentTaskId = taskItem.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
-
-                    Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
                     {
-                        Id = n.Id,
-                        TaskItemId = n.TaskItemId,
-                        Note = n.Note,
-                        CreatedDate = n.CreatedDate,
-                        CreatedUser = n.CreatedUserId
-                    }).ToList(),
+                        TaskItemId = taskItem.Id,
+                        StatusId = _statusChange.PendingId,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId,
+                    };
 
-                    CurrentStatus = new StatusDto
+
+                    taskItem.TaskItemStatusHistories.Add(newTaskStatus);
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation($"Status Change to Pending is Successfull for userId {userId}");
+
+                    //Response DTO
+                    TaskDto statusResult = new TaskDto
                     {
-                        Id = _statusChange.PendingId,
-                        Name = _statusChange.Pending,
-                        Code = _statusChange.Code1
-                    },
+                        Id = taskItem.Id,
+                        Title = taskItem.Title,
+                        DueDate = taskItem.DueDate,
+                        Priority = taskItem.Priority,
+                        ParentTaskId = taskItem.SubTaskSubTaskItems.FirstOrDefault()?.TaskItemId,
 
-                    CreatedDate = taskItem.CreatedDate,
-                    CreatedUserId = taskItem.CreatedUserId,
-                };
-                _logger.LogInformation($"Status changed to Pending result for TaskId {taskItem.Id} and UserId {userId}");
-                _logger.LogInformation("Returning the status changed to pending result");
-                return CreatedAtAction(nameof(StatusChangePending), new { taskId = newTaskStatus.Id }, statusResult);
+                        Notes = taskItem.TaskItemNotes.Select(n => new NoteDto
+                        {
+                            Id = n.Id,
+                            TaskItemId = n.TaskItemId,
+                            Note = n.Note,
+                            CreatedDate = n.CreatedDate,
+                            CreatedUser = n.CreatedUserId
+                        }).ToList(),
+
+                        CurrentStatus = new StatusDto
+                        {
+                            Id = _statusChange.PendingId,
+                            Name = _statusChange.Pending,
+                            Code = _statusChange.Code1
+                        },
+
+                        CreatedDate = taskItem.CreatedDate,
+                        CreatedUserId = taskItem.CreatedUserId,
+                    };
+                    _logger.LogInformation($"Status changed to Pending result for TaskId {taskItem.Id} and UserId {userId}");
+                    _logger.LogInformation("Returning the status changed to pending result");
+                    return CreatedAtAction(nameof(StatusChangePending), new { taskId = newTaskStatus.Id }, statusResult);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Pending Status Change Process failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
 
