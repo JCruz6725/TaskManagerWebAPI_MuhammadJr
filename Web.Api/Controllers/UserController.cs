@@ -1,17 +1,11 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using ModelLibrary;
-using Swashbuckle.AspNetCore.Swagger;
-using System.Reflection.Metadata.Ecma335;
+using System.Text.RegularExpressions;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Repositories;
+using ModelLibrary;
 using Web.Api.Util;
 
 namespace Web.Api.Controllers
@@ -38,8 +32,18 @@ namespace Web.Api.Controllers
                 if (user is not null)
                 {
                     _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
-                    return BadRequest("Email already in use.");
+                    return BadRequest("Email already in use, please use a different email.");
                 }
+
+                //checking if password policy passes
+                VerifyPasswordPolicy passpPolicy = new VerifyPasswordPolicy();
+                if (!passpPolicy.Verify(registerUserDto.Password))
+                {
+                    _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
+                _logger.LogInformation("Password Policy Passed");
+
                 _logger.LogInformation($"Registering with email {registerUserDto.Email}");
                 
                 //create a new instance of User thats not existing
@@ -53,6 +57,7 @@ namespace Web.Api.Controllers
                 };
                 _logger.LogInformation("New user successfully created");
                 await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
+
 
                 //generate hashed password
                 PasswordHasher hasher = new PasswordHasher();
@@ -106,7 +111,7 @@ namespace Web.Api.Controllers
                 //checking if password creation date is > 60 days ago
                 _logger.LogInformation($"Checking password expiration");
                 if (DateTime.Now - databasePsw.CreatedDate > TimeSpan.FromDays(60)) {
-                    _logger.LogInformation("Password creation date has exceeded 60 days");
+                    _logger.LogWarning("Password creation date has exceeded 60 days");
                     return Unauthorized("Password has expired, please reset the password.");
                 }
 
@@ -121,6 +126,7 @@ namespace Web.Api.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
             {
+                //checking user exists
                 _logger.LogInformation("Checking login info");
                 User? user = await _unitOfWork.User.GetUserByEmailAsync(resetPswDto.email);
                 if (user is null)
@@ -129,6 +135,7 @@ namespace Web.Api.Controllers
                     return BadRequest("Invalid email. Try again.");
                 }
 
+                //checking password exists
                 _logger.LogInformation("Checking password");
                 Password? databasePsw = (await _unitOfWork.User.GetPasswordsByIdAsync(user.Id)).FirstOrDefault();
                 if (databasePsw is null)
@@ -137,9 +144,12 @@ namespace Web.Api.Controllers
                     return BadRequest("No password exists for user.");
                 }
 
-                //checking password
                 PasswordHasher hash = new PasswordHasher();
-                byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt);
+                string generatedSalt = hash.GenerateSalt();
+                byte[] hashedOldPsw = hash.GenerateHash(resetPswDto.oldPassword, databasePsw.Salt); //uses salt stored in db
+                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt); //uses newly created salt
+
+                //authenticating password
                 if (!hashedOldPsw.SequenceEqual(databasePsw.PasswordHash))
                 {
                     _logger.LogWarning($"Invalid password for user with email: {resetPswDto.email}");
@@ -147,9 +157,33 @@ namespace Web.Api.Controllers
                 }
 
                 //Email and password correct so we will create new password
-                _logger.LogInformation("Hashing new password");
-                string generatedSalt = hash.GenerateSalt();
-                byte[] hashedNewPassword = hash.GenerateHash(resetPswDto.newPassword, generatedSalt);
+                //check password policy passes for new password
+                _logger.LogInformation("Verifying password policy passes");
+                VerifyPasswordPolicy passwordPolicy = new VerifyPasswordPolicy();
+                if (!passwordPolicy.Verify(resetPswDto.newPassword))
+                {
+                    _logger.LogWarning($"Password '{resetPswDto.newPassword}' does not comply with the password policy");
+                    return BadRequest("Password policy failed. Please create a password that complies");
+                }
+
+                //checking that 3 previous passwords aren't being used
+                _logger.LogInformation("Checking that new password is not a duplicate of last 3 password resets");
+                List<Password> passwordHistory = await _unitOfWork.User.GetPasswordsByIdAsync(user.Id);
+                if (passwordHistory.Count >= 3) //if user has at least 3 old passwords
+                {
+                    byte[] currHashedPass;
+                    for (int i = 0; i < 3; i++) 
+                    {
+                        currHashedPass = hash.GenerateHash(resetPswDto.newPassword, passwordHistory[i].Salt); //generate hash using curr password's salt that we are comparing
+                        if (passwordHistory[i].PasswordHash.SequenceEqual(currHashedPass))
+                        {
+                            _logger.LogWarning($"Password \"{resetPswDto.newPassword}\" has been used before in one of the previous 3 passwords.");
+                            return BadRequest($"Password has been used before. Please create a new password");
+                        }
+                    }
+                }
+
+                _logger.LogInformation("Adding new password");
                 Password newPsw = new Password
                 {
                     PasswordHash = hashedNewPassword,
