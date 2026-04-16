@@ -46,7 +46,6 @@ namespace Web.Api.Persistence.Repositories
         public async Task<DeviceDatum> CreateAsync(DeviceDatum device)
         {
             await _context.DeviceData.AddAsync(device);
-            await _context.SaveChangesAsync();
             return device;
         }
         

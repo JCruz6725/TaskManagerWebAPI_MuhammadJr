@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing.Matching;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ModelLibrary;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using Web.Api.Persistence.Repositories;
-using ModelLibrary;
 using Web.Api.Util;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Web.Api.Controllers
 {
@@ -176,13 +177,13 @@ namespace Web.Api.Controllers
                     return StatusCode(403);
 
                 }
-                 var rawIp = Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                 ?? HttpContext.Connection.RemoteIpAddress?.ToString();
+                var rawIp = Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString();
 
                 var ip = "unknown";
-                    if(!string.IsNullOrEmpty(rawIp))
+                if (!string.IsNullOrEmpty(rawIp))
                 {
-                    if (rawIp.Contains("::1"))
+                    if (rawIp.Contains("::1")) 
                         ip = "127.0.0.1";
                     else if (rawIp.Contains("127.0.0.1"))
                         ip = "127.0.0.1";
@@ -211,7 +212,6 @@ namespace Web.Api.Controllers
 
                 var device = new DeviceDatum
                     {
-                        Id = Guid.NewGuid(),
                         IpAddress = ip,
                         BrowserType = browser,
                         AccessTime = DateTime.UtcNow,
@@ -219,15 +219,8 @@ namespace Web.Api.Controllers
 
                     }; 
                 await _unitOfWork.User.CreateAsync(device);
-
-                return Ok(new
-                {
-                    IpAddress = ip, 
-                    BrowserType =browser, 
-                    AccessTime = DateTime.UtcNow, 
-                    
-                }); 
-
+                await _unitOfWork.SaveChangesAsync();
+                return Ok();
             }
         }
     }
