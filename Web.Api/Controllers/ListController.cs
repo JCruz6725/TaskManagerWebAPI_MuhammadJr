@@ -164,7 +164,7 @@ namespace Web.Api.Controllers
         {
             try
             {
-                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))\
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
                     if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                     {
