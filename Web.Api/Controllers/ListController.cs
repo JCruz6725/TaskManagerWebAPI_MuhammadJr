@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -25,39 +26,47 @@ namespace Web.Api.Controllers
         [HttpPost(Name = "CreateList")]
         public async Task<ActionResult<ListDto>> CreateList([FromHeader] Guid userId, ListCreateDto createListDto)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            try
             {
-                _logger.LogInformation($"Initiating Create List method");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    _logger.LogWarning($"User {userId} not authorized");
-                    return StatusCode(403);
+                    _logger.LogInformation($"Initiating Create List method");
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        _logger.LogWarning($"User {userId} not authorized");
+                        return StatusCode(403);
+                    }
+
+                    List? createList = new List
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = createListDto.Name,
+                        CreatedDate = DateTime.Now,
+                        CreatedUserId = userId,
+                    };
+
+                    await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation($"List creation is successful for user {userId}");
+
+                    ListDto listDtos = new ListDto     // should we use shortlistDto?
+                    {
+                        Id = createList.Id,
+                        Name = createList.Name,
+                        CreatedDate = createList.CreatedDate,
+                        CreatedUserId = createList.CreatedUserId,
+
+                        TaskItems = []
+
+                    };
+                    _logger.LogInformation($"Returning the newly created list for user {userId}");
+                    return Ok(listDtos);
                 }
-
-                List? createList = new List
-                {
-                    Id = Guid.NewGuid(),
-                    Name = createListDto.Name,
-                    CreatedDate = DateTime.Now,
-                    CreatedUserId = userId,
-                };
-
-                await _unitOfWork.List.CreateList(createList);   // add the list // sending information to the database 
-                await _unitOfWork.SaveChangesAsync();
-                _logger.LogInformation($"List creation is successful for user {userId}");
-
-                ListDto listDtos = new ListDto     // should we use shortlistDto?
-                {
-                    Id = createList.Id,
-                    Name = createList.Name,
-                    CreatedDate = createList.CreatedDate,
-                    CreatedUserId = createList.CreatedUserId,
-
-                    TaskItems = []
-
-                };
-                _logger.LogInformation($"Returning the newly created list for user {userId}");
-                return Ok(listDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Create list process failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
 
@@ -65,71 +74,87 @@ namespace Web.Api.Controllers
         [HttpGet("{listId}", Name = "GetListById")]
         public async Task<ActionResult<ListDto>> GetListById([FromHeader] Guid userId, Guid listId)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            try
             {
-                _logger.LogInformation("Innitiating GetListById");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    _logger.LogWarning($"UserId {userId} not authorized");
-                    return StatusCode(403);
-                }
-
-                List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
-                if (list is null)
-                {
-                    _logger.LogWarning($"ListId {listId} not found for UserId {userId}");
-                    return NotFound(listId);
-                }
-
-                ListDto listDtos = new ListDto
-                {
-                    Id = list.Id,
-                    Name = list.Name,
-                    CreatedDate = list.CreatedDate,
-                    CreatedUserId = list.CreatedUserId,
-
-                    TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
+                    _logger.LogInformation("Innitiating GetListById");
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
                     {
-                        Id = twl.TaskItem.Id,
-                        Title = twl.TaskItem.Title,
-                        DueDate = twl.TaskItem.DueDate,
-                        Priority = twl.TaskItem.Priority,
-                        CreatedDate = twl.TaskItem.CreatedDate,
-                        CreatedUserId = twl.TaskItem.CreatedUserId,
-                    }).ToArray()
+                        _logger.LogWarning($"UserId {userId} not authorized");
+                        return StatusCode(403);
+                    }
 
-                };
-                _logger.LogInformation($"GetListById method successful for ListId {listId} and UserId {userId}");
-                _logger.LogInformation("Returning get list by Id result");
-                return Ok(listDtos);
+                    List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+                    if (list is null)
+                    {
+                        _logger.LogWarning($"ListId {listId} not found for UserId {userId}");
+                        return NotFound(listId);
+                    }
+
+                    ListDto listDtos = new ListDto
+                    {
+                        Id = list.Id,
+                        Name = list.Name,
+                        CreatedDate = list.CreatedDate,
+                        CreatedUserId = list.CreatedUserId,
+
+                        TaskItems = list.TaskWithinLists.Select(twl => new TaskDto
+                        {
+                            Id = twl.TaskItem.Id,
+                            Title = twl.TaskItem.Title,
+                            DueDate = twl.TaskItem.DueDate,
+                            Priority = twl.TaskItem.Priority,
+                            CreatedDate = twl.TaskItem.CreatedDate,
+                            CreatedUserId = twl.TaskItem.CreatedUserId,
+                        }).ToArray()
+
+                    };
+                    _logger.LogInformation($"GetListById method successful for ListId {listId} and UserId {userId}");
+                    _logger.LogInformation("Returning get list by Id result");
+                    return Ok(listDtos);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Get list by id process failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
 
         [HttpGet(Name = "GetAllList")]
         public async Task<ActionResult<List<ShortListDto>>> GetAllList([FromHeader] Guid userId)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
-            {
-                _logger.LogInformation("Innitiating GetAllList");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            try
+            { 
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    _logger.LogWarning($"UserId {userId} not authorized");
-                    return StatusCode(403);
+                    _logger.LogInformation("Innitiating GetAllList");
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        _logger.LogWarning($"UserId {userId} not authorized");
+                        return StatusCode(403);
+                    }
+
+                    List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
+
+                    List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
+                    {
+                        Id = sl.Id,
+                        Name = sl.Name,
+                        CreatedDate = sl.CreatedDate,
+                        CreatedUserId = sl.CreatedUserId,
+                    }).ToList();
+
+                    _logger.LogInformation($"GetAllList method successful for UserId {userId}");
+                    _logger.LogInformation("Returning get all lists result");
+                    return Ok(getListDetail);
                 }
-
-                List<List> userLists = await _unitOfWork.List.GetAllListAsync(userId);
-
-                List<ShortListDto> getListDetail = userLists.Select(sl => new ShortListDto
-                {
-                    Id = sl.Id,
-                    Name = sl.Name,
-                    CreatedDate = sl.CreatedDate,
-                    CreatedUserId = sl.CreatedUserId,
-                }).ToList();
-
-                _logger.LogInformation($"GetAllList method successful for UserId {userId}");
-                _logger.LogInformation("Returning get all lists result");
-                return Ok(getListDetail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Get all lists process failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
 
@@ -137,114 +162,135 @@ namespace Web.Api.Controllers
         [HttpPost("{listId}/move-task", Name = "MoveTaskToList")]
         public async Task<ActionResult<ListDto>> MoveTaskToList([FromHeader] Guid userId, Guid listId, TaskListMoveDto taskListMoveDto)
         {
-            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            try
             {
-                return StatusCode(403);
-            }
-
-            TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
-            List? destinationList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
-            if (task != null && destinationList != null)
-            {
-                if (task.TaskWithinLists.Count == 0) //task not assigned to a list
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
                 {
-                    destinationList.TaskWithinLists.Add(
-                        new TaskWithinList()
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        return StatusCode(403);
+                    }
+
+                    TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+                    List? destinationList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+                    if (task != null && destinationList != null)
+                    {
+                        if (task.TaskWithinLists.Count == 0) //task not assigned to a list
                         {
-                            TaskItem = task,
-                            CreatedUserId = userId,
-                            CreatedDate = task.CreatedDate,
-                        }
-                    );
-                }
-                else if (task.TaskWithinLists.Single().TaskList == destinationList) //check if task is already in the list user wants to put it in 
-                {
-                    return BadRequest("Task already exist in the list");
-                }
-                else //task is currently in a different preexisting list
-                {
-                    
-                    //Remove connection to old list
-                    TaskWithinList oldTaskWithinList = task.TaskWithinLists.First(); 
-                    _unitOfWork.TaskItem.DeleteTaskWithinLists(oldTaskWithinList);  
-
-                    //Reassign connection to destinationList
-                    destinationList.TaskWithinLists.Add(
-                        new TaskWithinList(){
-                            TaskItem = task,
-                            CreatedUserId = userId,
-                            CreatedDate = task.CreatedDate,
-                        }
-                    );
-                }
-                await _unitOfWork.SaveChangesAsync();
-            }
-            else if (destinationList == null)
-            {
-                return BadRequest($"Requested list does not exist for user {userId}");
-            }
-            else //task is null
-            {
-                return BadRequest($"Requested task does not exist for user {userId}");
-            }
-
-            ListDto destinationListDto = new ListDto()
-            {
-                Id = destinationList.Id,
-                Name = destinationList.Name,
-                TaskItems = destinationList.TaskWithinLists.Select(twl => new TaskDto
-                {
-                    Id = twl.TaskItem.Id,
-                    Title = twl.TaskItem.Title,
-                    DueDate = twl.TaskItem.DueDate,
-                    Priority = twl.TaskItem.Priority,
-                    CreatedDate = twl.TaskItem.CreatedDate,
-                    CreatedUserId = twl.TaskItem.CreatedUserId,
-                    CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
-                                .Select(s => new StatusDto
+                            destinationList.TaskWithinLists.Add(
+                                new TaskWithinList()
                                 {
-                                    Id = s.Status.Id,
-                                    Name = s.Status.Name,
-                                    Code = s.Status.Code
-                                }).FirstOrDefault(),
-                }).ToArray()
-            };
-            
-            return Ok(destinationListDto);
+                                    TaskItem = task,
+                                    CreatedUserId = userId,
+                                    CreatedDate = task.CreatedDate,
+                                }
+                            );
+                        }
+                        else if (task.TaskWithinLists.Single().TaskList == destinationList) //check if task is already in the list user wants to put it in 
+                        {
+                            return BadRequest("Task already exist in the list");
+                        }
+                        else //task is currently in a different preexisting list
+                        {
+
+                            //Remove connection to old list
+                            TaskWithinList oldTaskWithinList = task.TaskWithinLists.First();
+                            _unitOfWork.TaskItem.DeleteTaskWithinLists(oldTaskWithinList);
+
+                            //Reassign connection to destinationList
+                            destinationList.TaskWithinLists.Add(
+                                new TaskWithinList()
+                                {
+                                    TaskItem = task,
+                                    CreatedUserId = userId,
+                                    CreatedDate = task.CreatedDate,
+                                }
+                            );
+                        }
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                    else if (destinationList == null)
+                    {
+                        return BadRequest($"Requested list does not exist for user {userId}");
+                    }
+                    else //task is null
+                    {
+                        return BadRequest($"Requested task does not exist for user {userId}");
+                    }
+
+                    ListDto destinationListDto = new ListDto()
+                    {
+                        Id = destinationList.Id,
+                        Name = destinationList.Name,
+                        TaskItems = destinationList.TaskWithinLists.Select(twl => new TaskDto
+                        {
+                            Id = twl.TaskItem.Id,
+                            Title = twl.TaskItem.Title,
+                            DueDate = twl.TaskItem.DueDate,
+                            Priority = twl.TaskItem.Priority,
+                            CreatedDate = twl.TaskItem.CreatedDate,
+                            CreatedUserId = twl.TaskItem.CreatedUserId,
+                            CurrentStatus = twl.TaskItem.TaskItemStatusHistories.OrderByDescending(s => s.CreatedDate)
+                                        .Select(s => new StatusDto
+                                        {
+                                            Id = s.Status.Id,
+                                            Name = s.Status.Name,
+                                            Code = s.Status.Code
+                                        }).FirstOrDefault(),
+                        }).ToArray()
+                    };
+
+                    return Ok(destinationListDto);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Move task to list process failed: {ex.Message}");
+                return StatusCode(500);
+            }
         }
        
         [HttpPut("{listId}/edit-list", Name = "Edit List")]
         public async Task<ActionResult<ListDto>> EditList([FromHeader] Guid userId, Guid listId, EditListDto editListDto)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            try
             {
-                _logger.LogInformation("Initiating Edit List Method");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId)) {
-                    _logger.LogInformation($"UserId {userId} not authorized");
-                    return StatusCode(403); 
-                }
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+                {
+                    _logger.LogInformation("Initiating Edit List Method");
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        _logger.LogInformation($"UserId {userId} not authorized");
+                        return StatusCode(403);
+                    }
 
-                List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
-                if (userList != null)
-                {
-                    userList.Name = editListDto.Title;
-                    await _unitOfWork.SaveChangesAsync();
-                }
-                else
-                {
-                    _logger.LogWarning($"List Id {listId} not found for user {userId}");
-                    return NotFound(listId);
-                }
-                _logger.LogInformation($"Edit list is successful for user {userId}");
+                    List? userList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+                    if (userList != null)
+                    {
+                        userList.Name = editListDto.Title;
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"List Id {listId} not found for user {userId}");
+                        return NotFound(listId);
+                    }
+                    _logger.LogInformation($"Edit list is successful for user {userId}");
 
-                EditListResDto editListResDto = new EditListResDto
-                {
-                    Id = listId,
-                    Name = userList.Name,
-                    CreatedUserId = userId,
-                };
-                _logger.LogInformation($"Returning the newly edited list for user {userId}");
-                return Ok(editListResDto);
+                    EditListResDto editListResDto = new EditListResDto
+                    {
+                        Id = listId,
+                        Name = userList.Name,
+                        CreatedUserId = userId,
+                    };
+                    _logger.LogInformation($"Returning the newly edited list for user {userId}");
+                    return Ok(editListResDto);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Edit list process failed: {ex.Message}");
+                return StatusCode(500);
             }
         }
  
@@ -252,35 +298,45 @@ namespace Web.Api.Controllers
         [HttpDelete("{listId}", Name = "DeleteList")]
         public async Task<ActionResult<ListDto>> DeleteList([FromHeader] Guid userId, Guid listId)
         {
-            if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+            try
             {
-                return StatusCode(403);
+                using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+                {
+                    if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+                    {
+                        return StatusCode(403);
+                    }
+
+                    List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId);
+                    if (list is null)
+                    {
+                        return NotFound(listId);
+                    }
+                    //checks if there is any items within the list being deleted. 
+                    if (list.TaskWithinLists.Any())
+                    {
+                        return BadRequest();
+                    }
+
+                    _unitOfWork.List.DeleteList(list);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    ListDto deletelist = new ListDto
+                    {
+                        Id = list.Id,
+                        Name = list.Name,
+                        CreatedDate = list.CreatedDate,
+                        CreatedUserId = list.CreatedUserId,
+                        TaskItems = []
+                    };
+                    return Ok(deletelist);  // fix the returnvalue 
+                }
             }
-
-            List? list = await _unitOfWork.List.GetListByIdAsync(listId, userId); 
-            if (list is null)
+            catch (Exception ex)
             {
-                return NotFound(listId);
+                _logger.LogError($"Delete list process failed: {ex.Message}");
+                return StatusCode(500);
             }
-            //checks if there is any items within the list being deleted. 
-            if (list.TaskWithinLists.Any())
-            {
-                return BadRequest();
-            }
-
-            _unitOfWork.List.DeleteList(list);
-            await _unitOfWork.SaveChangesAsync();
-
-            ListDto deletelist = new ListDto
-            {
-                Id = list.Id,
-                Name = list.Name,
-                CreatedDate = list.CreatedDate,
-                CreatedUserId = list.CreatedUserId,
-                TaskItems=[]
-            };
-
-            return Ok(deletelist);  // fix the returnvalue 
         }
     }
 }
