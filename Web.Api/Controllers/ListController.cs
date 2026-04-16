@@ -142,7 +142,8 @@ namespace Web.Api.Controllers
                 return StatusCode(403);
             }
 
-            TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+            //TaskItem? task = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskListMoveDto.TaskId, userId);
+            TaskItem? task = await _unitOfWork.TaskItem.GetTaskTaskWithinListsByIdAsync(taskListMoveDto.TaskId, userId);
             List? destinationList = await _unitOfWork.List.GetListByIdAsync(listId, userId);
             if (task != null && destinationList != null)
             {
