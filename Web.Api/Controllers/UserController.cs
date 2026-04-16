@@ -58,7 +58,6 @@ namespace Web.Api.Controllers
                     _logger.LogInformation("New user successfully created");
                     await _unitOfWork.User.CreateUserAsync(newUser);          //UofW takes the User class and calls the CreateUser method from the UserRepo
 
-
                     //generate hashed password
                     PasswordHasher hasher = new PasswordHasher();
                     string generatedSalt = hasher.GenerateSalt();
