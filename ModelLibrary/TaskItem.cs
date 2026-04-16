@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Web.Api.Persistence.Models;
+namespace ModelLibrary;
 
 public partial class TaskItem
 {

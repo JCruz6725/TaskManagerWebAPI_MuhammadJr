@@ -1,4 +1,5 @@
-﻿using Web.Api.Persistence.Models;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using ModelLibrary;
 
 namespace Web.Api.Util
 {
@@ -18,17 +19,84 @@ namespace Web.Api.Util
     /// <param name="last"></param>
     /// <param name="pass"></param>
     /// <param name="userId"></param>
-    public class UserBuilder(string email, string first, string last, string pass, Guid userId) { 
-        
-        private User user = new User(){
+    public class UserBuilder(string email, string first, string last, Guid userId, DateTimeFaker _dateTimeFaker) {
+
+        private readonly DateTimeFaker dateTimeFaker = _dateTimeFaker;
+
+        private User user = new User() {
             Id = userId,
-            CreatedDate = DateTime.Now,
+            CreatedDate = DateTime.Now.AddDays(-1),
             Email = email,
             FirstName = first,
             LastName = last,
-            Password = pass,
         };
 
+        public UserBuilder AddPassword(Guid passwordId, string password, string salt)
+        {
+            PasswordHasher hasher = new PasswordHasher();
+            byte[] hashedPsw = hasher.GenerateHash(password, salt);
+            Password pass = new()
+            {
+                Id = passwordId,
+                PasswordHash = hashedPsw,
+                Salt = salt,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance()
+            };
+
+            user.Passwords.Add(pass);
+            return this;
+        }
+
+        public UserBuilder AddAddress(Guid addressId, string address1, string city, string state, string zipcode)
+        {
+            Address address = new Address()
+            {
+                Id = addressId,
+                Address1 = address1,
+                City = city,
+                State = state,
+                Zipcode = zipcode
+            };
+
+            user.Addresses.Add(address);
+            return this;
+        }
+
+        public UserBuilder AddProfile(Guid profileId, DateOnly DOB, string phoneNumber, string gender, string education, string employer, string job, Guid purposeId, Guid licenseId)
+        {
+            Profile profile = new Profile()
+            {
+                Id = profileId,
+                DateOfBirth = DOB,
+                PhoneNumber = phoneNumber,
+                Gender = gender,
+                Education = education,
+                Employer = employer,
+                JobTitle = job,
+                PurposeId = purposeId,
+                LicenseId = licenseId
+            };
+
+            user.Profiles.Add(profile);
+            return this;
+        }
+
+        
+        public UserBuilder AddDeviceData(Guid deviceid, string ipAddress, string browserType)
+        {
+            DeviceDatum device = new DeviceDatum()
+            {
+                Id = deviceid,
+                IpAddress = ipAddress,
+                BrowserType = browserType,
+                AccessTime = dateTimeFaker.GetDateAndAdvance()
+            };
+
+            user.DeviceData.Add(device);
+            return this;
+        }
+        
+        
         private List? currentList = null;
         private List<TaskItem> taskItems = [];
         private TaskItem? currentTaskItem = null;
@@ -43,7 +111,7 @@ namespace Web.Api.Util
         public UserBuilder AddList(string listname, Guid listId) {
             List list = new() {
                 Id = listId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Name = listname,
 
@@ -75,7 +143,7 @@ namespace Web.Api.Util
 
             TaskItem taskItem = new() {
                 Id = taskId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Title = taskname,
                 Priority = priority,
@@ -83,7 +151,7 @@ namespace Web.Api.Util
                     new TaskItemStatusHistory(){
                         Id = taskItemStatusHistoryId,
                         StatusId = statusId,
-                        CreatedDate = DateTime.Now,
+                        CreatedDate = dateTimeFaker.GetDateAndAdvance(), 
                         CreatedUser = user,
                     }
                 ]
@@ -91,7 +159,7 @@ namespace Web.Api.Util
 
             currentList.TaskWithinLists.Add(
                 new TaskWithinList() { 
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     CreatedUser= user,
                     TaskItem = taskItem
                 }
@@ -107,7 +175,7 @@ namespace Web.Api.Util
         public UserBuilder AddOrphanTask(string taskname, Guid statusId, int priority, Guid taskId, Guid taskItemStatusHistoryId) {
             TaskItem taskItem = new() {
                 Id = taskId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                 CreatedUser = user,
                 Title = taskname,
                 Priority = priority,
@@ -115,7 +183,7 @@ namespace Web.Api.Util
                     new TaskItemStatusHistory(){
                         Id= taskItemStatusHistoryId,
                         StatusId = statusId,
-                        CreatedDate = DateTime.Now,
+                        CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                         CreatedUser = user,
                     }
                 ]
@@ -148,7 +216,7 @@ namespace Web.Api.Util
                 new TaskItemNote() { 
                     Id= noteId,
                     CreatedUser = user,
-                    CreatedDate= DateTime.Now,
+                    CreatedDate= dateTimeFaker.GetDateAndAdvance(),
                     Note = content
                 }
             );
@@ -175,7 +243,7 @@ namespace Web.Api.Util
                 new TaskItemStatusHistory() { 
                     Id = taskItemStatusHistoryId,
                     CreatedUser = user,
-                    CreatedDate= DateTime.Now,
+                    CreatedDate= dateTimeFaker.GetDateAndAdvance(),
                     StatusId = statusId
                 }
             );
@@ -199,7 +267,7 @@ namespace Web.Api.Util
                 new SubTask() { 
                     Id= subTaskId,
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = user.Lists.Single(l => l.Name == listnameP).TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
                     SubTaskItem = user.Lists.Single(l => l.Name == listnameC).TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
                 }
@@ -229,7 +297,7 @@ namespace Web.Api.Util
             user.SubTasks.Add(
                 new SubTask() { 
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == parent ).TaskItem,
                     SubTaskItem = currentList.TaskWithinLists.Single(ti => ti.TaskItem.Title == child ).TaskItem,
                 }
@@ -249,7 +317,7 @@ namespace Web.Api.Util
             user.SubTasks.Add(
                 new SubTask() { 
                     CreatedUser = user,
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = dateTimeFaker.GetDateAndAdvance(),
                     TaskItem = taskItems.Single(ti => ti.Title == parent ),
                     SubTaskItem = taskItems.Single(ti => ti.Title == child ),
                 }
@@ -262,7 +330,27 @@ namespace Web.Api.Util
         /// </summary>
         /// <returns>The <see cref="User"/> object representing the final user.</returns>
         public User GetFinalUser() { 
-            return user;    
+            if (user.Passwords.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 password");
+            }
+            else if (user.Addresses.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 address");
+
+            }
+            else if (user.Profiles.Count != 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have 1 and only 1 profile");
+            }
+            else if (user.DeviceData.Count < 1)
+            {
+                throw new Exception($"User {user.FirstName} {user.LastName} must have at least 1 device data");
+            }
+            else
+            {
+                return user;
+            }
         }
     }
 }

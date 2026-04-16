@@ -3,7 +3,7 @@ using NLog.Extensions.Logging;
 using NLog.Web;
 using Web.Api.Dto.Response;
 using Web.Api.Persistence;
-using Web.Api.Persistence.Models;
+using Web.Api.scaffolding_temp_folder;
 
 namespace Web.Api
 {
@@ -38,6 +38,17 @@ namespace Web.Api
 
             // Add Bind StatusChange settings from appsettings.json
             builder.Services.Configure<StatusChange>(builder.Configuration.GetSection("StatusSetting"));
+            builder.Services.Configure<PurposeTypeOptions>(builder.Configuration.GetSection("PurposeTypeSetting"));
+            builder.Services.Configure<LicenseTypeOptions>(builder.Configuration.GetSection("LicenseTypeSetting"));
+
+            builder.Services.AddCors( options => { 
+                options.AddDefaultPolicy( builder => {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
+
 
             var app = builder.Build();
 
@@ -50,8 +61,9 @@ namespace Web.Api
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseCors();
 
+            app.UseAuthorization();
 
             app.MapControllers();
 

@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Web.Api.Persistence.Models;
+namespace ModelLibrary;
 
-public partial class TaskItemNote
+public partial class Password
 {
     public Guid Id { get; set; }
 
-    public Guid TaskItemId { get; set; }
+    public byte[] PasswordHash { get; set; } = null!;
 
-    public string Note { get; set; } = null!;
+    public string Salt { get; set; } = null!;
 
     public DateTime CreatedDate { get; set; }
 
     public Guid CreatedUserId { get; set; }
 
     public virtual User CreatedUser { get; set; } = null!;
-
-    public virtual TaskItem TaskItem { get; set; } = null!;
 }
