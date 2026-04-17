@@ -38,7 +38,7 @@ namespace Web.Api.Controllers
                         return StatusCode(403);
                     }
 
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
@@ -187,7 +187,7 @@ namespace Web.Api.Controllers
 
                     await _unitOfWork.TaskItem.CreateTaskAsync(taskCreation);              //UofW takes the TaskItem class and calls the CreateTask method from the TaskItemRepo
                     await _unitOfWork.SaveChangesAsync();                                  //UofW calls the SaveChanges method
-                    taskCreation = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskCreation.Id, userId);
+                    taskCreation = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskCreation.Id, userId);
 
                     _logger.LogInformation($"Task Creation is Successfull for userId {userId}");
 
@@ -310,7 +310,7 @@ namespace Web.Api.Controllers
                         return StatusCode(403);
                     }
 
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskNotesByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
@@ -361,7 +361,7 @@ namespace Web.Api.Controllers
                         _logger.LogWarning($"User id {userId} not authorized");
                         return StatusCode(403);
                     }
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"Task item {taskId} not found for user {userId}");
@@ -459,7 +459,8 @@ namespace Web.Api.Controllers
                         return StatusCode(403);
                     }
 
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
+                    TaskItem? taskItemWithChildren = await _unitOfWork.TaskItem.GetTaskChildrenByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
@@ -550,7 +551,7 @@ namespace Web.Api.Controllers
                         return StatusCode(403);
                     }
 
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
@@ -634,7 +635,7 @@ namespace Web.Api.Controllers
                         return StatusCode(403);
                     }
 
-                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskByIdAsync(taskId, userId);
+                    TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
@@ -647,6 +648,7 @@ namespace Web.Api.Controllers
                         TaskItem? parentTask = await _unitOfWork.TaskItem.GetTaskByIdAsync(updateTaskDto.ParentTaskId.Value, userId);
                         if (parentTask is null)
                         {
+                            _logger.LogWarning($"Parent task {updateTaskDto.ParentTaskId} not found");
                             return NotFound(updateTaskDto.ParentTaskId);
                         }
                     }

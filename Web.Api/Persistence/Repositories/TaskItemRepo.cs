@@ -21,16 +21,50 @@ namespace Web.Api.Persistence.Repositories
         /// <param name="taskId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
+
         public async Task<TaskItem?> GetTaskByIdAsync(Guid taskId, Guid userId)
         {
-            return await _context.TaskItems
-                .Include(item => item.TaskItemNotes)
-                .Include(item => item.SubTaskSubTaskItems)
-                .Include(item => item.SubTaskTaskItems)
-                .Include(history => history.TaskItemStatusHistories)
-                    .ThenInclude(stat => stat.Status)
-                 .Include(e => e.TaskWithinLists)
-                .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+            return await _context.TaskItems.SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskParentByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.SubTaskSubTaskItems)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskChildrenByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.SubTaskTaskItems)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskNotesByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskItemNotes)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskTaskWithinListsByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskWithinLists)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskStatusHistoryByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskItemStatusHistories)
+                                                .ThenInclude(stat => stat.Status)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
+        }
+
+        public async Task<TaskItem?> GetTaskParentStatusNotesByIdAsync(Guid taskId, Guid userId)
+        {
+            return await _context.TaskItems.Include(task => task.TaskItemNotes)
+                                            .Include(task => task.SubTaskSubTaskItems)
+                                            .Include(task => task.TaskItemStatusHistories)
+                                                .ThenInclude(stat => stat.Status)
+                                            .SingleOrDefaultAsync(ti => ti.Id == taskId && ti.CreatedUserId == userId);
         }
 
         public async Task CreateTaskAsync(TaskItem taskItem)
