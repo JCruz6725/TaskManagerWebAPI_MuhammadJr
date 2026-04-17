@@ -460,6 +460,7 @@ namespace Web.Api.Controllers
                     }
 
                     TaskItem? taskItem = await _unitOfWork.TaskItem.GetTaskParentStatusNotesByIdAsync(taskId, userId);
+                    TaskItem? taskItemWithChildren = await _unitOfWork.TaskItem.GetTaskChildrenByIdAsync(taskId, userId);
                     if (taskItem is null)
                     {
                         _logger.LogWarning($"TaskId {taskId} not found for UserId {userId}");
