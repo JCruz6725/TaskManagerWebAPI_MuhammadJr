@@ -6,10 +6,8 @@ using ModelLibrary;
 using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
-using ModelLibrary;
 using Web.Api.Persistence.Repositories;
 using Web.Api.scaffolding_temp_folder;
-using Web.Api.Util;
 using Web.Api.Util;
 
 namespace Web.Api.Controllers
@@ -212,7 +210,7 @@ namespace Web.Api.Controllers
                     return Ok(new
                     {
                         UserId = userLogin.Id,
-                        RequiresExtraInfo = requiresExtraInfo,
+                        RequiresExtraInfo = requiresExtraInfo
                     }); // return the registered GUID Id of that user
                 }
             }
