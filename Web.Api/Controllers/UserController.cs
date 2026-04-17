@@ -10,6 +10,7 @@ using ModelLibrary;
 using Web.Api.Persistence.Repositories;
 using Web.Api.scaffolding_temp_folder;
 using Web.Api.Util;
+using Web.Api.Util;
 
 namespace Web.Api.Controllers
 {
@@ -202,10 +203,17 @@ namespace Web.Api.Controllers
                         _logger.LogWarning("Password creation date has exceeded 60 days");
                         return Unauthorized("Password has expired, please reset the password.");
                     }
+                    _logger.LogInformation("Checking if existing user has a profile");
+                    bool hasExtraInfo = await _unitOfWork.User.HasExtraInfoAsync(userLogin.Id);
+                    bool requiresExtraInfo = !hasExtraInfo;
 
                     _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                     _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                    return Ok(userLogin.Id); // return the registered GUID Id of that user
+                    return Ok(new
+                    {
+                        UserId = userLogin.Id,
+                        RequiresExtraInfo = requiresExtraInfo,
+                    }); // return the registered GUID Id of that user
                 }
             }
             catch (Exception ex)
