@@ -7,6 +7,7 @@ using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using ModelLibrary;
 using Web.Api.Util;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Web.Api.Controllers
 {
@@ -34,7 +35,7 @@ namespace Web.Api.Controllers
                     if (user is not null)
                     {
                         _logger.LogWarning($"Attempting to register with an email that is already in use: {registerUserDto.Email}");
-                        return BadRequest("Email already in use, please use a different email.");
+                        return BadRequest("Email already in use, please use DevicePostDto different email.");
                     }
 
                     //checking if password policy passes
@@ -42,7 +43,7 @@ namespace Web.Api.Controllers
                     if (!passpPolicy.Verify(registerUserDto.Password))
                     {
                         _logger.LogWarning($"Password '{registerUserDto.Password}' does not comply with the password policy");
-                        return BadRequest("Password policy failed. Please create a password that complies");
+                        return BadRequest("Password policy failed. Please create DevicePostDto password that complies");
                     }
                     _logger.LogInformation("Password Policy Passed");
 
@@ -180,11 +181,11 @@ namespace Web.Api.Controllers
                     if (!passwordPolicy.Verify(resetPswDto.newPassword))
                     {
                         _logger.LogWarning($"Password '{resetPswDto.newPassword}' does not comply with the password policy");
-                        return BadRequest("Password policy failed. Please create a password that complies");
+                        return BadRequest("Password policy failed. Please create DevicePostDto password that complies");
                     }
 
                     //checking that 3 previous passwords aren't being used
-                    _logger.LogInformation("Checking that new password is not a duplicate of last 3 password resets");
+                    _logger.LogInformation("Checking that new password is not DevicePostDto duplicate of last 3 password resets");
                     List<Password> passwordHistory = await _unitOfWork.User.GetPasswordsByIdAsync(user.Id);
                     if (passwordHistory.Count >= 3) //if user has at least 3 old passwords
                     {
@@ -195,7 +196,7 @@ namespace Web.Api.Controllers
                             if (passwordHistory[i].PasswordHash.SequenceEqual(currHashedPass))
                             {
                                 _logger.LogWarning($"Password \"{resetPswDto.newPassword}\" has been used before in one of the previous 3 passwords.");
-                                return BadRequest($"Password has been used before. Please create a new password");
+                                return BadRequest($"Password has been used before. Please create DevicePostDto new password");
                             }
                         }
                     }
@@ -222,15 +223,20 @@ namespace Web.Api.Controllers
         }
 
         [HttpPost("device", Name = "Device")]
-        public async Task<ActionResult<Guid>> Device(Guid userId)
+        public async Task<ActionResult<Guid>> Device(DevicePostDto userId)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
 
             {
+
                 _logger.LogInformation("Initiating Login Succesful");
-                if (!await _unitOfWork.User.IsUserInDbAsync(userId))
+
+
+                var t = await _unitOfWork.User.IsUserInDbAsync(userId.userId);
+
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId.userId))
                 {
-                    _logger.LogWarning($"UserId {userId} not authorized");
+                    _logger.LogWarning($"UserId {userId.userId} not authorized");
                     return StatusCode(403);
 
                 }
@@ -268,19 +274,21 @@ namespace Web.Api.Controllers
                 }
 
                 var device = new DeviceDatum
-                    {
-                        IpAddress = ip,
-                        BrowserType = browser,
-                        AccessTime = DateTime.UtcNow,
-                        CreatedUserId = userId
+                {
+                    IpAddress = ip,
+                    BrowserType = browser,
+                    AccessTime = DateTime.UtcNow,
+                    CreatedUserId = userId.userId
 
-                    }; 
+                }; 
                 await _unitOfWork.User.CreateAsync(device);
                 await _unitOfWork.SaveChangesAsync();
                 return Ok();
             }
         }
     }
+
+
 }
 
         

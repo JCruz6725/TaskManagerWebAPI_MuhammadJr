@@ -138,7 +138,7 @@ namespace Web.Api.Util
         public UserBuilder AddTask(string taskname, Guid statusId, int priority, Guid taskId, Guid taskItemStatusHistoryId) {
             if (currentList == null) 
             { 
-                throw new Exception("Must add list prior to adding a task item."); 
+                throw new Exception("Must add list prior to adding DevicePostDto task item."); 
             }
 
             TaskItem taskItem = new() {
@@ -209,7 +209,7 @@ namespace Web.Api.Util
         public UserBuilder AddNote(string content, Guid noteId) {
             if (currentTaskItem is null) 
             {
-                throw new Exception("Must create a task item first.");
+                throw new Exception("Must create DevicePostDto task item first.");
             }
 
             currentTaskItem.TaskItemNotes.Add(
@@ -237,7 +237,7 @@ namespace Web.Api.Util
         {
             if(currentTaskItem is null)
             {
-                throw new Exception("Must create a task item first.");
+                throw new Exception("Must create DevicePostDto task item first.");
             }
             currentTaskItem.TaskItemStatusHistories.Add(
                 new TaskItemStatusHistory() { 
@@ -291,7 +291,7 @@ namespace Web.Api.Util
         public UserBuilder LinkTasks(string parent, string child) {
             if (currentList == null) 
             { 
-                throw new Exception("Must add list prior to adding a task item."); 
+                throw new Exception("Must add list prior to adding DevicePostDto task item."); 
             }
 
             user.SubTasks.Add(
