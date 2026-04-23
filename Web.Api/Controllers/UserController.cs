@@ -283,14 +283,8 @@ namespace Web.Api.Controllers
                 }; 
                 await _unitOfWork.User.CreateAsync(device);
                 await _unitOfWork.SaveChangesAsync();
-                return Ok();
+                return StatusCode(200);
             }
         }
     }
-
-
 }
-
-        
-    
-
