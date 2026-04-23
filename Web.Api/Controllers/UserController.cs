@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Matching;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
 using ModelLibrary;
 using Web.Api.Util;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Web.Api.Controllers
 {
@@ -216,6 +219,71 @@ namespace Web.Api.Controllers
             {
                 _logger.LogError($"Login user process failed: {ex.Message}");
                 return StatusCode(500);
+            }
+        }
+
+        [HttpPost("device", Name = "Device")]
+        public async Task<ActionResult<Guid>> Device(DevicePostDto userId)
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+
+            {
+
+                _logger.LogInformation("Initiating Login Succesful");
+
+
+                var t = await _unitOfWork.User.IsUserInDbAsync(userId.userId);
+
+                if (!await _unitOfWork.User.IsUserInDbAsync(userId.userId))
+                {
+                    _logger.LogWarning($"UserId {userId.userId} not authorized");
+                    return StatusCode(403);
+
+                }
+                var rawIp = Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                var ip = "unknown";
+                if (!string.IsNullOrEmpty(rawIp))
+                {
+                    if (rawIp.Contains("::1")) 
+                        ip = "127.0.0.1";
+                    else if (rawIp.Contains("127.0.0.1"))
+                        ip = "127.0.0.1";
+                }
+
+                var secchua = Request.Headers["sec-ch-ua"].ToString();
+
+                var browser = "unknown";
+
+                if (!string.IsNullOrEmpty(secchua))
+                {
+                    if (secchua.Contains("Microsoft Edge"))
+                        browser = "Microsoft Edge ";
+                    else if (secchua.Contains("Google Chrome"))
+                        browser = "Google Chrome";
+                   
+                }
+                else
+                {
+                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+                    
+                    if (userAgent.Contains("Firefox"))
+                        browser = "Firefox";
+                    
+                }
+
+                var device = new DeviceDatum
+                {
+                    IpAddress = ip,
+                    BrowserType = browser,
+                    AccessTime = DateTime.UtcNow,
+                    CreatedUserId = userId.userId
+
+                }; 
+                await _unitOfWork.User.CreateAsync(device);
+                await _unitOfWork.SaveChangesAsync();
+                return StatusCode(200);
             }
         }
     }

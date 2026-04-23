@@ -138,7 +138,7 @@ namespace Web.Api.Util
         public UserBuilder AddTask(string taskname, Guid statusId, int priority, Guid taskId, Guid taskItemStatusHistoryId) {
             if (currentList == null) 
             { 
-                throw new Exception("Must add list prior to adding a task item."); 
+                throw new Exception("Must add list prior to adding DevicePostDto task item."); 
             }
 
             TaskItem taskItem = new() {
