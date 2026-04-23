@@ -166,7 +166,7 @@ namespace Web.Api.Controllers
 
 
  [HttpPost("login", Name = "Login")]
-        public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
+        public async Task<ActionResult<RequireExtraInfoFlagDto>> Login(LoginDto userLoginDto)           //login user method creation
         {
             try
             {
@@ -207,7 +207,7 @@ namespace Web.Api.Controllers
 
                     _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                     _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                    return Ok(new
+                    return Ok(new RequireExtraInfoFlagDto
                     {
                         UserId = userLogin.Id,
                         RequiresExtraInfo = requiresExtraInfo

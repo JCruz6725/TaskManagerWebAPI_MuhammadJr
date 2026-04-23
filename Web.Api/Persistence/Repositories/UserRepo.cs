@@ -60,8 +60,4 @@ namespace Web.Api.Persistence.Repositories
         //method to check if user exists in db by Id
         public async Task<bool> IsUserInDbAsync(Guid userId) => await _context.Users.AnyAsync(u => u.Id == userId);
     }
-
-  
-
-    // address and profie 
 }
