@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ModelLibrary;
 using Web.Api.scaffolding_temp_folder;
 
@@ -42,7 +43,20 @@ namespace Web.Api.Persistence.Repositories
 
             return await _context.Passwords.Where(ui => ui.CreatedUserId == userId).OrderByDescending(x => x.CreatedDate).ToListAsync();
         }
+        public async Task CreateAddressAsync(Address address)
+        {
+            await _context.AddAsync(address);
+        }
 
+        public async Task CreateProfileAsync(Profile profile)
+        {
+            await _context.AddAsync(profile);
+        }
+
+        public async Task<bool> HasExtraInfoAsync(Guid userId)
+        {
+            return await _context.Profiles.AnyAsync (x => x.CreatedUserId == userId); 
+        } 
         //method to check if user exists in db by Id
         public async Task<bool> IsUserInDbAsync(Guid userId) => await _context.Users.AnyAsync(u => u.Id == userId);
     }

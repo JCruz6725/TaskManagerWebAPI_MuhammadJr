@@ -1,9 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
+using ModelLibrary;
+using System.Reflection.Metadata.Ecma335;
 using Web.Api.Dto.Request;
 using Web.Api.Persistence;
-using ModelLibrary;
+using Web.Api.Persistence.Repositories;
+using Web.Api.scaffolding_temp_folder;
 using Web.Api.Util;
 
 namespace Web.Api.Controllers
@@ -13,11 +17,18 @@ namespace Web.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly UnitOfWork _unitOfWork;                         //private readonly field to access the UofW class
+        private readonly PurposeTypeOptions purposeTypeOptions;
+        private readonly LicenseTypeOptions licenseTypeOptions;
         private readonly ILogger<UserController> _logger;
-        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger)                    //constructor for the UofW that acceses the private field
+
+        public UserController(UnitOfWork unitOfWork, ILogger<UserController> logger,
+            IOptions<LicenseTypeOptions> licenseOptions,
+            IOptions<PurposeTypeOptions> purposeOptions)                    //constructor for the UofW that acceses the private field
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            purposeTypeOptions = purposeOptions.Value;
+            licenseTypeOptions = licenseOptions.Value;
         }
 
         [HttpPost(Name = "RegisterUser")]                              //Http post request 
@@ -85,8 +96,77 @@ namespace Web.Api.Controllers
         }
 
 
-        [HttpPost("login", Name = "Login")]
-        public async Task<ActionResult<Guid>> Login(LoginDto userLoginDto)           //login user method creation
+        [HttpPost( "ExtraInfo")]
+        public async Task<ActionResult<Guid>> ExtraInfo([FromHeader]Guid userId , [FromBody] NewExtraInfoDto newExtraInfoDto)     //resgister User method user creation
+        {
+            using (_logger.BeginScope(new Dictionary<string, object> { ["TransactionId"] = HttpContext.TraceIdentifier, }))
+            {
+                _logger.LogInformation("Intiating ExtraInfo Method");
+
+                if (newExtraInfoDto == null)
+                {
+                    _logger.LogWarning("ExtraInfo payload is null");
+                    return BadRequest("Invalid Payload ");
+                }
+                _logger.LogInformation($"Fetching users with Id{userId}");
+                User? user = await _unitOfWork.User.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning($"User not found with id {userId}");
+                     return NotFound("User Not Found");
+                 }
+                _logger.LogInformation($"Resolving license type for :{newExtraInfoDto.LicenseTitle}");
+                Guid licenseId = newExtraInfoDto.LicenseTitle.ToLower() switch
+                {
+                    "paid" => licenseTypeOptions.PaidId,
+                    "free" => licenseTypeOptions.FreeId
+                };
+
+                _logger.LogInformation($"Resolving purpose type for:{newExtraInfoDto.PurposeTitle}");  
+                Guid purposeId = newExtraInfoDto.PurposeTitle.ToLower() switch
+                {
+                    "work" => purposeTypeOptions.WorkId,
+                    "education" => purposeTypeOptions.EducationId,
+                    "personal" => purposeTypeOptions.PersonalId
+                };
+
+                _logger.LogInformation($"Creating address for user {userId}");
+                Address address = new Address
+                {
+                    Address1 = newExtraInfoDto.Address1,
+                    City = newExtraInfoDto.City,
+                    State = newExtraInfoDto.State,
+                    Zipcode = newExtraInfoDto.ZipCode,
+                    CreatedUserId = user.Id
+                };
+                _logger.LogInformation($"Creating profile for user {userId}");
+                Profile newProfile = new Profile
+                {
+                    DateOfBirth = newExtraInfoDto.DateOfBirth,
+                    PhoneNumber = newExtraInfoDto.PhoneNumber,
+                    Gender = newExtraInfoDto.Gender,
+                    Education = newExtraInfoDto.Education,
+                    Employer =  newExtraInfoDto.Employer,
+                    JobTitle = newExtraInfoDto.JobTitle,
+                    CreatedUserId = user.Id,
+                    LicenseId = licenseId,
+                    PurposeId = purposeId
+                };
+               
+                await _unitOfWork.User.CreateProfileAsync(newProfile);
+                _logger.LogInformation($"Profile succesfully create for user {userId}");
+                await _unitOfWork.User.CreateAddressAsync(address);
+                _logger.LogInformation($"Address succesfully created for user{userId}");
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation($"ExtraInfo saved succesfully, returning the userId {userId}");
+
+                return Ok(userId);                         
+            }
+        }
+
+
+ [HttpPost("login", Name = "Login")]
+        public async Task<ActionResult<RequireExtraInfoFlagDto>> Login(LoginDto userLoginDto)           //login user method creation
         {
             try
             {
@@ -121,10 +201,17 @@ namespace Web.Api.Controllers
                         _logger.LogWarning("Password creation date has exceeded 60 days");
                         return Unauthorized("Password has expired, please reset the password.");
                     }
+                    _logger.LogInformation("Checking if existing user has a profile");
+                    bool hasExtraInfo = await _unitOfWork.User.HasExtraInfoAsync(userLogin.Id);
+                    bool requiresExtraInfo = !hasExtraInfo;
 
                     _logger.LogInformation($"User has logged in successfully: {userLoginDto.Email}");
                     _logger.LogInformation($"Returning user login id {userLogin.Id}");
-                    return Ok(userLogin.Id); // return the registered GUID Id of that user
+                    return Ok(new RequireExtraInfoFlagDto
+                    {
+                        UserId = userLogin.Id,
+                        RequiresExtraInfo = requiresExtraInfo
+                    }); // return the registered GUID Id of that user
                 }
             }
             catch (Exception ex)
