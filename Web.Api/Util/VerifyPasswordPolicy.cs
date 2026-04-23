@@ -13,7 +13,7 @@ namespace Web.Api.Util
             {
                 return false;
             }
-            Regex regex = new Regex(@"[^DevicePostDto-zA-Z0-9\s]");
+            Regex regex = new Regex(@"[^a-zA-Z0-9\s]");
             if (!regex.IsMatch(password)) //if there are no special chars
             {
                 return false;

@@ -115,7 +115,7 @@ namespace Web.Api.Util {
                         .AddStatus(statusChange.CompleteId, new Guid("7799ba7f-b21a-4853-b354-a1bf85aea3e1"))                    
                     .AddTask(taskname: "Replace Spark plugs", statusId: statusChange.PendingId, priority: 45, taskId: new Guid("524f6219-9843-4752-b7d2-0370310272db"), taskItemStatusHistoryId: new Guid("48ed3625-c94a-42ac-a36e-b955445204a2"))
                         .AddNote("The plugs were fouled from the last test run.", new Guid("c05b2426-a930-42dd-a406-e91a74bf628b"))
-                        .AddNote("Auto parts store has DevicePostDto set for $23.45 out the door.", new Guid("d1d73a46-ef17-420d-9343-d9dd42b69dfa"))
+                        .AddNote("Auto parts store has a set for $23.45 out the door.", new Guid("d1d73a46-ef17-420d-9343-d9dd42b69dfa"))
                         .AddNote("Check the price of new distributor and plug wires while at the auto parts store.", new Guid("d55cb6b5-03de-4dc4-9e41-aae6aac1a223"))
 
                     .LinkTasks("Test Drive", "Add water")
